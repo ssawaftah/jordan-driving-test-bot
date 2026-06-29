@@ -63,10 +63,14 @@ async function sendWelcome(chatId, isAdmin) {
   const text = data.text || DEFAULT_TEXT;
   const photo = data.photo || null;
   
-  const kb = { inline_keyboard: [
-    [{ text: "📱 افتح تطبيق الدراسة", web_app: { url: APP_URL } }]
-  ]};
+  const kb = { inline_keyboard: [] };
   
+  // المستخدم العادي فقط يرى زر التطبيق
+  if (!isAdmin) {
+    kb.inline_keyboard.push([{ text: "📱 افتح تطبيق الدراسة", web_app: { url: APP_URL } }]);
+  }
+  
+  // الأدمن فقط يرى زر الإدارة
   if (isAdmin) {
     kb.inline_keyboard.push([{ text: "⚙️ إدارة رسالة الترحيب", callback_data: "admin_welcome" }]);
   }
@@ -101,8 +105,7 @@ async function handleMessage(msg) {
     data.text = text;
     await saveWelcomeData(data);
     sessions[userId] = null;
-    await sendMsg(chatId, "✅ <b>تم تحديث نص الترحيب!</b>");
-    await sendWelcome(chatId, true);
+    await sendMsg(chatId, "✅ <b>تم تحديث نص الترحيب بنجاح!</b>");
     return;
   }
   
@@ -111,8 +114,7 @@ async function handleMessage(msg) {
     data.photo = text.trim();
     await saveWelcomeData(data);
     sessions[userId] = null;
-    await sendMsg(chatId, "✅ <b>تم تحديث صورة الترحيب!</b>");
-    await sendWelcome(chatId, true);
+    await sendMsg(chatId, "✅ <b>تم تحديث صورة الترحيب بنجاح!</b>");
     return;
   }
 }
@@ -164,15 +166,13 @@ async function handleCallback(cb) {
     const wData = await getWelcomeData();
     wData.photo = null;
     await saveWelcomeData(wData);
-    await editMsg(chatId, msgId, "✅ <b>تم حذف الصورة!</b>");
-    await sendWelcome(chatId, true);
+    await editMsg(chatId, msgId, "✅ <b>تم حذف الصورة بنجاح!</b>");
     return;
   }
   
   if (data === 'reset_default') {
     await saveWelcomeData({ text: DEFAULT_TEXT, photo: null });
-    await editMsg(chatId, msgId, "✅ <b>تمت إعادة النص الافتراضي!</b>");
-    await sendWelcome(chatId, true);
+    await editMsg(chatId, msgId, "✅ <b>تمت إعادة النص الافتراضي بنجاح!</b>");
     return;
   }
 }
