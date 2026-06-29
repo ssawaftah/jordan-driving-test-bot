@@ -49,13 +49,18 @@ async function answerCb(cbId, text = null, alert = false) {
 }
 
 // ============ النص الافتراضي ============
-const DEFAULT_TEXT = `اهلا بك في بوت الفحص النظري الشامل 2026 👋
+const DEFAULT_TEXT = `أهلاً بك في بوت الفحص النظري الشامل 2026 👋
 
-إذا كنت تستعد لتقديم اختبار القيادة النظري في الأردن فإن دراسة المادة النظرية بشكل جيد تعتبر الخطوة الأهم للنجاح في الفحص من المرة الأولى. في هذه الصفحة يمكنك مراجعة أسئلة اختبار السواقة مع الإجابات الصحيحة والشرح التوضيحي لكل سؤال لمساعدتك على فهم المادة بشكل أفضل.
+إذا كنت تستعد لتقديم اختبار القيادة النظري في الأردن، فإن دراسة المادة النظرية بشكل جيد تُعد الخطوة الأهم للنجاح في الفحص من المرة الأولى.
 
-تم تقسيم المادة إلى عدة أقسام رئيسية مثل قواعد السير والمرور و الميكانيك و السلامة على الطريق و الإسعافات الأولية و الشواخص المرورية والخطوط الأرضية إضافة إلى المخالفات المرورية واحتساب النقاط. يمكنك اختيار القسم الذي تريد دراسته ومراجعة الأسئلة الخاصة به خطوة بخطوة.
+📘 <b>قواعد السير والمرور</b>
+🔧 <b>الميكانيك</b>
+🛡️ <b>السلامة على الطريق</b>
+🚑 <b>الإسعافات الأولية</b>
+🚸 <b>الشواخص المرورية والخطوط الأرضية</b>
+⚖️ <b>المخالفات المرورية واحتساب النقاط</b>
 
-ننصحك بدراسة جميع الأقسام جيدًا قبل الدخول إلى اختبار القيادة النظري حتى تكون مستعدًا بشكل كامل لاجتياز الفحص النظري للسواقة بثقة ونجاح.`;
+ننصحك بدراسة جميع الأقسام جيدًا قبل الدخول إلى اختبار القيادة النظري.`;
 
 // ============ إرسال رسالة الترحيب ============
 async function sendWelcome(chatId, isAdmin) {
@@ -91,27 +96,42 @@ async function sendVerificationCode(userId, phone) {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = Date.now() + 5 * 60 * 1000;
   
-  await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`, {
+  // تخزين بيانات التحقق المؤقتة
+  await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code, phone, expiresAt })
   });
 
-  await sendMsg(userId, `🔐 <b>رمز التحقق:</b> <code>${code}</code>\n\nهذا الرمز صالح لمدة 5 دقائق. أدخله في التطبيق للمتابعة.`);
+  // إرسال رسالة للمستخدم تحتوي على الرمز
+  await sendMsg(userId, `🔐 <b>رمز التحقق:</b> <code>${code}</code>\n\nجاري التحقق تلقائياً... إذا لم يكتمل، استخدم هذا الرمز.`);
+
   return { success: true };
 }
 
 async function verifyCode(userId, code) {
-  const ref = await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`);
+  const ref = await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`);
   const data = await ref.json();
-  if (!data) return { success: false, error: "لم يتم طلب رمز تحقق. اطلب رمزاً جديداً." };
+  if (!data) return { success: false, error: "لم يتم طلب رمز تحقق." };
   if (Date.now() > data.expiresAt) {
-    await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`, { method: 'DELETE' });
+    await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`, { method: 'DELETE' });
     return { success: false, error: "انتهت صلاحية الرمز. اطلب رمزاً جديداً." };
   }
   if (data.code !== code) return { success: false, error: "الرمز غير صحيح." };
   
-  await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`, { method: 'DELETE' });
+  // حفظ رقم الهاتف في بيانات المستخدم
+  await fetch(`${FIREBASE_URL}/users/${userId}/phone.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data.phone)
+  });
+
+  // حذف التحقق المؤقت
+  await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`, { method: 'DELETE' });
+
+  // إرسال رسالة تأكيد للمستخدم في البوت
+  await sendMsg(userId, "✅ <b>تم التحقق من رقم هاتفك بنجاح!</b>");
+
   return { success: true, phone: data.phone };
 }
 
