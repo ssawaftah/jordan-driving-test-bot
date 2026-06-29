@@ -13,7 +13,7 @@ cred_dict = {
     "type": "service_account",
     "project_id": "al3arbicv",
     "private_key_id": "94fed52b41652433ad3e2fe36026979f7eddcbfe",
-    "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace('\\n', '\n'),
+    "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", ""),
     "client_email": "firebase-adminsdk-nnswm@al3arbicv.iam.gserviceaccount.com",
     "client_id": "101502612516719102132",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
