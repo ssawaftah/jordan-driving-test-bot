@@ -85,56 +85,6 @@ async function sendWelcome(chatId, isAdmin) {
   }
 }
 
-// ============ دوال رمز التحقق ============
-async function sendVerificationCode(userId, phone) {
-  try {
-    await tg('sendChatAction', { chat_id: userId, action: 'typing' });
-  } catch (e) {
-    return { success: false, error: "عذراً، لا يمكن التواصل مع حسابك. تأكد من أنك بدأت محادثة مع البوت بالضغط على /start." };
-  }
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 5 * 60 * 1000;
-  
-  // تخزين بيانات التحقق المؤقتة
-  await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, phone, expiresAt })
-  });
-
-  // إرسال رسالة للمستخدم تحتوي على الرمز
-  await sendMsg(userId, `🔐 <b>رمز التحقق:</b> <code>${code}</code>\n\nجاري التحقق تلقائياً... إذا لم يكتمل، استخدم هذا الرمز.`);
-
-  return { success: true };
-}
-
-async function verifyCode(userId, code) {
-  const ref = await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`);
-  const data = await ref.json();
-  if (!data) return { success: false, error: "لم يتم طلب رمز تحقق." };
-  if (Date.now() > data.expiresAt) {
-    await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`, { method: 'DELETE' });
-    return { success: false, error: "انتهت صلاحية الرمز. اطلب رمزاً جديداً." };
-  }
-  if (data.code !== code) return { success: false, error: "الرمز غير صحيح." };
-  
-  // حفظ رقم الهاتف في بيانات المستخدم
-  await fetch(`${FIREBASE_URL}/users/${userId}/phone.json`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data.phone)
-  });
-
-  // حذف التحقق المؤقت
-  await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`, { method: 'DELETE' });
-
-  // إرسال رسالة تأكيد للمستخدم في البوت
-  await sendMsg(userId, "✅ <b>تم التحقق من رقم هاتفك بنجاح!</b>");
-
-  return { success: true, phone: data.phone };
-}
-
 // ============ handleMessage ============
 async function handleMessage(msg) {
   const chatId = msg.chat.id;
@@ -144,13 +94,17 @@ async function handleMessage(msg) {
 
   if (msg.contact) {
     const phone = msg.contact.phone_number;
+    // حفظ الرقم في Firebase
     await fetch(`${FIREBASE_URL}/users/${userId}/phone.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(phone)
     });
+
+    // رابط العودة للتطبيق مع متغيرات النجاح
+    const appUrlWithSuccess = `${APP_URL}?phone_verified=1&phone=${encodeURIComponent(phone)}`;
     const backKeyboard = {
-      inline_keyboard: [[{ text: "✅ العودة للتطبيق", web_app: { url: APP_URL } }]]
+      inline_keyboard: [[{ text: "✅ العودة للتطبيق", web_app: { url: appUrlWithSuccess } }]]
     };
     await sendMsg(chatId, "✅ تم استلام رقم هاتفك بنجاح! يمكنك العودة للتطبيق الآن.", backKeyboard);
     return;
@@ -170,6 +124,7 @@ async function handleMessage(msg) {
     return;
   }
 
+  // معالجات الأدمن
   const s = sessions[userId];
   if (!s || !s.step) return;
 
@@ -265,36 +220,6 @@ export default {
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
-    }
-
-    if (request.method === 'POST' && url.pathname === '/send-code') {
-      try {
-        const { userId, phone } = await request.json();
-        const result = await sendVerificationCode(userId, phone);
-        return new Response(JSON.stringify(result), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      } catch (e) {
-        return new Response(JSON.stringify({ success: false, error: e.message }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-    }
-
-    if (request.method === 'POST' && url.pathname === '/verify-code') {
-      try {
-        const { userId, code } = await request.json();
-        const result = await verifyCode(userId, code);
-        return new Response(JSON.stringify(result), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      } catch (e) {
-        return new Response(JSON.stringify({ success: false, error: e.message }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
     }
 
     if (request.method === 'POST') {
