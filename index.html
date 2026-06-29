@@ -168,7 +168,7 @@
         .loading-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -199,12 +199,6 @@
         .decorative-line {
             width: 48px; height: 4px; background: var(--gold);
             border-radius: 2px; margin: 0 auto 20px;
-        }
-
-        .phone-success-box {
-            background: #e8f5e9; padding: 14px; border-radius: 12px;
-            color: #2e7d32; font-weight: 600; margin: 12px 0;
-            display: flex; align-items: center; gap: 8px;
         }
     </style>
 </head>
@@ -261,26 +255,12 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">رقم الهاتف</label>
-                    <div id="phoneDisplay" class="phone-success-box" style="display:none;">
-                        <i class="ph ph-check-circle"></i> <span id="phoneValue"></span>
-                    </div>
-                    <button class="btn btn-outline" onclick="requestPhoneViaBot()" id="sharePhoneBtn">
-                        <i class="ph ph-phone"></i> مشاركة رقم الهاتف عبر Telegram
-                    </button>
-                    <p style="font-size:12px; color:var(--text-light); margin-top:8px;">سيتم فتح محادثة البوت لمشاركة رقمك الحقيقي المرتبط بحسابك.</p>
+                    <input type="tel" class="form-input" id="phoneInput" placeholder="مثال: 0791234567">
                 </div>
+                <button class="btn btn-primary" onclick="completeRegistration()" style="margin-top:20px;">
+                    موافق
+                </button>
             </div>
-
-            <!-- شاشة التحميل (تظهر داخل الشاشة) -->
-            <div id="loadingOverlay" class="loading-overlay" style="display:none;">
-                <div class="loading-spinner"></div>
-                <p style="font-weight:600; color:var(--text);">جارٍ التحقق...</p>
-                <p style="font-size:14px; color:var(--text-light); margin-top:8px;">يرجى مشاركة رقمك في البوت</p>
-            </div>
-
-            <button class="btn btn-primary" id="registerBtn" onclick="completeRegistration()" style="margin-top:20px;" disabled>
-                موافق
-            </button>
         </div>
 
         <!-- الصفحة الرئيسية بعد التسجيل -->
@@ -318,6 +298,12 @@
                 <i class="ph ph-caret-left" style="color:#ccc; font-size:20px;"></i>
             </div>
         </div>
+
+        <!-- شاشة التحميل العامة -->
+        <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+            <div class="loading-spinner"></div>
+            <p id="loadingText" style="font-weight:600; color:var(--text);">جارٍ التسجيل...</p>
+        </div>
     </div>
 
     <script>
@@ -332,139 +318,93 @@
         tg.ready();
         tg.expand();
 
-        let phoneNumber = '';
-        let isPhoneVerified = false;
         let currentScreen = 'landingScreen';
-        let phoneListener = null;
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if (currentScreen === 'registerScreen' && id !== 'registerScreen') stopAllListeners();
             currentScreen = id;
         }
 
+        function showLoading(text = 'جارٍ التسجيل...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // التحقق من التسجيل المسبق
         async function checkUserRegistration() {
             if (tg.initDataUnsafe?.user?.id) {
                 const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
-                return !!snap.val();
+                if (snap.val()) return true;
             }
             return false;
         }
 
         async function handleStart() {
             if (await checkUserRegistration()) {
+                // استرجاع الاسم للترحيب
+                const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
+                const user = snap.val();
+                document.getElementById('greetingText').textContent = 'أهلاً بك، ' + user.name + '! منصتك للاستعداد لاختبار السواقة النظري.';
                 showScreen('homeScreen');
             } else {
                 showScreen('registerScreen');
             }
         }
 
-        // ============ مشاركة رقم الهاتف ============
-        function requestPhoneViaBot() {
-            // إظهار شاشة التحميل
-            document.getElementById('registrationForm').style.display = 'none';
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            
-            // فتح البوت
-            tg.openTelegramLink('https://t.me/Jordan_Driving_Test_2026_Bot?start=share_phone');
-            
-            // بدء الاستماع لوصول الرقم
-            startListeningForPhone();
-        }
-
-        function startListeningForPhone() {
-            const userId = tg.initDataUnsafe?.user?.id;
-            if (!userId) return;
-            stopPhoneListener();
-            phoneListener = db.ref(`users/${userId}/phone`).on('value', async (snap) => {
-                const phone = snap.val();
-                if (phone) {
-                    stopPhoneListener();
-                    phoneNumber = phone;
-                    isPhoneVerified = true;
-
-                    // إخفاء التحميل وإظهار رسالة نجاح
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                    tg.showAlert('✅ تم التحقق من رقم هاتفك بنجاح!');
-
-                    // تسجيل الدخول تلقائياً والانتقال للصفحة الرئيسية
-                    const name = document.getElementById('fullName').value.trim() || 'مستخدم';
-                    await db.ref('users/' + userId).update({
-                        name: name,
-                        phone: phoneNumber,
-                        username: tg.initDataUnsafe.user.username || '',
-                        registeredAt: new Date().toISOString()
-                    });
-                    
-                    document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '! منصتك للاستعداد لاختبار السواقة النظري.';
-                    showScreen('homeScreen');
-                }
-            });
-        }
-
-        function stopPhoneListener() {
-            if (phoneListener) {
-                const userId = tg.initDataUnsafe?.user?.id;
-                if (userId) db.ref(`users/${userId}/phone`).off('value', phoneListener);
-                phoneListener = null;
-            }
-        }
-
-        function stopAllListeners() {
-            stopPhoneListener();
-        }
-
-        // التحقق من نجاح التحقق عند العودة من البوت (عبر الرابط)
-        (async function checkAutoLogin() {
-            const params = new URLSearchParams(window.location.search);
-            const phoneVerified = params.get('phone_verified');
-            const phoneFromUrl = params.get('phone');
-            if (phoneVerified === '1' && phoneFromUrl) {
-                phoneNumber = phoneFromUrl;
-                isPhoneVerified = true;
-                // تنظيف الرابط
-                window.history.replaceState({}, document.title, window.location.pathname);
-                
-                if (currentScreen === 'registerScreen') {
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                    document.getElementById('registrationForm').style.display = 'none';
-                    tg.showAlert('✅ تم التحقق من رقم هاتفك بنجاح!');
-                    
-                    const name = document.getElementById('fullName').value.trim() || 'مستخدم';
-                    const userId = tg.initDataUnsafe?.user?.id;
-                    if (userId) {
-                        await db.ref('users/' + userId).update({
-                            name: name,
-                            phone: phoneNumber,
-                            username: tg.initDataUnsafe.user.username || '',
-                            registeredAt: new Date().toISOString()
-                        });
-                    }
-                    document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '!';
-                    showScreen('homeScreen');
-                }
-            }
-        })();
-
-        // زر موافق (للحالات اليدوية)
+        // التسجيل الجديد
         async function completeRegistration() {
             const name = document.getElementById('fullName').value.trim();
-            if (!name) { tg.showAlert('الرجاء إدخال اسمك الكامل'); return; }
-            if (!isPhoneVerified) { tg.showAlert('الرجاء مشاركة رقم الهاتف أولاً'); return; }
+            const phone = document.getElementById('phoneInput').value.trim();
+
+            if (!name) {
+                tg.showAlert('الرجاء إدخال اسمك الكامل');
+                return;
+            }
+            if (!phone || phone.length < 10) {
+                tg.showAlert('الرجاء إدخال رقم هاتف صحيح');
+                return;
+            }
+            if (!tg.initDataUnsafe?.user?.id) {
+                tg.showAlert('تعذر التحقق من حسابك');
+                return;
+            }
+
+            // إظهار شاشة التحميل
+            document.getElementById('registrationForm').style.display = 'none';
+            showLoading('جارٍ التسجيل...');
 
             const userId = tg.initDataUnsafe.user.id;
-            await db.ref('users/' + userId).update({
-                name: name,
-                phone: phoneNumber,
+            const userData = {
+                name,
+                phone,
                 username: tg.initDataUnsafe.user.username || '',
+                userId,
                 registeredAt: new Date().toISOString()
-            });
-            document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '!';
-            showScreen('homeScreen');
+            };
+
+            try {
+                await db.ref('users/' + userId).set(userData);
+                
+                // محاكاة تأخير بسيط لإظهار التحميل (اختياري)
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                hideLoading();
+                tg.showAlert('✅ تم التسجيل بنجاح!');
+                document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '! منصتك للاستعداد لاختبار السواقة النظري.';
+                showScreen('homeScreen');
+            } catch (e) {
+                hideLoading();
+                document.getElementById('registrationForm').style.display = 'block';
+                tg.showAlert('حدث خطأ في التسجيل. حاول مرة أخرى.');
+            }
         }
 
-        // ملء الاسم تلقائياً
+        // ملء الاسم تلقائياً من تيليجرام
         if (tg.initDataUnsafe?.user?.first_name) {
             document.getElementById('fullName').value = tg.initDataUnsafe.user.first_name;
         }
