@@ -1,6 +1,7 @@
 const BOT_TOKEN = "8993443266:AAFUQsnrVjRpYjox5OQoHUg_CacbuC-leek";
 const FIREBASE_URL = "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app";
 const ADMIN_ID = 1376513623;
+const APP_URL = "https://ssawaftah.github.io/jordan-driving-test-bot/";
 
 // ============ Firebase ============
 async function getWelcomeData() {
@@ -25,8 +26,8 @@ async function tg(method, body) {
   });
 }
 
-async function sendMsg(chatId, text, kb = null, parseMode = 'HTML') {
-  const body = { chat_id: chatId, text, parse_mode: parseMode };
+async function sendMsg(chatId, text, kb = null) {
+  const body = { chat_id: chatId, text, parse_mode: 'HTML' };
   if (kb) body.reply_markup = JSON.stringify(kb);
   return tg('sendMessage', body);
 }
@@ -57,15 +58,23 @@ const DEFAULT_TEXT = `اهلا بك في بوت الفحص النظري الشا
 ننصحك بدراسة جميع الأقسام جيدًا قبل الدخول إلى اختبار القيادة النظري حتى تكون مستعدًا بشكل كامل لاجتياز الفحص النظري للسواقة بثقة ونجاح.`;
 
 // ============ إرسال رسالة الترحيب ============
-async function sendWelcome(chatId) {
+async function sendWelcome(chatId, isAdmin) {
   const data = await getWelcomeData();
   const text = data.text || DEFAULT_TEXT;
   const photo = data.photo || null;
   
+  const kb = { inline_keyboard: [
+    [{ text: "📱 افتح تطبيق الدراسة", web_app: { url: APP_URL } }]
+  ]};
+  
+  if (isAdmin) {
+    kb.inline_keyboard.push([{ text: "⚙️ إدارة رسالة الترحيب", callback_data: "admin_welcome" }]);
+  }
+  
   if (photo) {
-    await sendPhoto(chatId, photo, text);
+    await sendPhoto(chatId, photo, text, kb);
   } else {
-    await sendMsg(chatId, text);
+    await sendMsg(chatId, text, kb);
   }
 }
 
@@ -80,41 +89,30 @@ async function handleMessage(msg) {
   const isAdmin = userId === ADMIN_ID;
   
   if (text === '/start') {
-    await sendWelcome(chatId);
-    
-    // زر الأدمن
-    if (isAdmin) {
-      const kb = { inline_keyboard: [
-        [{ text: "⚙️ إدارة رسالة الترحيب", callback_data: "admin_welcome" }]
-      ]};
-      await sendMsg(chatId, "🔧 <b>لوحة الأدمن</b>", kb);
-    }
+    await sendWelcome(chatId, isAdmin);
     return;
   }
   
-  // معالجة خطوات الأدمن
   const s = sessions[userId];
   if (!s || !s.step) return;
   
   if (s.step === 'edit_text') {
-    // حفظ النص الجديد
     const data = await getWelcomeData();
     data.text = text;
     await saveWelcomeData(data);
     sessions[userId] = null;
     await sendMsg(chatId, "✅ <b>تم تحديث نص الترحيب!</b>");
-    await sendWelcome(chatId);
+    await sendWelcome(chatId, true);
     return;
   }
   
   if (s.step === 'edit_photo') {
-    // حفظ رابط الصورة
     const data = await getWelcomeData();
     data.photo = text.trim();
     await saveWelcomeData(data);
     sessions[userId] = null;
     await sendMsg(chatId, "✅ <b>تم تحديث صورة الترحيب!</b>");
-    await sendWelcome(chatId);
+    await sendWelcome(chatId, true);
     return;
   }
 }
@@ -133,7 +131,6 @@ async function handleCallback(cb) {
   
   await answerCb(cb.id);
   
-  // قائمة إدارة الترحيب
   if (data === 'admin_welcome') {
     const kb = { inline_keyboard: [
       [{ text: "📝 تعديل نص الترحيب", callback_data: "edit_text" }],
@@ -151,35 +148,31 @@ async function handleCallback(cb) {
     return;
   }
   
-  // تعديل النص
   if (data === 'edit_text') {
     sessions[userId] = { step: 'edit_text' };
     await editMsg(chatId, msgId, "📝 أرسل نص الترحيب الجديد:\n\n<i>يدعم تنسيق HTML</i>");
     return;
   }
   
-  // تعيين صورة
   if (data === 'edit_photo') {
     sessions[userId] = { step: 'edit_photo' };
-    await editMsg(chatId, msgId, "🖼 أرسل رابط الصورة:\n\n<i>يجب أن يكون رابط مباشر (ينتهي بـ .jpg .png .gif)</i>");
+    await editMsg(chatId, msgId, "🖼 أرسل رابط الصورة:\n\n<i>يجب أن يكون رابط مباشر</i>");
     return;
   }
   
-  // حذف الصورة
   if (data === 'delete_photo') {
     const wData = await getWelcomeData();
     wData.photo = null;
     await saveWelcomeData(wData);
     await editMsg(chatId, msgId, "✅ <b>تم حذف الصورة!</b>");
-    await sendWelcome(chatId);
+    await sendWelcome(chatId, true);
     return;
   }
   
-  // إعادة للنص الافتراضي
   if (data === 'reset_default') {
     await saveWelcomeData({ text: DEFAULT_TEXT, photo: null });
     await editMsg(chatId, msgId, "✅ <b>تمت إعادة النص الافتراضي!</b>");
-    await sendWelcome(chatId);
+    await sendWelcome(chatId, true);
     return;
   }
 }
