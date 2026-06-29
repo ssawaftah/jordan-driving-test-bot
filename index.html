@@ -153,6 +153,7 @@
         }
         .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(36, 107, 253, .08); }
         textarea.form-input { height: auto; padding: 16px; min-height: 120px; resize: vertical; }
+        select.form-input { appearance: none; -webkit-appearance: none; }
 
         .btn-card {
             background: white;
@@ -262,12 +263,24 @@
             margin-bottom: 10px;
             display: flex; align-items: center; justify-content: space-between;
         }
+
+        /* شاشات الإدارة - إخفاء كامل للقائمة السابقة */
+        .admin-fullscreen {
+            position: fixed;
+            inset: 0;
+            background: white;
+            z-index: 500;
+            padding: 20px;
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease;
+        }
     </style>
 </head>
 <body>
 <div class="container">
 
-    <header class="app-header">
+    <!-- ==================== هيدر المستخدم ==================== -->
+    <header class="app-header" id="userHeader">
         <div class="header-brand">
             <div class="header-logo"><i class="ph ph-car"></i></div>
             <div>
@@ -277,7 +290,18 @@
         </div>
     </header>
 
-    <!-- الصفحة الرئيسية -->
+    <!-- ==================== هيدر الأدمن ==================== -->
+    <header class="app-header" id="adminHeader" style="display:none; background: #1F2937; color: white;">
+        <div class="header-brand">
+            <div class="header-logo" style="background: rgba(255,255,255,0.15); color: white;"><i class="ph ph-shield-check"></i></div>
+            <div>
+                <div class="header-title" style="color:white;">لوحة التحكم</div>
+                <div class="header-subtitle" style="color: rgba(255,255,255,0.7);">مشرف النظام</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== شاشات المستخدم ==================== -->
     <div id="landingScreen" class="screen active">
         <div class="hero-section">
             <div class="hero-icon"><i class="ph ph-clipboard-text"></i></div>
@@ -293,7 +317,6 @@
         <button class="btn btn-primary" onclick="handleStart()">ابدأ</button>
     </div>
 
-    <!-- شاشة التسجيل -->
     <div id="registerScreen" class="screen">
         <div style="text-align:center;margin-bottom:30px;">
             <h1 class="main-title" style="font-size:26px;">أهلاً بك</h1>
@@ -306,7 +329,6 @@
         </div>
     </div>
 
-    <!-- الصفحة الرئيسية بعد التسجيل -->
     <div id="homeScreen" class="screen">
         <div style="text-align:center;margin-bottom:28px;">
             <h1 class="main-title">اختبار الفحص النظري</h1>
@@ -317,59 +339,42 @@
         <div class="btn-card" onclick="openTrainingCenters()"><div class="card-icon gold"><i class="ph ph-map-pin"></i></div><div class="card-content"><div class="card-title">مراكز تدريب القيادة القريبة</div><div class="card-desc">اعثر على أقرب مركز تدريب معتمد</div></div><i class="ph ph-caret-left"></i></div>
     </div>
 
-    <!-- شاشة مراكز التدريب -->
     <div id="trainingCentersScreen" class="screen">
         <div id="govLevel"><button class="back-btn" onclick="showScreen('homeScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;">المحافظات</h2><div class="search-box"><i class="ph ph-magnifying-glass"></i><input type="text" class="form-input" id="govSearch" placeholder="ابحث عن محافظة..." oninput="filterGovernorates()"></div><div class="location-list" id="govList"></div></div>
         <div id="areaLevel" style="display:none;"><button class="back-btn" onclick="goToGovernorates()"><i class="ph ph-arrow-right"></i> رجوع للمحافظات</button><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;" id="areaTitle">المناطق</h2><div class="search-box"><i class="ph ph-magnifying-glass"></i><input type="text" class="form-input" id="areaSearch" placeholder="ابحث عن منطقة..." oninput="filterAreas()"></div><div class="location-list" id="areaList"></div></div>
         <div id="centerLevel" style="display:none;"><button class="back-btn" onclick="goToAreas()"><i class="ph ph-arrow-right"></i> رجوع للمناطق</button><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;" id="centerTitle">مراكز التدريب</h2><div id="centerList"></div></div>
     </div>
 
-    <!-- لوحة تحكم الأدمن -->
-    <div id="adminScreen" class="screen">
-        <button class="back-btn" onclick="showScreen('landingScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button>
+    <!-- ==================== شاشات الأدمن (تظهر داخل container عند الحاجة) ==================== -->
+    <div id="adminMainScreen" class="screen">
         <h2 style="font-size:22px;font-weight:800;margin-bottom:20px;">🔧 لوحة تحكم المشرف</h2>
-        
-        <div id="adminMainMenu">
-            <button class="btn btn-primary" onclick="showWelcomeManager()" style="margin-bottom:12px;">⚙️ إدارة رسالة الترحيب</button>
-            <button class="btn btn-primary" onclick="showCentersManager()" style="margin-bottom:12px;">🏢 إدارة مراكز التدريب</button>
-        </div>
-
-        <!-- قسم إدارة رسالة الترحيب -->
-        <div id="welcomeManager" style="display:none;">
-            <button class="back-btn" onclick="backToAdminMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
-            <h3 style="margin-bottom:16px;">⚙️ إدارة رسالة الترحيب</h3>
-            <div class="form-group">
-                <label class="form-label">نص الترحيب (يدعم HTML)</label>
-                <textarea class="form-input" id="welcomeText" rows="6"></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">رابط الصورة</label>
-                <input type="text" class="form-input" id="welcomePhoto" placeholder="https://...">
-            </div>
-            <button class="btn btn-primary" onclick="saveWelcome()" style="margin-bottom:12px;">💾 حفظ</button>
-            <button class="btn btn-outline" onclick="resetWelcome()">🔄 إعادة للنص الافتراضي</button>
-        </div>
-
-        <!-- قسم إدارة مراكز التدريب -->
-        <div id="centersManager" style="display:none;">
-            <button class="back-btn" onclick="backToAdminMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
-            <h3 style="margin-bottom:16px;">🏢 إدارة مراكز التدريب</h3>
-            
-            <div id="centersMainMenu">
-                <button class="btn btn-primary" onclick="showAddGovernorate()" style="margin-bottom:12px;">➕ إضافة محافظة</button>
-                <button class="btn btn-primary" onclick="showAddArea()" style="margin-bottom:12px;">➕ إضافة منطقة</button>
-                <button class="btn btn-primary" onclick="showAddCenter()" style="margin-bottom:12px;">➕ إضافة مركز</button>
-                <button class="btn btn-outline" onclick="showEditList('governorates')" style="margin-bottom:12px;">✏️ تعديل</button>
-                <button class="btn btn-outline" onclick="showDeleteList('governorates')" style="margin-bottom:12px;">🗑 حذف</button>
-            </div>
-
-            <!-- نماذج الإضافة -->
-            <div id="addForm" style="display:none;"></div>
-
-            <!-- قوائم التعديل والحذف -->
-            <div id="editDeleteList" style="display:none;"></div>
-        </div>
+        <button class="btn btn-primary" onclick="showAdminWelcome()" style="margin-bottom:12px;">⚙️ إدارة رسالة الترحيب</button>
+        <button class="btn btn-primary" onclick="showAdminCenters()" style="margin-bottom:12px;">🏢 إدارة مراكز التدريب</button>
     </div>
+
+    <!-- شاشات الإدارة - تظهر بكامل الشاشة -->
+    <div id="adminWelcomeScreen" class="admin-fullscreen" style="display:none;">
+        <button class="back-btn" onclick="closeAdminFullscreen('adminWelcomeScreen', 'adminMainScreen')"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <h3 style="margin-bottom:16px;">⚙️ إدارة رسالة الترحيب</h3>
+        <div class="form-group"><label class="form-label">نص الترحيب (يدعم HTML)</label><textarea class="form-input" id="welcomeText" rows="6"></textarea></div>
+        <div class="form-group"><label class="form-label">رابط الصورة</label><input type="text" class="form-input" id="welcomePhoto" placeholder="https://..."></div>
+        <button class="btn btn-primary" onclick="saveWelcome()" style="margin-bottom:12px;">💾 حفظ</button>
+        <button class="btn btn-outline" onclick="resetWelcome()">🔄 إعادة للنص الافتراضي</button>
+    </div>
+
+    <div id="adminCentersScreen" class="admin-fullscreen" style="display:none;">
+        <button class="back-btn" onclick="closeAdminFullscreen('adminCentersScreen', 'adminMainScreen')"><i class="ph ph-arrow-right"></i> رجوع</button>
+        <h3 style="margin-bottom:16px;">🏢 إدارة مراكز التدريب</h3>
+        <button class="btn btn-primary" onclick="showAddForm('governorate')" style="margin-bottom:12px;">➕ إضافة محافظة</button>
+        <button class="btn btn-primary" onclick="showAddForm('area')" style="margin-bottom:12px;">➕ إضافة منطقة</button>
+        <button class="btn btn-primary" onclick="showAddForm('center')" style="margin-bottom:12px;">➕ إضافة مركز</button>
+        <button class="btn btn-outline" onclick="showEditList('governorates')" style="margin-bottom:12px;">✏️ تعديل</button>
+        <button class="btn btn-outline" onclick="showDeleteList('governorates')" style="margin-bottom:12px;">🗑 حذف</button>
+    </div>
+
+    <!-- شاشات الإضافة/التعديل/الحذف الكاملة -->
+    <div id="adminAddForm" class="admin-fullscreen" style="display:none;"></div>
+    <div id="adminEditDelete" class="admin-fullscreen" style="display:none;"></div>
 
     <!-- شاشة التحميل -->
     <div id="loadingOverlay" class="loading-overlay" style="display:none;"><div class="loading-spinner"></div><p id="loadingText" style="font-weight:700;">جارٍ التحميل...</p></div>
@@ -393,6 +398,7 @@
     let currentScreen = 'landingScreen';
     let allGovs = {}, allAreas = {}, allCenters = {};
     let currentGov = null, currentArea = null;
+    let isAdminMode = false;
 
     // ============ دوال عامة ============
     function showScreen(id) {
@@ -410,6 +416,24 @@
         document.getElementById('loadingOverlay').style.display = 'none';
     }
 
+    function enableAdminMode() {
+        isAdminMode = true;
+        document.getElementById('userHeader').style.display = 'none';
+        document.getElementById('adminHeader').style.display = 'flex';
+    }
+
+    function disableAdminMode() {
+        isAdminMode = false;
+        document.getElementById('userHeader').style.display = 'flex';
+        document.getElementById('adminHeader').style.display = 'none';
+    }
+
+    function closeAdminFullscreen(fullscreenId, returnScreenId) {
+        document.getElementById(fullscreenId).style.display = 'none';
+        document.querySelectorAll('.admin-fullscreen').forEach(s => s.style.display = 'none');
+        showScreen(returnScreenId);
+    }
+
     // ============ التسجيل ============
     async function checkUserRegistration() {
         if (tg.initDataUnsafe?.user?.id) {
@@ -420,13 +444,14 @@
     }
 
     async function handleStart() {
-        // تحقق من صلاحية الأدمن
         const params = new URLSearchParams(window.location.search);
         if (params.get('admin') === 'centers' && tg.initDataUnsafe?.user?.id === ADMIN_ID) {
-            showScreen('adminScreen');
+            enableAdminMode();
+            showScreen('adminMainScreen');
             return;
         }
 
+        disableAdminMode();
         if (await checkUserRegistration()) {
             const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
             const user = snap.val();
@@ -562,20 +587,14 @@
     }
 
     // ============ لوحة تحكم الأدمن ============
-    function backToAdminMenu() {
-        document.getElementById('welcomeManager').style.display = 'none';
-        document.getElementById('centersManager').style.display = 'none';
-        document.getElementById('adminMainMenu').style.display = 'block';
-    }
-
-    // --- إدارة رسالة الترحيب ---
-    async function showWelcomeManager() {
-        document.getElementById('adminMainMenu').style.display = 'none';
-        document.getElementById('welcomeManager').style.display = 'block';
-        const snap = await db.ref('welcome').once('value');
-        const data = snap.val() || {};
-        document.getElementById('welcomeText').value = data.text || '';
-        document.getElementById('welcomePhoto').value = data.photo || '';
+    function showAdminWelcome() {
+        document.querySelectorAll('.admin-fullscreen').forEach(s => s.style.display = 'none');
+        document.getElementById('adminWelcomeScreen').style.display = 'block';
+        db.ref('welcome').once('value').then(snap => {
+            const data = snap.val() || {};
+            document.getElementById('welcomeText').value = data.text || '';
+            document.getElementById('welcomePhoto').value = data.photo || '';
+        });
     }
 
     async function saveWelcome() {
@@ -592,25 +611,60 @@
         tg.showAlert('✅ تمت إعادة النص الافتراضي!');
     }
 
-    // --- إدارة مراكز التدريب ---
-    async function showCentersManager() {
-        document.getElementById('adminMainMenu').style.display = 'none';
-        document.getElementById('centersManager').style.display = 'block';
-        document.getElementById('centersMainMenu').style.display = 'block';
-        document.getElementById('addForm').style.display = 'none';
-        document.getElementById('editDeleteList').style.display = 'none';
-        await loadData();
+    function showAdminCenters() {
+        document.querySelectorAll('.admin-fullscreen').forEach(s => s.style.display = 'none');
+        document.getElementById('adminCentersScreen').style.display = 'block';
+        loadData();
     }
 
-    function showAddGovernorate() {
-        document.getElementById('centersMainMenu').style.display = 'none';
-        document.getElementById('addForm').style.display = 'block';
-        document.getElementById('addForm').innerHTML = `
-            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
-            <h4 style="margin-bottom:16px;">➕ إضافة محافظة</h4>
-            <div class="form-group"><label class="form-label">اسم المحافظة</label><input type="text" class="form-input" id="govName"></div>
-            <button class="btn btn-primary" onclick="addGovernorate()">حفظ</button>
-        `;
+    async function showAddForm(type) {
+        document.querySelectorAll('.admin-fullscreen').forEach(s => s.style.display = 'none');
+        await loadData();
+        let html = '';
+        
+        if (type === 'governorate') {
+            html = `
+                <button class="back-btn" onclick="closeAdminFullscreen('adminAddForm', 'adminMainScreen'); document.getElementById('adminCentersScreen').style.display='block';"><i class="ph ph-arrow-right"></i> رجوع</button>
+                <h3 style="margin-bottom:16px;">➕ إضافة محافظة</h3>
+                <div class="form-group"><label class="form-label">اسم المحافظة</label><input type="text" class="form-input" id="govName"></div>
+                <button class="btn btn-primary" onclick="addGovernorate()">حفظ</button>
+            `;
+        } else if (type === 'area') {
+            const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
+            html = `
+                <button class="back-btn" onclick="closeAdminFullscreen('adminAddForm', 'adminMainScreen'); document.getElementById('adminCentersScreen').style.display='block';"><i class="ph ph-arrow-right"></i> رجوع</button>
+                <h3 style="margin-bottom:16px;">➕ إضافة منطقة</h3>
+                <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="areaGov">${govOptions}</select></div>
+                <div class="form-group"><label class="form-label">اسم المنطقة</label><input type="text" class="form-input" id="areaName"></div>
+                <button class="btn btn-primary" onclick="addArea()">حفظ</button>
+            `;
+        } else if (type === 'center') {
+            const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
+            html = `
+                <button class="back-btn" onclick="closeAdminFullscreen('adminAddForm', 'adminMainScreen'); document.getElementById('adminCentersScreen').style.display='block';"><i class="ph ph-arrow-right"></i> رجوع</button>
+                <h3 style="margin-bottom:16px;">➕ إضافة مركز</h3>
+                <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="centerGov" onchange="loadAreasForSelect()">${govOptions}</select></div>
+                <div class="form-group"><label class="form-label">المنطقة</label><select class="form-input" id="centerArea"></select></div>
+                <div class="form-group"><label class="form-label">اسم المركز</label><input type="text" class="form-input" id="centerName"></div>
+                <div class="form-group"><label class="form-label">العنوان</label><input type="text" class="form-input" id="centerAddress"></div>
+                <div class="form-group"><label class="form-label">رابط الخريطة</label><input type="text" class="form-input" id="centerMapLink"></div>
+                <div class="form-group"><label class="form-label">رقم الهاتف</label><input type="tel" class="form-input" id="centerPhone"></div>
+                <div class="form-group"><label class="form-label">التقييم (من 5)</label><input type="number" class="form-input" id="centerRating" min="0" max="5" step="0.1" value="0"></div>
+                <button class="btn btn-primary" onclick="addCenter()">حفظ</button>
+            `;
+        }
+        
+        document.getElementById('adminAddForm').innerHTML = html;
+        document.getElementById('adminAddForm').style.display = 'block';
+        if (type === 'center') setTimeout(loadAreasForSelect, 300);
+    }
+
+    function loadAreasForSelect() {
+        const govId = document.getElementById('centerGov')?.value;
+        if (!govId) return;
+        const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+        const sel = document.getElementById('centerArea');
+        if (sel) sel.innerHTML = areas.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
     }
 
     async function addGovernorate() {
@@ -618,20 +672,8 @@
         if (!name) { tg.showAlert('الرجاء إدخال اسم المحافظة'); return; }
         await fetch(`${WORKER_URL}/api/governorates`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
         tg.showAlert('✅ تمت الإضافة بنجاح!');
-        backToCentersMenu();
-    }
-
-    function showAddArea() {
-        document.getElementById('centersMainMenu').style.display = 'none';
-        document.getElementById('addForm').style.display = 'block';
-        const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
-        document.getElementById('addForm').innerHTML = `
-            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
-            <h4 style="margin-bottom:16px;">➕ إضافة منطقة</h4>
-            <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="areaGov">${govOptions}</select></div>
-            <div class="form-group"><label class="form-label">اسم المنطقة</label><input type="text" class="form-input" id="areaName"></div>
-            <button class="btn btn-primary" onclick="addArea()">حفظ</button>
-        `;
+        closeAdminFullscreen('adminAddForm', 'adminMainScreen');
+        document.getElementById('adminCentersScreen').style.display = 'block';
     }
 
     async function addArea() {
@@ -640,33 +682,8 @@
         if (!name) { tg.showAlert('الرجاء إدخال اسم المنطقة'); return; }
         await fetch(`${WORKER_URL}/api/areas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, governorateId }) });
         tg.showAlert('✅ تمت الإضافة بنجاح!');
-        backToCentersMenu();
-    }
-
-    function showAddCenter() {
-        document.getElementById('centersMainMenu').style.display = 'none';
-        document.getElementById('addForm').style.display = 'block';
-        const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
-        document.getElementById('addForm').innerHTML = `
-            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
-            <h4 style="margin-bottom:16px;">➕ إضافة مركز</h4>
-            <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="centerGov" onchange="loadAreasForSelect()">${govOptions}</select></div>
-            <div class="form-group"><label class="form-label">المنطقة</label><select class="form-input" id="centerArea"></select></div>
-            <div class="form-group"><label class="form-label">اسم المركز</label><input type="text" class="form-input" id="centerName"></div>
-            <div class="form-group"><label class="form-label">العنوان</label><input type="text" class="form-input" id="centerAddress"></div>
-            <div class="form-group"><label class="form-label">رابط الخريطة</label><input type="text" class="form-input" id="centerMapLink"></div>
-            <div class="form-group"><label class="form-label">رقم الهاتف</label><input type="tel" class="form-input" id="centerPhone"></div>
-            <div class="form-group"><label class="form-label">التقييم (من 5)</label><input type="number" class="form-input" id="centerRating" min="0" max="5" step="0.1"></div>
-            <button class="btn btn-primary" onclick="addCenter()">حفظ</button>
-        `;
-        loadAreasForSelect();
-    }
-
-    function loadAreasForSelect() {
-        const govId = document.getElementById('centerGov')?.value;
-        if (!govId) return;
-        const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
-        document.getElementById('centerArea').innerHTML = areas.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+        closeAdminFullscreen('adminAddForm', 'adminMainScreen');
+        document.getElementById('adminCentersScreen').style.display = 'block';
     }
 
     async function addCenter() {
@@ -679,58 +696,67 @@
         if (!name) { tg.showAlert('الرجاء إدخال اسم المركز'); return; }
         await fetch(`${WORKER_URL}/api/centers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, areaId, address, mapLink, phone, rating }) });
         tg.showAlert('✅ تمت الإضافة بنجاح!');
-        backToCentersMenu();
+        closeAdminFullscreen('adminAddForm', 'adminMainScreen');
+        document.getElementById('adminCentersScreen').style.display = 'block';
     }
 
-    function backToCentersMenu() {
-        document.getElementById('addForm').style.display = 'none';
-        document.getElementById('editDeleteList').style.display = 'none';
-        document.getElementById('centersMainMenu').style.display = 'block';
-    }
-
-    function showEditList(type) {
-        document.getElementById('centersMainMenu').style.display = 'none';
-        document.getElementById('editDeleteList').style.display = 'block';
+    async function showEditList(type) {
+        document.querySelectorAll('.admin-fullscreen').forEach(s => s.style.display = 'none');
+        await loadData();
         let items = [];
         if (type === 'governorates') items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
         else if (type === 'areas') items = Object.entries(allAreas).map(([id, a]) => ({ id, ...a }));
         else items = Object.entries(allCenters).map(([id, c]) => ({ id, ...c }));
         
-        document.getElementById('editDeleteList').innerHTML = `
-            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        let html = `
+            <button class="back-btn" onclick="closeAdminFullscreen('adminEditDelete', 'adminMainScreen'); document.getElementById('adminCentersScreen').style.display='block';"><i class="ph ph-arrow-right"></i> رجوع</button>
             <h4 style="margin-bottom:16px;">✏️ تعديل ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h4>
-            ${items.map(item => `
-                <div class="admin-card">
-                    <span>${item.name}</span>
-                    <button class="btn btn-sm btn-outline" onclick="editItem('${type}', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">✏️ تعديل</button>
-                </div>
-            `).join('')}
+            <div class="location-list">
+                ${items.map(item => `
+                    <div class="admin-card" onclick="editItemForm('${type}', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">
+                        <span>${item.name}</span>
+                        <i class="ph ph-pencil-simple" style="color:var(--primary);"></i>
+                    </div>
+                `).join('')}
+            </div>
         `;
+        
+        document.getElementById('adminEditDelete').innerHTML = html;
+        document.getElementById('adminEditDelete').style.display = 'block';
     }
 
-    function showDeleteList(type) {
-        document.getElementById('centersMainMenu').style.display = 'none';
-        document.getElementById('editDeleteList').style.display = 'block';
+    async function showDeleteList(type) {
+        document.querySelectorAll('.admin-fullscreen').forEach(s => s.style.display = 'none');
+        await loadData();
         let items = [];
         if (type === 'governorates') items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
         else if (type === 'areas') items = Object.entries(allAreas).map(([id, a]) => ({ id, ...a }));
         else items = Object.entries(allCenters).map(([id, c]) => ({ id, ...c }));
         
-        document.getElementById('editDeleteList').innerHTML = `
-            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
+        let html = `
+            <button class="back-btn" onclick="closeAdminFullscreen('adminEditDelete', 'adminMainScreen'); document.getElementById('adminCentersScreen').style.display='block';"><i class="ph ph-arrow-right"></i> رجوع</button>
             <h4 style="margin-bottom:16px;">🗑 حذف ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h4>
-            ${items.map(item => `
-                <div class="admin-card">
-                    <span>${item.name}</span>
-                    <button class="btn btn-sm btn-danger" onclick="deleteItem('${type}', '${item.id}')">🗑 حذف</button>
-                </div>
-            `).join('')}
+            <div class="location-list">
+                ${items.map(item => `
+                    <div class="admin-card">
+                        <span>${item.name}</span>
+                        <button class="btn btn-sm btn-danger" onclick="deleteItemConfirm('${type}', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑 حذف</button>
+                    </div>
+                `).join('')}
+            </div>
         `;
+        
+        document.getElementById('adminEditDelete').innerHTML = html;
+        document.getElementById('adminEditDelete').style.display = 'block';
     }
 
-    async function editItem(type, id, oldName) {
+    function editItemForm(type, id, oldName) {
         const newName = prompt('الاسم الجديد:', oldName);
         if (!newName || newName === oldName) return;
+        editItem(type, id, newName);
+    }
+
+    async function editItem(type, id, newName) {
         const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
         await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName }) });
         tg.showAlert('✅ تم التعديل بنجاح!');
@@ -738,17 +764,27 @@
         showEditList(type);
     }
 
-    async function deleteItem(type, id) {
-        if (!confirm('هل أنت متأكد من الحذف؟')) return;
+    async function deleteItemConfirm(type, id, name) {
+        if (!confirm(`هل أنت متأكد من حذف "${name}"؟`)) return;
         const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
-        await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'DELETE' });
-        tg.showAlert('✅ تم الحذف بنجاح!');
-        await loadData();
-        showDeleteList(type);
+        const res = await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+            tg.showAlert('✅ تم الحذف بنجاح!');
+            await loadData();
+            showDeleteList(type);
+        } else {
+            tg.showAlert('❌ حدث خطأ في الحذف.');
+        }
     }
 
     // ============ بدء التشغيل ============
     window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('admin') === 'centers' && tg.initDataUnsafe?.user?.id === ADMIN_ID) {
+            enableAdminMode();
+            showScreen('adminMainScreen');
+        }
         if (tg.initDataUnsafe?.user?.first_name) {
             const el = document.getElementById('fullName');
             if (el) el.value = tg.initDataUnsafe.user.first_name;
