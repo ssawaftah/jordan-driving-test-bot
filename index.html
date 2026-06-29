@@ -1,1 +1,41 @@
-
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الفحص النظري 2026</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: var(--tg-theme-bg-color, #1a1a2e);
+            color: var(--tg-theme-text-color, #fff);
+            padding: 20px;
+            direction: rtl;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 12px 0;
+            background: var(--tg-theme-button-color, rgba(0,140,255,0.3));
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            cursor: pointer;
+            text-align: center;
+        }
+        h2 { text-align: center; margin: 25px 0; }
+        p { text-align: center; opacity: 0.8; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h2>🚗 الفحص النظري للقيادة 2026</h2>
+    <p>اختر ما تريد:</p>
+    
+    <button class="btn" onclick="Telegram.WebApp.showAlert('قريباً - دراسة الأسئلة')">📚 دراسة الأسئلة</button>
+    <button class="btn" onclick="Telegram.WebApp.showAlert('قريباً - اختبار تجريبي')">📝 اختبار تجريبي</button>
+</body>
+</html>
