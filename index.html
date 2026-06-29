@@ -484,6 +484,126 @@ body{
         opacity:1;
     }
 }
+        /* ============ مراكز التدريب ============ */
+.search-box {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-box .form-input {
+    padding-right: 44px;
+}
+
+.search-box i {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+    font-size: 20px;
+}
+
+.location-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.location-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.location-card:active {
+    background: var(--primary-light);
+    border-color: var(--primary);
+}
+
+.location-card .loc-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.location-card .loc-info {
+    flex: 1;
+}
+
+.location-card .loc-name {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.location-card .loc-count {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.center-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.center-card .center-name {
+    font-size: 17px;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.center-card .center-details {
+    font-size: 13px;
+    color: var(--text-light);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.center-card .rating {
+    background: #FFF8E7;
+    color: #D97706;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
   </style>
 </head>
 <body>
@@ -706,9 +826,7 @@ body{
 
         </div>
 
-        <div
-            class="btn-card"
-            onclick="Telegram.WebApp.showAlert('سيتم تفعيل مراكز التدريب قريباً')">
+        <div class="btn-card" onclick="openTrainingCenters()">
 
             <div class="card-icon gold">
                 <i class="ph ph-map-pin"></i>
@@ -729,7 +847,40 @@ body{
         </div>
 
     </div>
+<!-- شاشة مراكز التدريب -->
+<div id="trainingCentersScreen" class="screen">
+    <!-- المستوى الأول: المحافظات -->
+    <div id="govLevel" style="display: block;">
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:8px;">المحافظات</h2>
+        <div class="search-box">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" class="form-input" id="govSearch" placeholder="ابحث عن محافظة..." oninput="filterGovernorates()">
+        </div>
+        <div class="location-list" id="govList"></div>
+    </div>
 
+    <!-- المستوى الثاني: المناطق -->
+    <div id="areaLevel" style="display: none;">
+        <button class="back-btn" onclick="goToGovernorates()">
+            <i class="ph ph-arrow-right"></i> رجوع للمحافظات
+        </button>
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:8px;" id="areaTitle">المناطق</h2>
+        <div class="search-box">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" class="form-input" id="areaSearch" placeholder="ابحث عن منطقة..." oninput="filterAreas()">
+        </div>
+        <div class="location-list" id="areaList"></div>
+    </div>
+
+    <!-- المستوى الثالث: المراكز -->
+    <div id="centerLevel" style="display: none;">
+        <button class="back-btn" onclick="goToAreas()">
+            <i class="ph ph-arrow-right"></i> رجوع للمناطق
+        </button>
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:8px;" id="centerTitle">مراكز التدريب</h2>
+        <div id="centerList"></div>
+    </div>
+</div>
     <!-- شاشة التحميل -->
 
     <div
@@ -863,6 +1014,138 @@ body{
     }
 
 });
+    // ============ بيانات مراكز التدريب (وهمية) ============
+const locationsData = {
+    "عمان": {
+        areas: {
+            "العبدلي": [
+                { name: "مركز الأردن الحديث لتعليم القيادة", rating: 4.8, address: "شارع الملك حسين", phone: "0791234567" },
+                { name: "أكاديمية الطريق الآمن", rating: 4.5, address: "الدوار السابع", phone: "0798901234" }
+            ],
+            "الجاردنز": [
+                { name: "مركز النخبة لتعليم السواقة", rating: 4.6, address: "شارع وصفي التل", phone: "0795678901" }
+            ],
+            "صويلح": [
+                { name: "مركز صويلح الحديث", rating: 4.3, address: "الشارع الرئيسي", phone: "0792345678" }
+            ]
+        }
+    },
+    "إربد": {
+        areas: {
+            "وسط البلد": [
+                { name: "مركز إربد الأول", rating: 4.7, address: "شارع الجامعة", phone: "0793456789" }
+            ],
+            "الحصن": [
+                { name: "مركز الحصن لتعليم القيادة", rating: 4.4, address: "شارع البلدية", phone: "0794567890" }
+            ]
+        }
+    },
+    "الزرقاء": {
+        areas: {
+            "وسط البلد": [
+                { name: "مركز الزرقاء الحديث", rating: 4.2, address: "شارع السعادة", phone: "0795678901" }
+            ]
+        }
+    }
+};
+
+let currentGov = null;
+let currentArea = null;
+
+function openTrainingCenters() {
+    showScreen('trainingCentersScreen');
+    renderGovernorates(Object.keys(locationsData));
+    document.getElementById('govLevel').style.display = 'block';
+    document.getElementById('areaLevel').style.display = 'none';
+    document.getElementById('centerLevel').style.display = 'none';
+    document.getElementById('govSearch').value = '';
+}
+
+function renderGovernorates(list) {
+    const container = document.getElementById('govList');
+    container.innerHTML = list.map(gov => `
+        <div class="location-card" onclick="selectGovernorate('${gov}')">
+            <div class="loc-icon"><i class="ph ph-map-pin"></i></div>
+            <div class="loc-info">
+                <div class="loc-name">${gov}</div>
+                <div class="loc-count">${Object.keys(locationsData[gov].areas).length} مناطق</div>
+            </div>
+            <i class="ph ph-caret-left" style="color:var(--text-light);"></i>
+        </div>
+    `).join('');
+}
+
+function filterGovernorates() {
+    const query = document.getElementById('govSearch').value.trim();
+    const filtered = Object.keys(locationsData).filter(g => g.includes(query));
+    renderGovernorates(filtered);
+}
+
+function selectGovernorate(gov) {
+    currentGov = gov;
+    document.getElementById('govLevel').style.display = 'none';
+    document.getElementById('areaLevel').style.display = 'block';
+    document.getElementById('areaTitle').textContent = gov;
+    document.getElementById('areaSearch').value = '';
+    renderAreas(Object.keys(locationsData[gov].areas));
+}
+
+function renderAreas(list) {
+    const container = document.getElementById('areaList');
+    container.innerHTML = list.map(area => `
+        <div class="location-card" onclick="selectArea('${area}')">
+            <div class="loc-icon"><i class="ph ph-buildings"></i></div>
+            <div class="loc-info">
+                <div class="loc-name">${area}</div>
+                <div class="loc-count">${locationsData[currentGov].areas[area].length} مركز</div>
+            </div>
+            <i class="ph ph-caret-left" style="color:var(--text-light);"></i>
+        </div>
+    `).join('');
+}
+
+function filterAreas() {
+    const query = document.getElementById('areaSearch').value.trim();
+    const areas = Object.keys(locationsData[currentGov].areas).filter(a => a.includes(query));
+    renderAreas(areas);
+}
+
+function goToGovernorates() {
+    document.getElementById('areaLevel').style.display = 'none';
+    document.getElementById('govLevel').style.display = 'block';
+    currentGov = null;
+}
+
+function selectArea(area) {
+    currentArea = area;
+    document.getElementById('areaLevel').style.display = 'none';
+    document.getElementById('centerLevel').style.display = 'block';
+    document.getElementById('centerTitle').textContent = area + ' - ' + currentGov;
+    renderCenters(locationsData[currentGov].areas[area]);
+}
+
+function renderCenters(centers) {
+    const sorted = [...centers].sort((a, b) => b.rating - a.rating);
+    const container = document.getElementById('centerList');
+    container.innerHTML = sorted.map(c => `
+        <div class="center-card">
+            <div class="center-name">${c.name}</div>
+            <div class="center-details">
+                <span><i class="ph ph-map-pin" style="vertical-align:middle;"></i> ${c.address}</span>
+                <span><i class="ph ph-phone" style="vertical-align:middle;"></i> ${c.phone}</span>
+            </div>
+            <div class="rating" style="margin-top:8px;">
+                <i class="ph ph-star-fill"></i> ${c.rating}
+            </div>
+        </div>
+    `).join('');
+}
+
+function goToAreas() {
+    document.getElementById('centerLevel').style.display = 'none';
+    document.getElementById('areaLevel').style.display = 'block';
+    renderAreas(Object.keys(locationsData[currentGov].areas));
+}
     </script>
 </body>
 </html>
