@@ -23,6 +23,8 @@
             --bg-secondary: #F7F8FC;
             --card-bg: #FFFFFF;
             --border: #E9EEF5;
+            --danger: #EF4444;
+            --danger-light: #FEE2E2;
             --radius: 24px;
             --transition: all .25s ease;
         }
@@ -47,7 +49,6 @@
             position: relative;
         }
 
-        /* Header */
         .app-header {
             background: white;
             padding: 22px 20px;
@@ -69,7 +70,6 @@
         .header-title { font-size: 19px; font-weight: 800; }
         .header-subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
 
-        /* Screens */
         .screen {
             display: none;
             padding: 24px 20px 40px;
@@ -82,7 +82,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Hero */
         .hero-section { text-align: center; margin-bottom: 28px; }
         .hero-icon {
             width: 84px; height: 84px;
@@ -97,7 +96,6 @@
         .main-title { font-size: 31px; font-weight: 900; margin-bottom: 12px; }
         .subtitle { color: var(--text-light); line-height: 1.9; font-size: 15px; }
 
-        /* Features */
         .features-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -127,31 +125,20 @@
         .feature-icon.complete { background: #FDF2F8; color: #DB2777; }
         .feature-label { font-size: 14px; font-weight: 700; line-height: 1.5; }
 
-        /* Buttons */
         .btn {
             width: 100%; border: none; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
             font-family: 'Tajawal', sans-serif; transition: var(--transition);
-        }
-        .btn-primary {
-            height: 58px;
-            background: var(--primary);
-            color: white;
-            border-radius: 18px;
-            font-size: 18px; font-weight: 800;
-            box-shadow: 0 10px 24px rgba(36, 107, 253, .20);
-        }
-        .btn-primary:active { background: var(--primary-dark); }
-        .btn-outline {
-            height: 58px;
-            background: white;
-            border: 2px solid var(--primary);
-            color: var(--primary);
             border-radius: 18px;
             font-size: 16px; font-weight: 700;
+            padding: 16px;
         }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 10px 24px rgba(36, 107, 253, .20); }
+        .btn-primary:active { background: var(--primary-dark); }
+        .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 10px 16px; font-size: 14px; width: auto; }
 
-        /* Registration */
         .form-group { margin-bottom: 18px; }
         .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
         .form-input {
@@ -164,13 +151,9 @@
             font-size: 15px;
             transition: .2s;
         }
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(36, 107, 253, .08);
-        }
+        .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(36, 107, 253, .08); }
+        textarea.form-input { height: auto; padding: 16px; min-height: 120px; resize: vertical; }
 
-        /* Home Cards */
         .btn-card {
             background: white;
             border: none;
@@ -199,33 +182,16 @@
         .btn-card .card-title { font-size: 17px; font-weight: 800; margin-bottom: 5px; }
         .btn-card .card-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; }
 
-        /* Loading */
-        .loading-overlay {
-            position: fixed; inset: 0;
-            background: rgba(255,255,255,.95);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            z-index: 999;
-            backdrop-filter: blur(10px);
+        .back-btn {
+            background: none; border: none;
+            color: var(--primary);
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 700; font-size: 15px;
+            cursor: pointer; padding: 8px 0;
+            margin-bottom: 16px;
+            display: flex; align-items: center; gap: 4px;
         }
-        .loading-spinner {
-            width: 64px; height: 64px;
-            border: 4px solid #E5E7EB;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin .8s linear infinite;
-            margin-bottom: 18px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ============ مراكز التدريب ============ */
-        .search-box { position: relative; margin-bottom: 20px; }
-        .search-box .form-input { padding-right: 44px; }
-        .search-box i {
-            position: absolute; right: 14px; top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light); font-size: 20px;
-        }
         .location-list { display: flex; flex-direction: column; gap: 10px; }
         .location-card {
             background: white;
@@ -247,17 +213,6 @@
         }
         .location-card .loc-info { flex: 1; }
         .location-card .loc-name { font-weight: 700; font-size: 16px; }
-        .location-card .loc-count { font-size: 12px; color: var(--text-light); margin-top: 2px; }
-
-        .back-btn {
-            background: none; border: none;
-            color: var(--primary);
-            font-family: 'Tajawal', sans-serif;
-            font-weight: 700; font-size: 15px;
-            cursor: pointer; padding: 8px 0;
-            margin-bottom: 16px;
-            display: flex; align-items: center; gap: 4px;
-        }
 
         .center-card {
             background: white;
@@ -267,15 +222,8 @@
             margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
-        .center-name-link {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 800; font-size: 17px;
-            transition: opacity 0.2s;
-        }
-        .center-name-link:active { opacity: 0.7; }
-        .center-phone-link { color: var(--text); text-decoration: none; transition: color 0.2s; }
-        .center-phone-link:active { color: var(--primary); }
+        .center-name-link { color: var(--primary); text-decoration: none; font-weight: 800; font-size: 17px; }
+        .center-phone-link { color: var(--text); text-decoration: none; }
         .rating-badge {
             display: inline-flex; align-items: center; gap: 6px;
             background: #FEF3C7; color: #92400E;
@@ -283,6 +231,37 @@
             font-size: 13px; font-weight: 700; margin-top: 8px;
         }
         .rating-badge i { color: #F59E0B; font-size: 16px; }
+
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-box .form-input { padding-right: 44px; }
+        .search-box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 20px; }
+
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(255,255,255,.95);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 999;
+            backdrop-filter: blur(10px);
+        }
+        .loading-spinner {
+            width: 64px; height: 64px;
+            border: 4px solid #E5E7EB;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            margin-bottom: 18px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .admin-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
     </style>
 </head>
 <body>
@@ -338,29 +317,62 @@
         <div class="btn-card" onclick="openTrainingCenters()"><div class="card-icon gold"><i class="ph ph-map-pin"></i></div><div class="card-content"><div class="card-title">مراكز تدريب القيادة القريبة</div><div class="card-desc">اعثر على أقرب مركز تدريب معتمد</div></div><i class="ph ph-caret-left"></i></div>
     </div>
 
-    <!-- شاشة مراكز التدريب (للمستخدم) -->
+    <!-- شاشة مراكز التدريب -->
     <div id="trainingCentersScreen" class="screen">
         <div id="govLevel"><button class="back-btn" onclick="showScreen('homeScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;">المحافظات</h2><div class="search-box"><i class="ph ph-magnifying-glass"></i><input type="text" class="form-input" id="govSearch" placeholder="ابحث عن محافظة..." oninput="filterGovernorates()"></div><div class="location-list" id="govList"></div></div>
         <div id="areaLevel" style="display:none;"><button class="back-btn" onclick="goToGovernorates()"><i class="ph ph-arrow-right"></i> رجوع للمحافظات</button><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;" id="areaTitle">المناطق</h2><div class="search-box"><i class="ph ph-magnifying-glass"></i><input type="text" class="form-input" id="areaSearch" placeholder="ابحث عن منطقة..." oninput="filterAreas()"></div><div class="location-list" id="areaList"></div></div>
         <div id="centerLevel" style="display:none;"><button class="back-btn" onclick="goToAreas()"><i class="ph ph-arrow-right"></i> رجوع للمناطق</button><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;" id="centerTitle">مراكز التدريب</h2><div id="centerList"></div></div>
     </div>
 
-    <!-- لوحة تحكم الأدمن (تظهر فقط عند ?admin=centers) -->
-    <div id="adminCentersScreen" class="screen">
+    <!-- لوحة تحكم الأدمن -->
+    <div id="adminScreen" class="screen">
         <button class="back-btn" onclick="showScreen('landingScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button>
-        <h2 style="font-size:22px;font-weight:800;margin-bottom:16px;">🏢 إدارة مراكز التدريب</h2>
+        <h2 style="font-size:22px;font-weight:800;margin-bottom:20px;">🔧 لوحة تحكم المشرف</h2>
+        
         <div id="adminMainMenu">
-            <button class="btn btn-primary" onclick="adminAddGovernorate()" style="margin-bottom:12px;">➕ إضافة محافظة</button>
-            <button class="btn btn-primary" onclick="adminAddArea()" style="margin-bottom:12px;">➕ إضافة منطقة</button>
-            <button class="btn btn-primary" onclick="adminAddCenter()" style="margin-bottom:12px;">➕ إضافة مركز</button>
-            <button class="btn btn-outline" onclick="adminEditMenu()" style="margin-bottom:12px;">✏️ تعديل</button>
-            <button class="btn btn-outline" onclick="adminDeleteMenu()" style="margin-bottom:12px;">🗑 حذف</button>
+            <button class="btn btn-primary" onclick="showWelcomeManager()" style="margin-bottom:12px;">⚙️ إدارة رسالة الترحيب</button>
+            <button class="btn btn-primary" onclick="showCentersManager()" style="margin-bottom:12px;">🏢 إدارة مراكز التدريب</button>
         </div>
-        <div id="adminActionArea" style="display:none;"></div>
+
+        <!-- قسم إدارة رسالة الترحيب -->
+        <div id="welcomeManager" style="display:none;">
+            <button class="back-btn" onclick="backToAdminMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
+            <h3 style="margin-bottom:16px;">⚙️ إدارة رسالة الترحيب</h3>
+            <div class="form-group">
+                <label class="form-label">نص الترحيب (يدعم HTML)</label>
+                <textarea class="form-input" id="welcomeText" rows="6"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">رابط الصورة</label>
+                <input type="text" class="form-input" id="welcomePhoto" placeholder="https://...">
+            </div>
+            <button class="btn btn-primary" onclick="saveWelcome()" style="margin-bottom:12px;">💾 حفظ</button>
+            <button class="btn btn-outline" onclick="resetWelcome()">🔄 إعادة للنص الافتراضي</button>
+        </div>
+
+        <!-- قسم إدارة مراكز التدريب -->
+        <div id="centersManager" style="display:none;">
+            <button class="back-btn" onclick="backToAdminMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
+            <h3 style="margin-bottom:16px;">🏢 إدارة مراكز التدريب</h3>
+            
+            <div id="centersMainMenu">
+                <button class="btn btn-primary" onclick="showAddGovernorate()" style="margin-bottom:12px;">➕ إضافة محافظة</button>
+                <button class="btn btn-primary" onclick="showAddArea()" style="margin-bottom:12px;">➕ إضافة منطقة</button>
+                <button class="btn btn-primary" onclick="showAddCenter()" style="margin-bottom:12px;">➕ إضافة مركز</button>
+                <button class="btn btn-outline" onclick="showEditList('governorates')" style="margin-bottom:12px;">✏️ تعديل</button>
+                <button class="btn btn-outline" onclick="showDeleteList('governorates')" style="margin-bottom:12px;">🗑 حذف</button>
+            </div>
+
+            <!-- نماذج الإضافة -->
+            <div id="addForm" style="display:none;"></div>
+
+            <!-- قوائم التعديل والحذف -->
+            <div id="editDeleteList" style="display:none;"></div>
+        </div>
     </div>
 
     <!-- شاشة التحميل -->
-    <div id="loadingOverlay" class="loading-overlay" style="display:none;"><div class="loading-spinner"></div><p id="loadingText" style="font-weight:700;">جارٍ التسجيل...</p></div>
+    <div id="loadingOverlay" class="loading-overlay" style="display:none;"><div class="loading-spinner"></div><p id="loadingText" style="font-weight:700;">جارٍ التحميل...</p></div>
 
 </div>
 
@@ -398,7 +410,7 @@
         document.getElementById('loadingOverlay').style.display = 'none';
     }
 
-    // ============ تسجيل المستخدم ============
+    // ============ التسجيل ============
     async function checkUserRegistration() {
         if (tg.initDataUnsafe?.user?.id) {
             const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
@@ -408,6 +420,13 @@
     }
 
     async function handleStart() {
+        // تحقق من صلاحية الأدمن
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('admin') === 'centers' && tg.initDataUnsafe?.user?.id === ADMIN_ID) {
+            showScreen('adminScreen');
+            return;
+        }
+
         if (await checkUserRegistration()) {
             const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
             const user = snap.val();
@@ -527,7 +546,7 @@
         document.getElementById('centerList').innerHTML = sorted.map(c => `
             <div class="center-card">
                 <div class="center-name"><a href="${c.mapLink || '#'}" class="center-name-link" target="_blank">${c.name}</a></div>
-                <div class="center-details">
+                <div class="center-details" style="margin-top:8px;">
                     <span><i class="ph ph-map-pin"></i> ${c.address || ''}</span>
                     <span><i class="ph ph-phone"></i> <a href="tel:${c.phone}" class="center-phone-link">${c.phone}</a></span>
                 </div>
@@ -543,67 +562,196 @@
     }
 
     // ============ لوحة تحكم الأدمن ============
-    function showAdminPanel() {
-        showScreen('adminCentersScreen');
+    function backToAdminMenu() {
+        document.getElementById('welcomeManager').style.display = 'none';
+        document.getElementById('centersManager').style.display = 'none';
         document.getElementById('adminMainMenu').style.display = 'block';
-        document.getElementById('adminActionArea').style.display = 'none';
     }
 
-    async function adminAddGovernorate() {
-        const name = prompt('أدخل اسم المحافظة:');
-        if (!name) return;
+    // --- إدارة رسالة الترحيب ---
+    async function showWelcomeManager() {
+        document.getElementById('adminMainMenu').style.display = 'none';
+        document.getElementById('welcomeManager').style.display = 'block';
+        const snap = await db.ref('welcome').once('value');
+        const data = snap.val() || {};
+        document.getElementById('welcomeText').value = data.text || '';
+        document.getElementById('welcomePhoto').value = data.photo || '';
+    }
+
+    async function saveWelcome() {
+        const text = document.getElementById('welcomeText').value;
+        const photo = document.getElementById('welcomePhoto').value.trim();
+        await db.ref('welcome').set({ text, photo: photo || null });
+        tg.showAlert('✅ تم حفظ رسالة الترحيب بنجاح!');
+    }
+
+    async function resetWelcome() {
+        await db.ref('welcome').set({ text: '', photo: null });
+        document.getElementById('welcomeText').value = '';
+        document.getElementById('welcomePhoto').value = '';
+        tg.showAlert('✅ تمت إعادة النص الافتراضي!');
+    }
+
+    // --- إدارة مراكز التدريب ---
+    async function showCentersManager() {
+        document.getElementById('adminMainMenu').style.display = 'none';
+        document.getElementById('centersManager').style.display = 'block';
+        document.getElementById('centersMainMenu').style.display = 'block';
+        document.getElementById('addForm').style.display = 'none';
+        document.getElementById('editDeleteList').style.display = 'none';
+        await loadData();
+    }
+
+    function showAddGovernorate() {
+        document.getElementById('centersMainMenu').style.display = 'none';
+        document.getElementById('addForm').style.display = 'block';
+        document.getElementById('addForm').innerHTML = `
+            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
+            <h4 style="margin-bottom:16px;">➕ إضافة محافظة</h4>
+            <div class="form-group"><label class="form-label">اسم المحافظة</label><input type="text" class="form-input" id="govName"></div>
+            <button class="btn btn-primary" onclick="addGovernorate()">حفظ</button>
+        `;
+    }
+
+    async function addGovernorate() {
+        const name = document.getElementById('govName').value.trim();
+        if (!name) { tg.showAlert('الرجاء إدخال اسم المحافظة'); return; }
         await fetch(`${WORKER_URL}/api/governorates`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-        tg.showAlert('✅ تمت إضافة المحافظة بنجاح!');
+        tg.showAlert('✅ تمت الإضافة بنجاح!');
+        backToCentersMenu();
     }
 
-    async function adminAddArea() {
-        await loadData();
-        const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
-        let menu = 'اختر المحافظة:\n';
-        govs.forEach((g, i) => menu += `${i+1}. ${g.name}\n`);
-        const idx = parseInt(prompt(menu)) - 1;
-        if (idx >= 0 && idx < govs.length) {
-            const name = prompt('أدخل اسم المنطقة:');
-            if (!name) return;
-            await fetch(`${WORKER_URL}/api/areas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, governorateId: govs[idx].id }) });
-            tg.showAlert('✅ تمت إضافة المنطقة بنجاح!');
-        }
+    function showAddArea() {
+        document.getElementById('centersMainMenu').style.display = 'none';
+        document.getElementById('addForm').style.display = 'block';
+        const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
+        document.getElementById('addForm').innerHTML = `
+            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
+            <h4 style="margin-bottom:16px;">➕ إضافة منطقة</h4>
+            <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="areaGov">${govOptions}</select></div>
+            <div class="form-group"><label class="form-label">اسم المنطقة</label><input type="text" class="form-input" id="areaName"></div>
+            <button class="btn btn-primary" onclick="addArea()">حفظ</button>
+        `;
     }
 
-    async function adminAddCenter() {
-        await loadData();
-        const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
-        let menu = 'اختر المحافظة:\n';
-        govs.forEach((g, i) => menu += `${i+1}. ${g.name}\n`);
-        const gIdx = parseInt(prompt(menu)) - 1;
-        if (gIdx < 0 || gIdx >= govs.length) return;
+    async function addArea() {
+        const name = document.getElementById('areaName').value.trim();
+        const governorateId = document.getElementById('areaGov').value;
+        if (!name) { tg.showAlert('الرجاء إدخال اسم المنطقة'); return; }
+        await fetch(`${WORKER_URL}/api/areas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, governorateId }) });
+        tg.showAlert('✅ تمت الإضافة بنجاح!');
+        backToCentersMenu();
+    }
+
+    function showAddCenter() {
+        document.getElementById('centersMainMenu').style.display = 'none';
+        document.getElementById('addForm').style.display = 'block';
+        const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
+        document.getElementById('addForm').innerHTML = `
+            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
+            <h4 style="margin-bottom:16px;">➕ إضافة مركز</h4>
+            <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="centerGov" onchange="loadAreasForSelect()">${govOptions}</select></div>
+            <div class="form-group"><label class="form-label">المنطقة</label><select class="form-input" id="centerArea"></select></div>
+            <div class="form-group"><label class="form-label">اسم المركز</label><input type="text" class="form-input" id="centerName"></div>
+            <div class="form-group"><label class="form-label">العنوان</label><input type="text" class="form-input" id="centerAddress"></div>
+            <div class="form-group"><label class="form-label">رابط الخريطة</label><input type="text" class="form-input" id="centerMapLink"></div>
+            <div class="form-group"><label class="form-label">رقم الهاتف</label><input type="tel" class="form-input" id="centerPhone"></div>
+            <div class="form-group"><label class="form-label">التقييم (من 5)</label><input type="number" class="form-input" id="centerRating" min="0" max="5" step="0.1"></div>
+            <button class="btn btn-primary" onclick="addCenter()">حفظ</button>
+        `;
+        loadAreasForSelect();
+    }
+
+    function loadAreasForSelect() {
+        const govId = document.getElementById('centerGov')?.value;
+        if (!govId) return;
+        const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+        document.getElementById('centerArea').innerHTML = areas.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    }
+
+    async function addCenter() {
+        const name = document.getElementById('centerName').value.trim();
+        const areaId = document.getElementById('centerArea').value;
+        const address = document.getElementById('centerAddress').value.trim();
+        const mapLink = document.getElementById('centerMapLink').value.trim();
+        const phone = document.getElementById('centerPhone').value.trim();
+        const rating = parseFloat(document.getElementById('centerRating').value) || 0;
+        if (!name) { tg.showAlert('الرجاء إدخال اسم المركز'); return; }
+        await fetch(`${WORKER_URL}/api/centers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, areaId, address, mapLink, phone, rating }) });
+        tg.showAlert('✅ تمت الإضافة بنجاح!');
+        backToCentersMenu();
+    }
+
+    function backToCentersMenu() {
+        document.getElementById('addForm').style.display = 'none';
+        document.getElementById('editDeleteList').style.display = 'none';
+        document.getElementById('centersMainMenu').style.display = 'block';
+    }
+
+    function showEditList(type) {
+        document.getElementById('centersMainMenu').style.display = 'none';
+        document.getElementById('editDeleteList').style.display = 'block';
+        let items = [];
+        if (type === 'governorates') items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
+        else if (type === 'areas') items = Object.entries(allAreas).map(([id, a]) => ({ id, ...a }));
+        else items = Object.entries(allCenters).map(([id, c]) => ({ id, ...c }));
         
-        const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govs[gIdx].id).map(([id, a]) => ({ id, ...a }));
-        if (areas.length === 0) { tg.showAlert('لا توجد مناطق في هذه المحافظة.'); return; }
-        menu = 'اختر المنطقة:\n';
-        areas.forEach((a, i) => menu += `${i+1}. ${a.name}\n`);
-        const aIdx = parseInt(prompt(menu)) - 1;
-        if (aIdx < 0 || aIdx >= areas.length) return;
-
-        const name = prompt('اسم المركز:');
-        const address = prompt('العنوان:');
-        const mapLink = prompt('رابط الخريطة:');
-        const phone = prompt('رقم الهاتف:');
-        const rating = parseFloat(prompt('التقييم (من 5):'));
-        if (!name) return;
-
-        await fetch(`${WORKER_URL}/api/centers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, address, mapLink, phone, rating: rating || 0, areaId: areas[aIdx].id }) });
-        tg.showAlert('✅ تمت إضافة المركز بنجاح!');
+        document.getElementById('editDeleteList').innerHTML = `
+            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
+            <h4 style="margin-bottom:16px;">✏️ تعديل ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h4>
+            ${items.map(item => `
+                <div class="admin-card">
+                    <span>${item.name}</span>
+                    <button class="btn btn-sm btn-outline" onclick="editItem('${type}', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">✏️ تعديل</button>
+                </div>
+            `).join('')}
+        `;
     }
 
-    // ============ عند فتح التطبيق كأدمن ============
+    function showDeleteList(type) {
+        document.getElementById('centersMainMenu').style.display = 'none';
+        document.getElementById('editDeleteList').style.display = 'block';
+        let items = [];
+        if (type === 'governorates') items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
+        else if (type === 'areas') items = Object.entries(allAreas).map(([id, a]) => ({ id, ...a }));
+        else items = Object.entries(allCenters).map(([id, c]) => ({ id, ...c }));
+        
+        document.getElementById('editDeleteList').innerHTML = `
+            <button class="back-btn" onclick="backToCentersMenu()"><i class="ph ph-arrow-right"></i> رجوع</button>
+            <h4 style="margin-bottom:16px;">🗑 حذف ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h4>
+            ${items.map(item => `
+                <div class="admin-card">
+                    <span>${item.name}</span>
+                    <button class="btn btn-sm btn-danger" onclick="deleteItem('${type}', '${item.id}')">🗑 حذف</button>
+                </div>
+            `).join('')}
+        `;
+    }
+
+    async function editItem(type, id, oldName) {
+        const newName = prompt('الاسم الجديد:', oldName);
+        if (!newName || newName === oldName) return;
+        const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
+        await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName }) });
+        tg.showAlert('✅ تم التعديل بنجاح!');
+        await loadData();
+        showEditList(type);
+    }
+
+    async function deleteItem(type, id) {
+        if (!confirm('هل أنت متأكد من الحذف؟')) return;
+        const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
+        await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'DELETE' });
+        tg.showAlert('✅ تم الحذف بنجاح!');
+        await loadData();
+        showDeleteList(type);
+    }
+
+    // ============ بدء التشغيل ============
     window.addEventListener('DOMContentLoaded', () => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('admin') === 'centers' && tg.initDataUnsafe?.user?.id === ADMIN_ID) {
-            showAdminPanel();
-        }
         if (tg.initDataUnsafe?.user?.first_name) {
-            document.getElementById('fullName').value = tg.initDataUnsafe.user.first_name;
+            const el = document.getElementById('fullName');
+            if (el) el.value = tg.initDataUnsafe.user.first_name;
         }
     });
 </script>
