@@ -4,22 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>اختبار الفحص النظري</title>
+    
+    <!-- خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <style>
         :root {
             --primary: #1a6b3c;
+            --primary-dark: #145a30;
             --primary-light: #e8f5e9;
+            --primary-lighter: #f1f8f2;
             --gold: #c9a84c;
             --gold-light: #fdf6e3;
             --text: #1a1a1a;
-            --text-light: #666;
+            --text-light: #666666;
+            --text-lighter: #999999;
             --bg: #ffffff;
-            --card-bg: #f8f9fa;
+            --bg-secondary: #f5f5f7;
+            --card-bg: #fafafa;
             --border: #e8e8e8;
+            --border-light: #f0f0f0;
+            --radius-lg: 20px;
             --radius: 16px;
             --radius-sm: 12px;
+            --radius-xs: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
             --shadow: 0 2px 12px rgba(0,0,0,0.06);
             --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 60px rgba(0,0,0,0.1);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -30,31 +49,98 @@
         }
 
         body {
-            font-family: 'Segoe UI', 'Tajawal', Tahoma, sans-serif;
-            background: #f5f5f7;
+            font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+            background: var(--bg-secondary);
             color: var(--text);
             direction: rtl;
             text-align: right;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
+            line-height: 1.6;
         }
 
         .container {
             max-width: 480px;
             margin: 0 auto;
-            padding: 0;
             background: var(--bg);
             min-height: 100vh;
             position: relative;
         }
 
+        /* ============ Header ============ */
+        .app-header {
+            background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-light);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), #2d8f52);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(26, 107, 60, 0.2);
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+
+        .header-subtitle {
+            font-size: 11px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .header-back {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text);
+            font-size: 20px;
+        }
+
+        .header-back:active {
+            background: var(--bg-secondary);
+            transform: scale(0.95);
+        }
+
         /* ============ الشاشات ============ */
         .screen {
             display: none;
-            padding: 24px 20px;
-            min-height: 100vh;
-            animation: fadeSlideIn 0.4s ease;
+            padding: 20px;
+            min-height: calc(100vh - 73px);
+            animation: fadeSlideIn 0.45s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .screen.active {
@@ -64,7 +150,7 @@
         @keyframes fadeSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(12px);
+                transform: translateY(16px);
             }
             to {
                 opacity: 1;
@@ -72,128 +158,111 @@
             }
         }
 
-        /* ============ الشعار والترويسة ============ */
-        .logo-section {
+        /* ============ الصفحة الرئيسية ============ */
+        .hero-section {
             text-align: center;
             padding: 20px 0 10px;
         }
 
-        .logo-icon {
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, var(--primary), #2d8f52);
-            border-radius: 22px;
+        .hero-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 16px;
-            font-size: 36px;
-            box-shadow: 0 8px 24px rgba(26, 107, 60, 0.2);
+            margin: 0 auto 20px;
+            font-size: 40px;
+            box-shadow: 0 12px 32px rgba(26, 107, 60, 0.12);
         }
 
         .main-title {
-            font-size: 26px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
             color: var(--text);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             letter-spacing: -0.5px;
         }
 
         .subtitle {
             font-size: 14px;
             color: var(--text-light);
-            line-height: 1.7;
-            padding: 0 10px;
-        }
-
-        /* ============ قسم الميزات ============ */
-        .features-section {
-            margin: 24px 0;
+            line-height: 1.8;
+            padding: 0 5px;
         }
 
         .features-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
+            margin: 28px 0;
         }
 
         .feature-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 16px 14px;
+            padding: 18px 14px;
             text-align: center;
             transition: var(--transition);
-            cursor: default;
         }
 
-        .feature-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-            border-color: #d0d0d0;
+        .feature-card:active {
+            transform: scale(0.97);
+            background: #f0f0f0;
         }
 
         .feature-icon {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 10px;
-            font-size: 22px;
+            margin: 0 auto 12px;
+            font-size: 24px;
         }
 
-        .feature-icon.trust {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .feature-icon.simulation {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .feature-icon.match {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .feature-icon.complete {
-            background: #fce4ec;
-            color: #c62828;
-        }
+        .feature-icon.trust { background: #e8f5e9; color: #2e7d32; }
+        .feature-icon.simulation { background: #e3f2fd; color: #1565c0; }
+        .feature-icon.match { background: #fff3e0; color: #e65100; }
+        .feature-icon.complete { background: #fce4ec; color: #c62828; }
 
         .feature-label {
             font-size: 13px;
             font-weight: 600;
             color: var(--text);
+            line-height: 1.5;
         }
 
-        /* ============ الأزرار ============ */
+        /* ============ أزرار ============ */
         .btn {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             width: 100%;
-            padding: 16px;
+            padding: 16px 20px;
             border: none;
             border-radius: var(--radius);
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
-            text-align: center;
-            font-family: inherit;
+            font-family: 'Tajawal', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         .btn-primary {
             background: var(--primary);
             color: #fff;
-            box-shadow: 0 4px 16px rgba(26, 107, 60, 0.25);
-            margin-top: 24px;
+            box-shadow: 0 4px 20px rgba(26, 107, 60, 0.25);
+            margin-top: 8px;
         }
 
         .btn-primary:active {
+            background: var(--primary-dark);
             transform: scale(0.97);
             box-shadow: 0 2px 8px rgba(26, 107, 60, 0.2);
         }
@@ -212,7 +281,7 @@
         .btn-card {
             background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: var(--radius);
+            border-radius: var(--radius-lg);
             padding: 20px;
             margin: 12px 0;
             cursor: pointer;
@@ -222,8 +291,9 @@
             gap: 16px;
             text-align: right;
             width: 100%;
-            font-family: inherit;
+            font-family: 'Tajawal', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-card:active {
@@ -233,19 +303,19 @@
         }
 
         .btn-card .card-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: var(--radius-sm);
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
+            font-size: 28px;
             flex-shrink: 0;
         }
 
-        .btn-card .card-icon.green { background: #e8f5e9; }
-        .btn-card .card-icon.blue { background: #e3f2fd; }
-        .btn-card .card-icon.gold { background: #fff8e1; }
+        .btn-card .card-icon.green { background: #e8f5e9; color: #2e7d32; }
+        .btn-card .card-icon.blue { background: #e3f2fd; color: #1565c0; }
+        .btn-card .card-icon.gold { background: #fff8e1; color: #f9a825; }
 
         .btn-card .card-content {
             flex: 1;
@@ -253,7 +323,7 @@
 
         .btn-card .card-title {
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text);
             margin-bottom: 4px;
         }
@@ -261,16 +331,17 @@
         .btn-card .card-desc {
             font-size: 12px;
             color: var(--text-light);
+            font-weight: 500;
         }
 
         .btn-card .card-arrow {
             color: #ccc;
-            font-size: 20px;
+            font-size: 24px;
         }
 
         /* ============ نموذج التسجيل ============ */
         .form-group {
-            margin: 16px 0;
+            margin: 18px 0;
         }
 
         .form-label {
@@ -284,11 +355,11 @@
         .form-input {
             display: block;
             width: 100%;
-            padding: 14px 16px;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
+            padding: 15px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
             font-size: 15px;
-            font-family: inherit;
+            font-family: 'Tajawal', sans-serif;
             background: var(--card-bg);
             color: var(--text);
             transition: var(--transition);
@@ -299,117 +370,141 @@
             outline: none;
             border-color: var(--primary);
             background: #fff;
-            box-shadow: 0 0 0 4px rgba(26, 107, 60, 0.08);
+            box-shadow: 0 0 0 4px rgba(26, 107, 60, 0.06);
         }
 
         .phone-btn {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 14px 16px;
-            background: #e8f5e9;
-            border: 1.5px solid #c8e6c9;
-            border-radius: var(--radius-sm);
+            padding: 15px 16px;
+            background: var(--primary-lighter);
+            border: 2px solid #c8e6c9;
+            border-radius: var(--radius);
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--primary);
             transition: var(--transition);
-            font-family: inherit;
+            font-family: 'Tajawal', sans-serif;
             width: 100%;
             text-align: right;
         }
 
         .phone-btn:active {
             background: #c8e6c9;
+            transform: scale(0.98);
         }
 
-        /* ============ شاشة الترحيب الداخلية ============ */
+        .phone-success {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #e8f5e9;
+            border-radius: var(--radius);
+            color: #2e7d32;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* ============ الصفحة الداخلية ============ */
         .welcome-inner {
             text-align: center;
             padding: 10px 0;
         }
 
-        .welcome-inner .user-greeting {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .welcome-inner .user-subtitle {
-            font-size: 14px;
-            color: var(--text-light);
-            margin-bottom: 28px;
-            line-height: 1.6;
-        }
-
-        /* ============ زخرفة ============ */
         .decorative-line {
             width: 48px;
             height: 4px;
             background: var(--gold);
             border-radius: 2px;
-            margin: 0 auto 16px;
+            margin: 0 auto 20px;
         }
 
-        /* ============ Media Queries ============ */
-        @media (max-width: 400px) {
-            .screen {
-                padding: 16px 12px;
-            }
-            .main-title {
-                font-size: 22px;
-            }
-            .features-grid {
-                gap: 8px;
-            }
-            .feature-card {
-                padding: 12px 10px;
-            }
-            .btn-card {
-                padding: 16px;
-            }
+        .user-greeting {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .user-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 32px;
+            line-height: 1.7;
+            padding: 0 10px;
+        }
+
+        /* ============ محسنات ============ */
+        .divider {
+            height: 1px;
+            background: var(--border-light);
+            margin: 24px 0;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-3 {
+            margin-top: 24px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         
+        <!-- ============ Header ============ -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="header-logo">🚗</div>
+                <div>
+                    <div class="header-title">الفحص النظري</div>
+                    <div class="header-subtitle">دائرة الترخيص الأردنية</div>
+                </div>
+            </div>
+            <button class="header-back" id="backButton" style="display:none;" onclick="goBack()">
+                <i class="ph ph-arrow-right"></i>
+            </button>
+        </header>
+
         <!-- ============ الصفحة الرئيسية ============ -->
         <div id="landingScreen" class="screen active">
-            <div class="logo-section">
-                <div class="logo-icon">🚗</div>
+            <div class="hero-section">
+                <div class="hero-icon">📋</div>
                 <h1 class="main-title">اختبار الفحص النظري</h1>
                 <p class="subtitle">دراسة مصنفة حسب أقسام المادة النظرية، اختبار محاكي قريب من التجربة الفعلية، وترشيح مراكز تدريب قيادة قريبة منك.</p>
             </div>
 
-            <div class="features-section">
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon trust">✅</div>
-                        <div class="feature-label">موثوق من دائرة الترخيص</div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon simulation">🎯</div>
-                        <div class="feature-label">محاكاة فعلية</div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon match">📋</div>
-                        <div class="feature-label">مطابق لأسئلة الاختبار</div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon complete">⏱</div>
-                        <div class="feature-label">تجربة امتحان كاملة</div>
-                    </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon trust"><i class="ph ph-shield-check"></i></div>
+                    <div class="feature-label">موثوق من دائرة الترخيص</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon simulation"><i class="ph ph-target"></i></div>
+                    <div class="feature-label">محاكاة فعلية</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon match"><i class="ph ph-list-checks"></i></div>
+                    <div class="feature-label">مطابق لأسئلة الاختبار</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon complete"><i class="ph ph-timer"></i></div>
+                    <div class="feature-label">تجربة امتحان كاملة</div>
                 </div>
             </div>
 
-            <button class="btn btn-primary" onclick="showScreen('registerScreen')">ابدأ</button>
+            <button class="btn btn-primary" onclick="handleStart()">
+                <i class="ph ph-play-circle"></i> ابدأ
+            </button>
         </div>
 
         <!-- ============ شاشة التسجيل ============ -->
         <div id="registerScreen" class="screen">
-            <h2 style="font-size:22px; margin-bottom:24px; text-align:center;">أدخل بياناتك للمتابعة</h2>
+            <h2 style="font-size:22px; margin-bottom:28px; text-align:center; font-weight:700;">أدخل بياناتك للمتابعة</h2>
             
             <div class="form-group">
                 <label class="form-label">الاسم الكامل</label>
@@ -418,97 +513,164 @@
             
             <div class="form-group">
                 <label class="form-label">رقم الهاتف</label>
-                <div id="phoneDisplay" style="margin-bottom:8px;"></div>
-                <button class="phone-btn" onclick="requestPhone()">
-                    📱 مشاركة رقم الهاتف عبر Telegram
+                <div id="phoneDisplay"></div>
+                <button class="phone-btn" onclick="requestPhone()" id="phoneBtn">
+                    <i class="ph ph-phone"></i> مشاركة رقم الهاتف عبر Telegram
                 </button>
             </div>
 
-            <button class="btn btn-primary" onclick="completeRegistration()" style="margin-top:32px;">موافق</button>
-            <button class="btn btn-outline" onclick="showScreen('landingScreen')" style="margin-top:12px;">رجوع</button>
+            <button class="btn btn-primary" onclick="completeRegistration()" style="margin-top:32px;">
+                <i class="ph ph-check-circle"></i> موافق
+            </button>
+            <button class="btn btn-outline" onclick="goBack()" style="margin-top:12px;">
+                <i class="ph ph-arrow-right"></i> رجوع
+            </button>
         </div>
 
         <!-- ============ الصفحة الرئيسية بعد التسجيل ============ -->
         <div id="homeScreen" class="screen">
             <div class="welcome-inner">
                 <div class="decorative-line"></div>
-                <h1 class="main-title" style="margin-bottom:4px;">اختبار الفحص النظري</h1>
+                <h1 class="main-title" style="margin-bottom:6px;">اختبار الفحص النظري</h1>
                 <p class="user-greeting" id="greetingText">مرحباً بك!</p>
                 <p class="user-subtitle">منصتك الشاملة للاستعداد لاختبار السواقة النظري من خلال الدراسة المنظمة والمحاكاة الواقعية للاختبار.</p>
             </div>
 
             <button class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل الامتحان التجريبي قريباً')">
-                <div class="card-icon green">📝</div>
+                <div class="card-icon green"><i class="ph ph-pencil-line"></i></div>
                 <div class="card-content">
                     <div class="card-title">بدء الامتحان النظري الحي</div>
                     <div class="card-desc">محاكاة واقعية لاختبار القيادة النظري</div>
                 </div>
-                <div class="card-arrow">›</div>
+                <i class="ph ph-caret-left card-arrow"></i>
             </button>
 
             <button class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل دراسة الأسئلة قريباً')">
-                <div class="card-icon blue">📚</div>
+                <div class="card-icon blue"><i class="ph ph-book-open"></i></div>
                 <div class="card-content">
                     <div class="card-title">دراسة الأسئلة</div>
                     <div class="card-desc">مراجعة الأسئلة حسب الأقسام المختلفة</div>
                 </div>
-                <div class="card-arrow">›</div>
+                <i class="ph ph-caret-left card-arrow"></i>
             </button>
 
             <button class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل مراكز التدريب قريباً')">
-                <div class="card-icon gold">📍</div>
+                <div class="card-icon gold"><i class="ph ph-map-pin"></i></div>
                 <div class="card-content">
                     <div class="card-title">مراكز تدريب القيادة القريبة</div>
                     <div class="card-desc">اعثر على أقرب مركز تدريب معتمد</div>
                 </div>
-                <div class="card-arrow">›</div>
+                <i class="ph ph-caret-left card-arrow"></i>
+            </button>
+
+            <button class="btn btn-outline mt-3" onclick="goBack()">
+                <i class="ph ph-arrow-right"></i> الرجوع للرئيسية
             </button>
         </div>
     </div>
 
     <script>
-        // ============ تهيئة Telegram Web App ============
+        // ============ Firebase ============
+        firebase.initializeApp({
+            apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
+            databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "al3arbicv"
+        });
+        const db = firebase.database();
+
+        // ============ Telegram Web App ============
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
+        // ============ المتغيرات ============
+        let phoneNumber = '';
+        let currentScreen = 'landingScreen';
+        const screenHistory = [];
+
         // ============ التنقل بين الشاشات ============
-        function showScreen(screenId) {
+        function showScreen(screenId, addToHistory = true) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            window.scrollTo(0, 0);
+            
+            if (addToHistory && currentScreen !== screenId) {
+                screenHistory.push(currentScreen);
+            }
+            
+            currentScreen = screenId;
+            
+            // إظهار/إخفاء زر الرجوع
+            const backBtn = document.getElementById('backButton');
+            if (screenId === 'landingScreen') {
+                backBtn.style.display = 'none';
+            } else {
+                backBtn.style.display = 'flex';
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goBack() {
+            if (screenHistory.length > 0) {
+                const prevScreen = screenHistory.pop();
+                showScreen(prevScreen, false);
+            } else {
+                showScreen('landingScreen', false);
+            }
+        }
+
+        // ============ التحقق من تسجيل المستخدم ============
+        async function checkUserRegistration() {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                const userId = tg.initDataUnsafe.user.id;
+                const snapshot = await db.ref('users/' + userId).once('value');
+                const userData = snapshot.val();
+                
+                if (userData) {
+                    // المستخدم مسجل مسبقاً
+                    document.getElementById('greetingText').textContent = 'أهلاً بك، ' + userData.name + ' 👋';
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // ============ بدء التطبيق ============
+        async function handleStart() {
+            const isRegistered = await checkUserRegistration();
+            
+            if (isRegistered) {
+                showScreen('homeScreen');
+            } else {
+                showScreen('registerScreen');
+            }
         }
 
         // ============ مشاركة رقم الهاتف ============
-        let phoneNumber = '';
-
         function requestPhone() {
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.phone_number) {
-                phoneNumber = tg.initDataUnsafe.user.phone_number;
-                document.getElementById('phoneDisplay').innerHTML = 
-                    '<span style="color:#2e7d32; font-weight:600;">✅ ' + phoneNumber + '</span>';
-            } else {
-                // محاولة طلب الرقم
-                try {
-                    tg.requestContact((success, result) => {
-                        if (success) {
-                            phoneNumber = result.phone_number;
-                            document.getElementById('phoneDisplay').innerHTML = 
-                                '<span style="color:#2e7d32; font-weight:600;">✅ ' + phoneNumber + '</span>';
-                        }
-                    });
-                } catch(e) {
-                    phoneNumber = prompt('الرجاء إدخال رقم هاتفك:') || '';
-                    if (phoneNumber) {
+            try {
+                tg.requestContact((success, result) => {
+                    if (success && result && result.phone_number) {
+                        phoneNumber = result.phone_number;
                         document.getElementById('phoneDisplay').innerHTML = 
-                            '<span style="color:#2e7d32; font-weight:600;">✅ ' + phoneNumber + '</span>';
+                            '<div class="phone-success"><i class="ph ph-check-circle"></i> تمت مشاركة رقم الهاتف بنجاح</div>';
+                        document.getElementById('phoneBtn').style.display = 'none';
                     }
+                });
+            } catch(e) {
+                // بديل يدوي
+                const manualPhone = prompt('الرجاء إدخال رقم هاتفك:');
+                if (manualPhone) {
+                    phoneNumber = manualPhone;
+                    document.getElementById('phoneDisplay').innerHTML = 
+                        '<div class="phone-success"><i class="ph ph-check-circle"></i> تم إدخال رقم الهاتف</div>';
+                    document.getElementById('phoneBtn').style.display = 'none';
                 }
             }
         }
 
         // ============ إكمال التسجيل ============
-        function completeRegistration() {
+        async function completeRegistration() {
             const name = document.getElementById('fullName').value.trim();
             
             if (!name) {
@@ -516,23 +678,45 @@
                 return;
             }
             
-            // حفظ الاسم للترحيب
-            document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + ' 👋';
+            if (!phoneNumber) {
+                tg.showAlert('الرجاء مشاركة رقم هاتفك');
+                return;
+            }
             
-            // الانتقال للصفحة الرئيسية
-            showScreen('homeScreen');
+            if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+                tg.showAlert('تعذر التحقق من حسابك. حاول مرة أخرى.');
+                return;
+            }
+            
+            const userId = tg.initDataUnsafe.user.id;
+            const username = tg.initDataUnsafe.user.username || '';
+            
+            // حفظ في Firebase
+            try {
+                await db.ref('users/' + userId).set({
+                    name: name,
+                    phone: phoneNumber,
+                    username: username,
+                    userId: userId,
+                    registeredAt: new Date().toISOString()
+                });
+                
+                document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + ' 👋';
+                showScreen('homeScreen');
+                
+                // تفريغ التاريخ عند الانتقال للرئيسية بعد التسجيل
+                screenHistory.length = 0;
+                
+            } catch (error) {
+                tg.showAlert('حدث خطأ في التسجيل. حاول مرة أخرى.');
+            }
         }
 
-        // ============ محاولة جلب اسم المستخدم تلقائياً من تيليجرام ============
+        // ============ ملء الاسم تلقائياً ============
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             const user = tg.initDataUnsafe.user;
             if (user.first_name) {
                 document.getElementById('fullName').value = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-            }
-            if (user.phone_number) {
-                phoneNumber = user.phone_number;
-                document.getElementById('phoneDisplay').innerHTML = 
-                    '<span style="color:#2e7d32; font-weight:600;">✅ ' + phoneNumber + '</span>';
             }
         }
     </script>
