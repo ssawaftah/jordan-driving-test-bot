@@ -3,39 +3,538 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الفحص النظري 2026</title>
+    <title>اختبار الفحص النظري</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: var(--tg-theme-bg-color, #1a1a2e);
-            color: var(--tg-theme-text-color, #fff);
-            padding: 20px;
-            direction: rtl;
+        :root {
+            --primary: #1a6b3c;
+            --primary-light: #e8f5e9;
+            --gold: #c9a84c;
+            --gold-light: #fdf6e3;
+            --text: #1a1a1a;
+            --text-light: #666;
+            --bg: #ffffff;
+            --card-bg: #f8f9fa;
+            --border: #e8e8e8;
+            --radius: 16px;
+            --radius-sm: 12px;
+            --shadow: 0 2px 12px rgba(0,0,0,0.06);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tajawal', Tahoma, sans-serif;
+            background: #f5f5f7;
+            color: var(--text);
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0;
+            background: var(--bg);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* ============ الشاشات ============ */
+        .screen {
+            display: none;
+            padding: 24px 20px;
+            min-height: 100vh;
+            animation: fadeSlideIn 0.4s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ============ الشعار والترويسة ============ */
+        .logo-section {
+            text-align: center;
+            padding: 20px 0 10px;
+        }
+
+        .logo-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--primary), #2d8f52);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 36px;
+            box-shadow: 0 8px 24px rgba(26, 107, 60, 0.2);
+        }
+
+        .main-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.7;
+            padding: 0 10px;
+        }
+
+        /* ============ قسم الميزات ============ */
+        .features-section {
+            margin: 24px 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 14px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: default;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: #d0d0d0;
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 22px;
+        }
+
+        .feature-icon.trust {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .feature-icon.simulation {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .feature-icon.match {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .feature-icon.complete {
+            background: #fce4ec;
+            color: #c62828;
+        }
+
+        .feature-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* ============ الأزرار ============ */
         .btn {
             display: block;
             width: 100%;
-            padding: 15px;
-            margin: 12px 0;
-            background: var(--tg-theme-button-color, rgba(0,140,255,0.3));
-            color: var(--tg-theme-button-text-color, #fff);
+            padding: 16px;
             border: none;
-            border-radius: 14px;
-            font-size: 17px;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            transition: var(--transition);
             text-align: center;
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
         }
-        h2 { text-align: center; margin: 25px 0; }
-        p { text-align: center; opacity: 0.8; margin-bottom: 20px; }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(26, 107, 60, 0.25);
+            margin-top: 24px;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 8px rgba(26, 107, 60, 0.2);
+        }
+
+        .btn-outline {
+            background: var(--bg);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:active {
+            background: var(--primary-light);
+            transform: scale(0.97);
+        }
+
+        .btn-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 12px 0;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-align: right;
+            width: 100%;
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-card:active {
+            background: var(--card-bg);
+            transform: scale(0.98);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-card .card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+
+        .btn-card .card-icon.green { background: #e8f5e9; }
+        .btn-card .card-icon.blue { background: #e3f2fd; }
+        .btn-card .card-icon.gold { background: #fff8e1; }
+
+        .btn-card .card-content {
+            flex: 1;
+        }
+
+        .btn-card .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .btn-card .card-desc {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .btn-card .card-arrow {
+            color: #ccc;
+            font-size: 20px;
+        }
+
+        /* ============ نموذج التسجيل ============ */
+        .form-group {
+            margin: 16px 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            display: block;
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-family: inherit;
+            background: var(--card-bg);
+            color: var(--text);
+            transition: var(--transition);
+            text-align: right;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(26, 107, 60, 0.08);
+        }
+
+        .phone-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: #e8f5e9;
+            border: 1.5px solid #c8e6c9;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--primary);
+            transition: var(--transition);
+            font-family: inherit;
+            width: 100%;
+            text-align: right;
+        }
+
+        .phone-btn:active {
+            background: #c8e6c9;
+        }
+
+        /* ============ شاشة الترحيب الداخلية ============ */
+        .welcome-inner {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .welcome-inner .user-greeting {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .welcome-inner .user-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        /* ============ زخرفة ============ */
+        .decorative-line {
+            width: 48px;
+            height: 4px;
+            background: var(--gold);
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+
+        /* ============ Media Queries ============ */
+        @media (max-width: 400px) {
+            .screen {
+                padding: 16px 12px;
+            }
+            .main-title {
+                font-size: 22px;
+            }
+            .features-grid {
+                gap: 8px;
+            }
+            .feature-card {
+                padding: 12px 10px;
+            }
+            .btn-card {
+                padding: 16px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h2>🚗 الفحص النظري للقيادة 2026</h2>
-    <p>اختر ما تريد:</p>
-    
-    <button class="btn" onclick="Telegram.WebApp.showAlert('قريباً - دراسة الأسئلة')">📚 دراسة الأسئلة</button>
-    <button class="btn" onclick="Telegram.WebApp.showAlert('قريباً - اختبار تجريبي')">📝 اختبار تجريبي</button>
+    <div class="container">
+        
+        <!-- ============ الصفحة الرئيسية ============ -->
+        <div id="landingScreen" class="screen active">
+            <div class="logo-section">
+                <div class="logo-icon">🚗</div>
+                <h1 class="main-title">اختبار الفحص النظري</h1>
+                <p class="subtitle">دراسة مصنفة حسب أقسام المادة النظرية، اختبار محاكي قريب من التجربة الفعلية، وترشيح مراكز تدريب قيادة قريبة منك.</p>
+            </div>
+
+            <div class="features-section">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon trust">✅</div>
+                        <div class="feature-label">موثوق من دائرة الترخيص</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon simulation">🎯</div>
+                        <div class="feature-label">محاكاة فعلية</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon match">📋</div>
+                        <div class="feature-label">مطابق لأسئلة الاختبار</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon complete">⏱</div>
+                        <div class="feature-label">تجربة امتحان كاملة</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="showScreen('registerScreen')">ابدأ</button>
+        </div>
+
+        <!-- ============ شاشة التسجيل ============ -->
+        <div id="registerScreen" class="screen">
+            <h2 style="font-size:22px; margin-bottom:24px; text-align:center;">أدخل بياناتك للمتابعة</h2>
+            
+            <div class="form-group">
+                <label class="form-label">الاسم الكامل</label>
+                <input type="text" class="form-input" id="fullName" placeholder="أدخل اسمك الكامل">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">رقم الهاتف</label>
+                <div id="phoneDisplay" style="margin-bottom:8px;"></div>
+                <button class="phone-btn" onclick="requestPhone()">
+                    📱 مشاركة رقم الهاتف عبر Telegram
+                </button>
+            </div>
+
+            <button class="btn btn-primary" onclick="completeRegistration()" style="margin-top:32px;">موافق</button>
+            <button class="btn btn-outline" onclick="showScreen('landingScreen')" style="margin-top:12px;">رجوع</button>
+        </div>
+
+        <!-- ============ الصفحة الرئيسية بعد التسجيل ============ -->
+        <div id="homeScreen" class="screen">
+            <div class="welcome-inner">
+                <div class="decorative-line"></div>
+                <h1 class="main-title" style="margin-bottom:4px;">اختبار الفحص النظري</h1>
+                <p class="user-greeting" id="greetingText">مرحباً بك!</p>
+                <p class="user-subtitle">منصتك الشاملة للاستعداد لاختبار السواقة النظري من خلال الدراسة المنظمة والمحاكاة الواقعية للاختبار.</p>
+            </div>
+
+            <button class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل الامتحان التجريبي قريباً')">
+                <div class="card-icon green">📝</div>
+                <div class="card-content">
+                    <div class="card-title">بدء الامتحان النظري الحي</div>
+                    <div class="card-desc">محاكاة واقعية لاختبار القيادة النظري</div>
+                </div>
+                <div class="card-arrow">›</div>
+            </button>
+
+            <button class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل دراسة الأسئلة قريباً')">
+                <div class="card-icon blue">📚</div>
+                <div class="card-content">
+                    <div class="card-title">دراسة الأسئلة</div>
+                    <div class="card-desc">مراجعة الأسئلة حسب الأقسام المختلفة</div>
+                </div>
+                <div class="card-arrow">›</div>
+            </button>
+
+            <button class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل مراكز التدريب قريباً')">
+                <div class="card-icon gold">📍</div>
+                <div class="card-content">
+                    <div class="card-title">مراكز تدريب القيادة القريبة</div>
+                    <div class="card-desc">اعثر على أقرب مركز تدريب معتمد</div>
+                </div>
+                <div class="card-arrow">›</div>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ============ تهيئة Telegram Web App ============
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // ============ التنقل بين الشاشات ============
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // ============ مشاركة رقم الهاتف ============
+        let phoneNumber = '';
+
+        function requestPhone() {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.phone_number) {
+                phoneNumber = tg.initDataUnsafe.user.phone_number;
+                document.getElementById('phoneDisplay').innerHTML = 
+                    '<span style="color:#2e7d32; font-weight:600;">✅ ' + phoneNumber + '</span>';
+            } else {
+                // محاولة طلب الرقم
+                try {
+                    tg.requestContact((success, result) => {
+                        if (success) {
+                            phoneNumber = result.phone_number;
+                            document.getElementById('phoneDisplay').innerHTML = 
+                                '<span style="color:#2e7d32; font-weight:600;">✅ ' + phoneNumber + '</span>';
+                        }
+                    });
+                } catch(e) {
+                    phoneNumber = prompt('الرجاء إدخال رقم هاتفك:') || '';
+                    if (phoneNumber) {
+                        document.getElementById('phoneDisplay').innerHTML = 
+                            '<span style="color:#2e7d32; font-weight:600;">✅ ' + phoneNumber + '</span>';
+                    }
+                }
+            }
+        }
+
+        // ============ إكمال التسجيل ============
+        function completeRegistration() {
+            const name = document.getElementById('fullName').value.trim();
+            
+            if (!name) {
+                tg.showAlert('الرجاء إدخال اسمك الكامل');
+                return;
+            }
+            
+            // حفظ الاسم للترحيب
+            document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + ' 👋';
+            
+            // الانتقال للصفحة الرئيسية
+            showScreen('homeScreen');
+        }
+
+        // ============ محاولة جلب اسم المستخدم تلقائياً من تيليجرام ============
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            if (user.first_name) {
+                document.getElementById('fullName').value = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+            }
+            if (user.phone_number) {
+                phoneNumber = user.phone_number;
+                document.getElementById('phoneDisplay').innerHTML = 
+                    '<span style="color:#2e7d32; font-weight:600;">✅ ' + phoneNumber + '</span>';
+            }
+        }
+    </script>
 </body>
 </html>
