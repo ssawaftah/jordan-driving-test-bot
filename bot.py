@@ -1,31 +1,13 @@
 import os
+import json
+import requests
 from datetime import datetime
-import firebase_admin
-from firebase_admin import credentials, db
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ConversationHandler, filters, ContextTypes
 
 BOT_TOKEN = "8993443266:AAFUQsnrVjRpYjox5OQoHUg_CacbuC-leek"
 BLOGGER_URL = "https://idriverjo.blogspot.com/p/theory-test-practice.html"
-
-# تهيئة Firebase باستخدام المتغيرات
-cred_dict = {
-    "type": "service_account",
-    "project_id": "al3arbicv",
-    "private_key_id": "94fed52b41652433ad3e2fe36026979f7eddcbfe",
-    "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", ""),
-    "client_email": "firebase-adminsdk-nnswm@al3arbicv.iam.gserviceaccount.com",
-    "client_id": "101502612516719102132",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-nnswm%40al3arbicv.iam.gserviceaccount.com"
-}
-
-cred = credentials.Certificate(cred_dict)
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app'
-})
+FIREBASE_DB_URL = "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app"
 
 SELECTING_CATEGORY, ENTERING_QUESTION, ENTERING_OPTIONS, ENTERING_ANSWER, ENTERING_EXPLANATION = range(5)
 
@@ -37,6 +19,12 @@ CATEGORIES = [
     "الشواخص والخطوط والعلامات",
     "المخالفات واحتساب النقاط"
 ]
+
+def save_to_firebase(data):
+    """حفظ سؤال في Firebase باستخدام REST API"""
+    url = f"{FIREBASE_DB_URL}/questions.json"
+    response = requests.post(url, json=data)
+    return response.json()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -56,8 +44,9 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    ref = db.reference('questions')
-    questions = ref.get() or {}
+    url = f"{FIREBASE_DB_URL}/questions.json"
+    response = requests.get(url)
+    questions = response.json() or {}
     total = len(questions)
     
     cats_count = {}
@@ -101,23 +90,8 @@ async def select_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def receive_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
-    
-    if message.photo:
-        context.user_data['media_file_id'] = message.photo[-1].file_id
-        context.user_data['media_type'] = 'image'
-        context.user_data['question'] = message.caption or "سؤال مع صورة"
-    elif message.video:
-        context.user_data['media_file_id'] = message.video.file_id
-        context.user_data['media_type'] = 'video'
-        context.user_data['question'] = message.caption or "سؤال مع فيديو"
-    elif message.animation:
-        context.user_data['media_file_id'] = message.animation.file_id
-        context.user_data['media_type'] = 'gif'
-        context.user_data['question'] = message.caption or "سؤال مع GIF"
-    else:
-        context.user_data['media_file_id'] = None
-        context.user_data['media_type'] = 'text'
-        context.user_data['question'] = message.text
+    context.user_data['media_type'] = 'text'
+    context.user_data['question'] = message.text
     
     await message.reply_text(
         "✅ تم استلام السؤال\n\nالآن أرسل **4 خيارات**، كل خيار في سطر منفصل:\n\n*مثال:*\nتوقف تام\nاستعد للتحرك\nأبطئ السرعة\nالطريق مفتوح",
@@ -164,35 +138,27 @@ async def receive_explanation(update: Update, context: ContextTypes.DEFAULT_TYPE
     if explanation == '/skip':
         explanation = ''
     
-    try:
-        ref = db.reference('questions')
-        new_ref = ref.push()
-        
-        question_data = {
-            'category': context.user_data.get('category', ''),
-            'question': context.user_data.get('question', ''),
-            'options': context.user_data.get('options', []),
-            'correctAnswer': context.user_data.get('correct_answer', 0),
-            'explanation': explanation,
-            'mediaUrl': context.user_data.get('media_file_id'),
-            'mediaType': context.user_data.get('media_type', 'text'),
-            'createdAt': datetime.now().isoformat()
-        }
-        
-        new_ref.set(question_data)
-        
-        await update.message.reply_text(
-            f"🎉 **تم حفظ السؤال بنجاح!**\n\n"
-            f"📂 القسم: {context.user_data.get('category', '')}\n"
-            f"📝 السؤال: {context.user_data.get('question', '')[:50]}...\n"
-            f"🆔 المعرف: {new_ref.key}",
-            parse_mode='Markdown'
-        )
-        return ConversationHandler.END
-        
-    except Exception as e:
-        await update.message.reply_text(f"❌ حدث خطأ: {str(e)}\n\nحاول مرة أخرى بإرسال /start")
-        return ConversationHandler.END
+    question_data = {
+        'category': context.user_data.get('category', ''),
+        'question': context.user_data.get('question', ''),
+        'options': context.user_data.get('options', []),
+        'correctAnswer': context.user_data.get('correct_answer', 0),
+        'explanation': explanation,
+        'mediaUrl': None,
+        'mediaType': 'text',
+        'createdAt': datetime.now().isoformat()
+    }
+    
+    result = save_to_firebase(question_data)
+    
+    await update.message.reply_text(
+        f"🎉 **تم حفظ السؤال بنجاح!**\n\n"
+        f"📂 القسم: {context.user_data.get('category', '')}\n"
+        f"📝 السؤال: {context.user_data.get('question', '')[:50]}...\n"
+        f"🆔 المعرف: {result.get('name', '')}",
+        parse_mode='Markdown'
+    )
+    return ConversationHandler.END
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ تم الإلغاء. أرسل /start للعودة للقائمة.")
@@ -205,7 +171,7 @@ def main():
         entry_points=[CallbackQueryHandler(add_question_start, pattern="^add_question$")],
         states={
             SELECTING_CATEGORY: [CallbackQueryHandler(select_category, pattern="^cat_|^cancel$")],
-            ENTERING_QUESTION: [MessageHandler(filters.TEXT | filters.PHOTO | filters.VIDEO | filters.ANIMATION, receive_question)],
+            ENTERING_QUESTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_question)],
             ENTERING_OPTIONS: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_options)],
             ENTERING_ANSWER: [CallbackQueryHandler(receive_answer, pattern="^ans_")],
             ENTERING_EXPLANATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_explanation)],
