@@ -1,336 +1,311 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختبار الفحص النظري</title>
+const BOT_TOKEN = "8993443266:AAFUQsnrVjRpYjox5OQoHUg_CacbuC-leek";
+const FIREBASE_URL = "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app";
+const ADMIN_ID = 1376513623;
+const APP_URL = "https://ssawaftah.github.io/jordan-driving-test-bot/";
+
+// ============ Firebase ============
+async function getWelcomeData() {
+  const res = await fetch(`${FIREBASE_URL}/welcome.json`);
+  return (await res.json()) || {};
+}
+
+async function saveWelcomeData(data) {
+  await fetch(`${FIREBASE_URL}/welcome.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+}
+
+// ============ Telegram API ============
+async function tg(method, body) {
+  return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+async function sendMsg(chatId, text, kb = null) {
+  const body = { chat_id: chatId, text, parse_mode: 'HTML' };
+  if (kb) body.reply_markup = JSON.stringify(kb);
+  return tg('sendMessage', body);
+}
+
+async function sendPhoto(chatId, photo, caption, kb = null) {
+  const body = { chat_id: chatId, photo, caption, parse_mode: 'HTML' };
+  if (kb) body.reply_markup = JSON.stringify(kb);
+  return tg('sendPhoto', body);
+}
+
+async function editMsg(chatId, msgId, text, kb = null) {
+  const body = { chat_id: chatId, message_id: msgId, text, parse_mode: 'HTML' };
+  if (kb) body.reply_markup = JSON.stringify(kb);
+  return tg('editMessageText', body);
+}
+
+async function answerCb(cbId, text = null, alert = false) {
+  return tg('answerCallbackQuery', { callback_query_id: cbId, text, show_alert: alert });
+}
+
+// ============ النص الافتراضي ============
+const DEFAULT_TEXT = `أهلاً بك في بوت الفحص النظري الشامل 2026 👋
+
+إذا كنت تستعد لتقديم اختبار القيادة النظري في الأردن، فإن دراسة المادة النظرية بشكل جيد تُعد الخطوة الأهم للنجاح في الفحص من المرة الأولى.
+
+📘 <b>قواعد السير والمرور</b>
+🔧 <b>الميكانيك</b>
+🛡️ <b>السلامة على الطريق</b>
+🚑 <b>الإسعافات الأولية</b>
+🚸 <b>الشواخص المرورية والخطوط الأرضية</b>
+⚖️ <b>المخالفات المرورية واحتساب النقاط</b>
+
+ننصحك بدراسة جميع الأقسام جيدًا قبل الدخول إلى اختبار القيادة النظري.`;
+
+// ============ إرسال رسالة الترحيب ============
+async function sendWelcome(chatId, isAdmin) {
+  const data = await getWelcomeData();
+  const text = data.text || DEFAULT_TEXT;
+  const photo = data.photo || null;
+  
+  const kb = { inline_keyboard: [] };
+  
+  if (!isAdmin) {
+    kb.inline_keyboard.push([{ text: "📱 افتح تطبيق الدراسة", web_app: { url: APP_URL } }]);
+  }
+  
+  if (isAdmin) {
+    kb.inline_keyboard.push([{ text: "⚙️ إدارة رسالة الترحيب", callback_data: "admin_welcome" }]);
+  }
+  
+  if (photo) {
+    await sendPhoto(chatId, photo, text, kb);
+  } else {
+    await sendMsg(chatId, text, kb);
+  }
+}
+
+// ============ دوال رمز التحقق ============
+async function sendVerificationCode(userId, phone) {
+  try {
+    await tg('sendChatAction', { chat_id: userId, action: 'typing' });
+  } catch (e) {
+    return { success: false, error: "عذراً، لا يمكن التواصل مع حسابك. تأكد من أنك بدأت محادثة مع البوت بالضغط على /start." };
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  
+  // تخزين بيانات التحقق المؤقتة
+  await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, phone, expiresAt })
+  });
+
+  // إرسال رسالة للمستخدم تحتوي على الرمز
+  await sendMsg(userId, `🔐 <b>رمز التحقق:</b> <code>${code}</code>\n\nجاري التحقق تلقائياً... إذا لم يكتمل، استخدم هذا الرمز.`);
+
+  return { success: true };
+}
+
+async function verifyCode(userId, code) {
+  const ref = await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`);
+  const data = await ref.json();
+  if (!data) return { success: false, error: "لم يتم طلب رمز تحقق." };
+  if (Date.now() > data.expiresAt) {
+    await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`, { method: 'DELETE' });
+    return { success: false, error: "انتهت صلاحية الرمز. اطلب رمزاً جديداً." };
+  }
+  if (data.code !== code) return { success: false, error: "الرمز غير صحيح." };
+  
+  // حفظ رقم الهاتف في بيانات المستخدم
+  await fetch(`${FIREBASE_URL}/users/${userId}/phone.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data.phone)
+  });
+
+  // حذف التحقق المؤقت
+  await fetch(`${FIREBASE_URL}/pendingVerifications/${userId}.json`, { method: 'DELETE' });
+
+  // إرسال رسالة تأكيد للمستخدم في البوت
+  await sendMsg(userId, "✅ <b>تم التحقق من رقم هاتفك بنجاح!</b>");
+
+  return { success: true, phone: data.phone };
+}
+
+// ============ handleMessage ============
+async function handleMessage(msg) {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  const text = msg.text || '';
+  const isAdmin = userId === ADMIN_ID;
+
+  if (msg.contact) {
+    const phone = msg.contact.phone_number;
+    await fetch(`${FIREBASE_URL}/users/${userId}/phone.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(phone)
+    });
+    const backKeyboard = {
+      inline_keyboard: [[{ text: "✅ العودة للتطبيق", web_app: { url: APP_URL } }]]
+    };
+    await sendMsg(chatId, "✅ تم استلام رقم هاتفك بنجاح! يمكنك العودة للتطبيق الآن.", backKeyboard);
+    return;
+  }
+
+  if (text === '/start' || text.startsWith('/start')) {
+    if (text.includes('share_phone')) {
+      const requestKeyboard = {
+        keyboard: [[{ text: "📱 مشاركة رقم الهاتف", request_contact: true }]],
+        resize_keyboard: true,
+        one_time_keyboard: true
+      };
+      await sendMsg(chatId, "للتحقق من هويتك، الرجاء مشاركة رقم هاتفك:", requestKeyboard);
+      return;
+    }
+    await sendWelcome(chatId, isAdmin);
+    return;
+  }
+
+  const s = sessions[userId];
+  if (!s || !s.step) return;
+
+  if (s.step === 'edit_text') {
+    const data = await getWelcomeData();
+    data.text = text;
+    await saveWelcomeData(data);
+    sessions[userId] = null;
+    await sendMsg(chatId, "✅ <b>تم تحديث نص الترحيب بنجاح!</b>");
+    return;
+  }
+  
+  if (s.step === 'edit_photo') {
+    const data = await getWelcomeData();
+    data.photo = text.trim();
+    await saveWelcomeData(data);
+    sessions[userId] = null;
+    await sendMsg(chatId, "✅ <b>تم تحديث صورة الترحيب بنجاح!</b>");
+    return;
+  }
+}
+
+// ============ handleCallback ============
+async function handleCallback(cb) {
+  const chatId = cb.message.chat.id;
+  const msgId = cb.message.message_id;
+  const data = cb.data;
+  const userId = cb.from.id;
+  
+  if (userId !== ADMIN_ID) {
+    await answerCb(cb.id, "❌ غير مصرح", true);
+    return;
+  }
+  
+  await answerCb(cb.id);
+  
+  if (data === 'admin_welcome') {
+    const kb = { inline_keyboard: [
+      [{ text: "📝 تعديل نص الترحيب", callback_data: "edit_text" }],
+      [{ text: "🖼 تعيين صورة", callback_data: "edit_photo" }],
+      [{ text: "🗑 حذف الصورة", callback_data: "delete_photo" }],
+      [{ text: "🔄 إعادة للنص الافتراضي", callback_data: "reset_default" }]
+    ]};
     
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    const wData = await getWelcomeData();
+    let info = "⚙️ <b>إدارة رسالة الترحيب</b>\n\n";
+    info += `📝 النص: ${wData.text ? 'مخصص' : 'افتراضي'}\n`;
+    info += `🖼 الصورة: ${wData.photo ? 'موجودة' : 'لا يوجد'}\n`;
     
-    <style>
-        :root {
-            --primary: #1a6b3c;
-            --primary-dark: #145a30;
-            --primary-light: #e8f5e9;
-            --gold: #c9a84c;
-            --text: #1a1a1a;
-            --text-light: #666666;
-            --bg: #ffffff;
-            --bg-secondary: #f5f5f7;
-            --card-bg: #fafafa;
-            --border: #e8e8e8;
-            --radius: 16px;
-            --transition: all 0.3s ease;
-        }
+    await editMsg(chatId, msgId, info, kb);
+    return;
+  }
+  
+  if (data === 'edit_text') {
+    sessions[userId] = { step: 'edit_text' };
+    await editMsg(chatId, msgId, "📝 أرسل نص الترحيب الجديد:\n\n<i>يدعم تنسيق HTML</i>");
+    return;
+  }
+  
+  if (data === 'edit_photo') {
+    sessions[userId] = { step: 'edit_photo' };
+    await editMsg(chatId, msgId, "🖼 أرسل رابط الصورة:\n\n<i>يجب أن يكون رابط مباشر</i>");
+    return;
+  }
+  
+  if (data === 'delete_photo') {
+    const wData = await getWelcomeData();
+    wData.photo = null;
+    await saveWelcomeData(wData);
+    await editMsg(chatId, msgId, "✅ <b>تم حذف الصورة بنجاح!</b>");
+    return;
+  }
+  
+  if (data === 'reset_default') {
+    await saveWelcomeData({ text: DEFAULT_TEXT, photo: null });
+    await editMsg(chatId, msgId, "✅ <b>تمت إعادة النص الافتراضي بنجاح!</b>");
+    return;
+  }
+}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+const sessions = {};
 
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background: var(--bg-secondary);
-            color: var(--text);
-            direction: rtl;
-            text-align: right;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-        }
+// ============ التصدير ============
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
 
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            background: var(--bg);
-            min-height: 100vh;
-            position: relative;
-        }
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
 
-        .app-header {
-            background: #fff;
-            padding: 16px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-brand { display: flex; align-items: center; gap: 12px; }
-        .header-logo {
-            width: 40px; height: 40px;
-            background: var(--primary);
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px;
-        }
-        .header-title { font-size: 17px; font-weight: 700; }
-        .header-subtitle { font-size: 11px; color: var(--text-light); }
-
-        .screen {
-            display: none;
-            padding: 24px 20px;
-            animation: fadeIn 0.4s ease;
-        }
-        .screen.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } }
-
-        .hero-icon {
-            width: 80px; height: 80px;
-            background: var(--primary-light);
-            border-radius: 24px;
-            display: flex; align-items: center; justify-content: center;
-            margin: 20px auto;
-            font-size: 40px;
-        }
-        .main-title { font-size: 26px; font-weight: 800; text-align: center; margin-bottom: 8px; }
-        .subtitle { text-align: center; color: var(--text-light); margin-bottom: 24px; font-size: 14px; }
-
-        .btn {
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            width: 100%; padding: 16px; border-radius: var(--radius);
-            font-size: 16px; font-weight: 700; border: none; cursor: pointer;
-            font-family: 'Tajawal', sans-serif; transition: var(--transition);
-        }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-primary:active { background: var(--primary-dark); }
-        .btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
-        .btn-card {
-            background: var(--card-bg); border: 1px solid var(--border);
-            padding: 18px; margin: 12px 0; border-radius: var(--radius);
-            display: flex; align-items: center; gap: 14px;
-            font-size: 15px; font-weight: 600; cursor: pointer;
-        }
-
-        .form-group { margin-bottom: 20px; }
-        .form-input {
-            width: 100%; padding: 15px; border: 1px solid var(--border);
-            border-radius: var(--radius); font-size: 15px; background: var(--card-bg);
-        }
-
-        .success-box {
-            background: #e8f5e9; padding: 12px; border-radius: 12px;
-            color: #2e7d32; font-weight: 600; margin: 10px 0;
-        }
-
-        .error-message {
-            background: #fff5f5; padding: 12px; border-radius: 12px;
-            color: #c53030; font-size: 14px; margin: 10px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header class="app-header">
-            <div class="header-brand">
-                <div class="header-logo">🚗</div>
-                <div>
-                    <div class="header-title">الفحص النظري</div>
-                    <div class="header-subtitle">دائرة الترخيص</div>
-                </div>
-            </div>
-        </header>
-
-        <div id="landingScreen" class="screen active">
-            <div class="hero-icon">📋</div>
-            <h1 class="main-title">اختبار الفحص النظري</h1>
-            <p class="subtitle">دراسة مصنفة حسب الأقسام، محاكاة واقعية، ومراكز تدريب قريبة منك.</p>
-            <button class="btn btn-primary" onclick="handleStart()">ابدأ</button>
-        </div>
-
-        <div id="registerScreen" class="screen">
-            <h2 style="text-align:center; margin-bottom:24px;">أدخل بياناتك</h2>
-            <div class="form-group">
-                <label>الاسم الكامل</label>
-                <input type="text" class="form-input" id="fullName" placeholder="أدخل اسمك">
-            </div>
-            <div class="form-group">
-                <label>رقم الهاتف</label>
-                <input type="tel" class="form-input" id="phoneInput" placeholder="مثال: 0791234567">
-            </div>
-            
-            <div id="verificationSection" style="display:none;">
-                <div class="form-group">
-                    <label>رمز التحقق</label>
-                    <input type="text" class="form-input" id="codeInput" placeholder="الرمز المكون من 6 أرقام" maxlength="6">
-                </div>
-                <button class="btn btn-outline" onclick="verifyCode()" style="margin-bottom:10px;">
-                    <i class="ph ph-check-circle"></i> تأكيد الرمز
-                </button>
-            </div>
-
-            <div id="errorMessage" class="error-message" style="display:none;"></div>
-
-            <button class="btn btn-outline" onclick="sendVerificationCode()" id="sendCodeBtn">
-                <i class="ph ph-paper-plane"></i> إرسال رمز التحقق
-            </button>
-
-            <button class="btn btn-primary" id="registerBtn" onclick="completeRegistration()" style="margin-top:20px;" disabled>
-                موافق
-            </button>
-        </div>
-
-        <div id="homeScreen" class="screen">
-            <div class="hero-icon">🏠</div>
-            <h2 class="main-title">مرحباً!</h2>
-            <p class="subtitle" id="greetingText">أهلاً بك في المنصة</p>
-            <div class="btn-card">📝 الامتحان النظري الحي</div>
-            <div class="btn-card">📚 دراسة الأسئلة</div>
-            <div class="btn-card">📍 مراكز التدريب</div>
-        </div>
-    </div>
-
-    <script>
-        // Firebase
-        firebase.initializeApp({
-            apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
-            databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "al3arbicv"
+    if (request.method === 'POST' && url.pathname === '/send-code') {
+      try {
+        const { userId, phone } = await request.json();
+        const result = await sendVerificationCode(userId, phone);
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
-        const db = firebase.database();
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
 
-        // استبدل بعنوان Pages الفعلي الخاص بك
-        const WORKER_URL = "https://jordan-driving-test-bot.pages.dev";
+    if (request.method === 'POST' && url.pathname === '/verify-code') {
+      try {
+        const { userId, code } = await request.json();
+        const result = await verifyCode(userId, code);
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
 
-        let phoneNumber = '';
-        let isPhoneVerified = false;
-        let currentScreen = 'landingScreen';
-
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            currentScreen = id;
-        }
-
-        async function checkUserRegistration() {
-            if (tg.initDataUnsafe?.user?.id) {
-                const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
-                if (snap.val()) return true;
-            }
-            return false;
-        }
-
-        async function handleStart() {
-            if (await checkUserRegistration()) showScreen('homeScreen');
-            else showScreen('registerScreen');
-        }
-
-        function showError(msg) {
-            const el = document.getElementById('errorMessage');
-            if (el) {
-                el.textContent = msg;
-                el.style.display = 'block';
-            }
-        }
-
-        function hideError() {
-            const el = document.getElementById('errorMessage');
-            if (el) el.style.display = 'none';
-        }
-
-        async function sendVerificationCode() {
-            const phone = document.getElementById('phoneInput').value.trim();
-            if (!phone || phone.length < 10) {
-                showError('الرجاء إدخال رقم هاتف صحيح');
-                return;
-            }
-
-            if (!tg.initDataUnsafe?.user?.id) {
-                showError('تعذر التحقق من حسابك');
-                return;
-            }
-
-            hideError();
-            const btn = document.getElementById('sendCodeBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="ph ph-spinner"></i> جاري الإرسال...';
-
-            try {
-                const res = await fetch(`${WORKER_URL}/send-code`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, phone })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('verificationSection').style.display = 'block';
-                    btn.style.display = 'none';
-                    showError('');
-                } else {
-                    showError(data.error || 'فشل في إرسال الرمز');
-                }
-            } catch (e) {
-                showError('خطأ في الاتصال. تأكد من اتصالك بالإنترنت.');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ph ph-paper-plane"></i> إرسال رمز التحقق';
-            }
-        }
-
-        async function verifyCode() {
-            const code = document.getElementById('codeInput').value.trim();
-            if (!code || code.length !== 6) {
-                showError('الرجاء إدخال رمز مكون من 6 أرقام');
-                return;
-            }
-
-            if (!tg.initDataUnsafe?.user?.id) return;
-            hideError();
-
-            try {
-                const res = await fetch(`${WORKER_URL}/verify-code`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, code })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    isPhoneVerified = true;
-                    phoneNumber = data.phone || document.getElementById('phoneInput').value;
-                    document.getElementById('verificationSection').style.display = 'none';
-                    document.getElementById('registerBtn').disabled = false;
-                    showError('');
-                    tg.showAlert('تم التحقق من رقم الهاتف بنجاح!');
-                } else {
-                    showError(data.error || 'الرمز غير صحيح');
-                }
-            } catch (e) {
-                showError('خطأ في الاتصال');
-            }
-        }
-
-        async function completeRegistration() {
-            const name = document.getElementById('fullName').value.trim();
-            if (!name) { showError('الرجاء إدخال اسمك الكامل'); return; }
-            if (!isPhoneVerified) { showError('الرجاء تأكيد رقم الهاتف أولاً'); return; }
-
-            const userId = tg.initDataUnsafe.user.id;
-            try {
-                await db.ref('users/' + userId).set({
-                    name,
-                    phone: phoneNumber,
-                    username: tg.initDataUnsafe.user.username || '',
-                    userId,
-                    registeredAt: new Date().toISOString()
-                });
-                document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name;
-                showScreen('homeScreen');
-            } catch (e) {
-                showError('حدث خطأ في التسجيل');
-            }
-        }
-
-        // ملء الاسم تلقائياً
-        if (tg.initDataUnsafe?.user?.first_name) {
-            document.getElementById('fullName').value = tg.initDataUnsafe.user.first_name;
-        }
-    </script>
-</body>
-</html>
+    if (request.method === 'POST') {
+      try {
+        const body = await request.json();
+        if (body.message) await handleMessage(body.message);
+        else if (body.callback_query) await handleCallback(body.callback_query);
+      } catch (e) { console.error(e); }
+      return new Response('OK');
+    }
+    
+    return new Response('OK', { status: 200 });
+  }
+};
