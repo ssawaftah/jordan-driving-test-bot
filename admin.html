@@ -207,6 +207,97 @@
             text-align: center;
             flex: 1;
         }
+
+        /* ============ بطاقات المستخدمين ============ */
+        .user-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 12px;
+        }
+
+        .user-card .user-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .user-card .user-avatar {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--primary), #8B5CF6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .user-card .user-info {
+            flex: 1;
+        }
+
+        .user-card .user-name {
+            font-size: 16px; font-weight: 700;
+        }
+
+        .user-card .user-phone {
+            font-size: 13px; color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        .user-card .user-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 14px;
+        }
+
+        .user-card .user-details div {
+            background: var(--bg-secondary);
+            padding: 10px 12px;
+            border-radius: 10px;
+        }
+
+        .user-card .user-details span {
+            color: var(--text);
+            font-weight: 600;
+            display: block;
+            margin-top: 2px;
+            font-size: 13px;
+        }
+
+        .user-card .user-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+        }
+
+        .user-count-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -228,9 +319,11 @@
             <div class="stat-card"><div class="stat-value" id="govCount">0</div><div class="stat-label">محافظة</div></div>
             <div class="stat-card"><div class="stat-value" id="areaCount">0</div><div class="stat-label">منطقة</div></div>
             <div class="stat-card"><div class="stat-value" id="centerCount">0</div><div class="stat-label">مركز تدريب</div></div>
+            <div class="stat-card"><div class="stat-value" id="userCount">0</div><div class="stat-label">مستخدم</div></div>
         </div>
 
         <button class="btn btn-primary" onclick="showWelcomeManager()" style="margin-bottom:12px;">⚙️ إدارة رسالة الترحيب</button>
+        <button class="btn btn-primary" onclick="showUsersManager()" style="margin-bottom:12px;">👥 إدارة المستخدمين</button>
         <button class="btn btn-primary" onclick="showAddForm('governorate')" style="margin-bottom:12px;">➕ إضافة محافظة</button>
         <button class="btn btn-primary" onclick="showAddForm('area')" style="margin-bottom:12px;">➕ إضافة منطقة</button>
         <button class="btn btn-primary" onclick="showAddForm('center')" style="margin-bottom:12px;">➕ إضافة مركز</button>
@@ -246,6 +339,16 @@
         <div class="form-group"><label class="form-label">رابط الصورة</label><input type="text" class="form-input" id="welcomePhoto" placeholder="https://..."></div>
         <button class="btn btn-primary" onclick="saveWelcome()" style="margin-bottom:12px;">💾 حفظ</button>
         <button class="btn btn-outline" onclick="resetWelcome()">🔄 إعادة للافتراضي</button>
+    </div>
+
+    <!-- شاشة إدارة المستخدمين -->
+    <div id="usersScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h3>👥 إدارة المستخدمين</h3>
+            <span class="user-count-badge" id="userCountBadge">0 مستخدم</span>
+        </div>
+        <div id="usersList"></div>
     </div>
 
     <!-- شاشة الإضافة -->
@@ -301,6 +404,15 @@
         loadStats();
     }
 
+    function showLoading(text = 'جارٍ التحميل...') {
+        document.getElementById('loadingText').textContent = text;
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
     async function loadData() {
         try {
             const [govSnap, areaSnap, centerSnap] = await Promise.all([
@@ -319,6 +431,13 @@
         document.getElementById('govCount').textContent = Object.keys(allGovs).length;
         document.getElementById('areaCount').textContent = Object.keys(allAreas).length;
         document.getElementById('centerCount').textContent = Object.keys(allCenters).length;
+        
+        // تحميل عدد المستخدمين
+        try {
+            const snap = await db.ref('users').once('value');
+            const users = snap.val() || {};
+            document.getElementById('userCount').textContent = Object.keys(users).length;
+        } catch(e) {}
     }
 
     // ============ إدارة الترحيب ============
@@ -342,6 +461,94 @@
         document.getElementById('welcomeText').value = '';
         document.getElementById('welcomePhoto').value = '';
         tg.showAlert('✅ تمت الإعادة للافتراضي!');
+    }
+
+    // ============ إدارة المستخدمين ============
+    async function showUsersManager() {
+        showScreen('usersScreen');
+        await loadUsers();
+    }
+
+    async function loadUsers() {
+        showLoading('جاري تحميل المستخدمين...');
+        try {
+            const snap = await db.ref('users').once('value');
+            const users = snap.val() || {};
+            renderUsers(users);
+        } catch(e) {
+            document.getElementById('usersList').innerHTML = `
+                <div class="empty-state">
+                    <i class="ph ph-warning-circle"></i>
+                    <p>حدث خطأ في تحميل البيانات</p>
+                </div>
+            `;
+        }
+        hideLoading();
+    }
+
+    function renderUsers(users) {
+        const container = document.getElementById('usersList');
+        const entries = Object.entries(users);
+        
+        document.getElementById('userCountBadge').textContent = entries.length + ' مستخدم';
+        
+        if (entries.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="ph ph-users"></i>
+                    <p>لا يوجد مستخدمين مسجلين بعد</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // ترتيب المستخدمين من الأحدث للأقدم
+        entries.sort((a, b) => {
+            const dateA = a[1].registeredAt || '';
+            const dateB = b[1].registeredAt || '';
+            return dateB.localeCompare(dateA);
+        });
+        
+        container.innerHTML = entries.map(([userId, user]) => {
+            const initial = (user.name || 'م')[0].toUpperCase();
+            const regDate = user.registeredAt 
+                ? new Date(user.registeredAt).toLocaleDateString('ar-JO', { year: 'numeric', month: 'short', day: 'numeric' })
+                : 'غير معروف';
+            
+            return `
+                <div class="user-card" id="user-card-${userId}">
+                    <div class="user-header">
+                        <div class="user-avatar">${initial}</div>
+                        <div class="user-info">
+                            <div class="user-name">${user.name || 'بدون اسم'}</div>
+                            <div class="user-phone"><i class="ph ph-phone"></i> ${user.phone || 'بدون رقم'}</div>
+                        </div>
+                    </div>
+                    <div class="user-details">
+                        <div>🆔 معرف الحساب<span>${userId}</span></div>
+                        <div>📅 تاريخ التسجيل<span>${regDate}</span></div>
+                    </div>
+                    <div class="user-actions">
+                        <button class="btn btn-sm btn-danger" onclick="deleteUserConfirm('${userId}', '${(user.name || 'المستخدم').replace(/'/g, "\\'")}')">
+                            <i class="ph ph-trash"></i> حذف المستخدم
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function deleteUserConfirm(userId, name) {
+        if (!confirm(`هل أنت متأكد من حذف "${name}"؟\n\nسيتم حذف جميع بياناته وسيُطلب منه التسجيل مرة أخرى.`)) return;
+        
+        try {
+            await db.ref('users/' + userId).remove();
+            tg.showAlert('✅ تم حذف المستخدم بنجاح!');
+            loadUsers();
+            loadStats();
+        } catch(e) {
+            tg.showAlert('❌ خطأ في حذف المستخدم: ' + e.message);
+        }
     }
 
     // ============ الإضافة ============
@@ -514,7 +721,7 @@
         document.getElementById('editContent').innerHTML = html;
     }
 
-    // ============ الحذف (مباشر من Firebase) ============
+    // ============ الحذف ============
     function showDeleteMenu() {
         showScreen('deleteScreen');
         document.getElementById('deleteContent').innerHTML = `
@@ -562,14 +769,10 @@
     async function executeDelete(type, id) {
         try {
             if (type === 'governorates') {
-                // حذف المحافظة
                 await db.ref(`governorates/${id}`).remove();
-                
-                // حذف المناطق المرتبطة
                 const areasSnap = await db.ref('areas').orderByChild('governorateId').equalTo(id).once('value');
                 const areas = areasSnap.val() || {};
                 for (const areaId of Object.keys(areas)) {
-                    // حذف المراكز في هذه المنطقة
                     const centersSnap = await db.ref('centers').orderByChild('areaId').equalTo(areaId).once('value');
                     const centers = centersSnap.val() || {};
                     for (const centerId of Object.keys(centers)) {
@@ -578,17 +781,13 @@
                     await db.ref(`areas/${areaId}`).remove();
                 }
             } else if (type === 'areas') {
-                // حذف المنطقة
                 await db.ref(`areas/${id}`).remove();
-                
-                // حذف المراكز المرتبطة
                 const centersSnap = await db.ref('centers').orderByChild('areaId').equalTo(id).once('value');
                 const centers = centersSnap.val() || {};
                 for (const centerId of Object.keys(centers)) {
                     await db.ref(`centers/${centerId}`).remove();
                 }
             } else {
-                // حذف المركز فقط
                 await db.ref(`centers/${id}`).remove();
             }
             
