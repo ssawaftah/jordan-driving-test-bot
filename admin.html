@@ -198,7 +198,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Delete confirmation inline */
         .confirm-box {
             background: var(--danger-light);
             border: 1px solid var(--danger);
@@ -206,6 +205,7 @@
             padding: 16px;
             margin: 10px 0;
             text-align: center;
+            flex: 1;
         }
     </style>
 </head>
@@ -275,6 +275,7 @@
 </div>
 
 <script>
+    // ============ Firebase ============
     firebase.initializeApp({
         apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
         databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -288,6 +289,7 @@
     const WORKER_URL = "https://jordan-driving-test-bot.pages.dev";
     let allGovs = {}, allAreas = {}, allCenters = {};
 
+    // ============ دوال عامة ============
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -301,14 +303,14 @@
 
     async function loadData() {
         try {
-            const [govRes, areaRes, centerRes] = await Promise.all([
-                fetch(`${WORKER_URL}/api/governorates`),
-                fetch(`${WORKER_URL}/api/areas`),
-                fetch(`${WORKER_URL}/api/centers`)
+            const [govSnap, areaSnap, centerSnap] = await Promise.all([
+                db.ref('governorates').once('value'),
+                db.ref('areas').once('value'),
+                db.ref('centers').once('value')
             ]);
-            allGovs = await govRes.json() || {};
-            allAreas = await areaRes.json() || {};
-            allCenters = await centerRes.json() || {};
+            allGovs = govSnap.val() || {};
+            allAreas = areaSnap.val() || {};
+            allCenters = centerSnap.val() || {};
         } catch(e) { console.error(e); }
     }
 
@@ -392,7 +394,7 @@
     async function addGovernorate() {
         const name = document.getElementById('govName').value.trim();
         if (!name) { tg.showAlert('الرجاء إدخال اسم المحافظة'); return; }
-        await fetch(`${WORKER_URL}/api/governorates`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+        await db.ref('governorates').push({ name });
         tg.showAlert('✅ تمت الإضافة بنجاح!');
         showMain();
     }
@@ -401,7 +403,7 @@
         const name = document.getElementById('areaName').value.trim();
         const governorateId = document.getElementById('areaGov').value;
         if (!name) { tg.showAlert('الرجاء إدخال اسم المنطقة'); return; }
-        await fetch(`${WORKER_URL}/api/areas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, governorateId }) });
+        await db.ref('areas').push({ name, governorateId });
         tg.showAlert('✅ تمت الإضافة بنجاح!');
         showMain();
     }
@@ -414,12 +416,12 @@
         const phone = document.getElementById('centerPhone').value.trim();
         const rating = parseFloat(document.getElementById('centerRating').value) || 0;
         if (!name) { tg.showAlert('الرجاء إدخال اسم المركز'); return; }
-        await fetch(`${WORKER_URL}/api/centers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, areaId, address, mapLink, phone, rating }) });
+        await db.ref('centers').push({ name, areaId, address, mapLink, phone, rating });
         tg.showAlert('✅ تمت الإضافة بنجاح!');
         showMain();
     }
 
-    // ============ التعديل (بدون نوافذ منبثقة) ============
+    // ============ التعديل ============
     function showEditMenu() {
         showScreen('editScreen');
         document.getElementById('editContent').innerHTML = `
@@ -469,7 +471,7 @@
         const newName = document.getElementById(`edit-input-${id}`).value.trim();
         if (!newName) { tg.showAlert('الرجاء إدخال اسم'); return; }
         const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
-        await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName }) });
+        await db.ref(`${endpoint}/${id}`).update({ name: newName });
         tg.showAlert('✅ تم التعديل بنجاح!');
         startEdit(type);
     }
@@ -512,7 +514,7 @@
         document.getElementById('editContent').innerHTML = html;
     }
 
-    // ============ الحذف (بدون نوافذ منبثقة) ============
+    // ============ الحذف (مباشر من Firebase) ============
     function showDeleteMenu() {
         showScreen('deleteScreen');
         document.getElementById('deleteContent').innerHTML = `
@@ -549,7 +551,7 @@
     function showDeleteConfirm(type, id, name) {
         const row = document.getElementById(`delete-row-${id}`);
         row.innerHTML = `
-            <div class="confirm-box" style="flex:1;">
+            <div class="confirm-box">
                 <p style="margin-bottom:8px;">متأكد من حذف "${name}"؟</p>
                 <button class="btn btn-sm btn-danger" onclick="executeDelete('${type}', '${id}')">🗑 نعم، احذف</button>
                 <button class="btn btn-sm btn-outline" onclick="startDelete('${type}')" style="margin-top:8px;">❌ إلغاء</button>
@@ -558,37 +560,44 @@
     }
 
     async function executeDelete(type, id) {
-    const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
-    try {
-        const res = await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'DELETE' });
-        const text = await res.text();
-        
-        // محاولة تحليل النص كـ JSON
-        let result;
         try {
-            result = JSON.parse(text);
-        } catch(e) {
-            // إذا لم يكن JSON، نتحقق من حالة الاستجابة
-            if (res.ok) {
-                tg.showAlert('✅ تم الحذف بنجاح!');
-                startDelete(type);
-                return;
+            if (type === 'governorates') {
+                // حذف المحافظة
+                await db.ref(`governorates/${id}`).remove();
+                
+                // حذف المناطق المرتبطة
+                const areasSnap = await db.ref('areas').orderByChild('governorateId').equalTo(id).once('value');
+                const areas = areasSnap.val() || {};
+                for (const areaId of Object.keys(areas)) {
+                    // حذف المراكز في هذه المنطقة
+                    const centersSnap = await db.ref('centers').orderByChild('areaId').equalTo(areaId).once('value');
+                    const centers = centersSnap.val() || {};
+                    for (const centerId of Object.keys(centers)) {
+                        await db.ref(`centers/${centerId}`).remove();
+                    }
+                    await db.ref(`areas/${areaId}`).remove();
+                }
+            } else if (type === 'areas') {
+                // حذف المنطقة
+                await db.ref(`areas/${id}`).remove();
+                
+                // حذف المراكز المرتبطة
+                const centersSnap = await db.ref('centers').orderByChild('areaId').equalTo(id).once('value');
+                const centers = centersSnap.val() || {};
+                for (const centerId of Object.keys(centers)) {
+                    await db.ref(`centers/${centerId}`).remove();
+                }
             } else {
-                tg.showAlert('❌ فشل الحذف');
-                return;
+                // حذف المركز فقط
+                await db.ref(`centers/${id}`).remove();
             }
-        }
-        
-        if (result && result.success === true) {
+            
             tg.showAlert('✅ تم الحذف بنجاح!');
             startDelete(type);
-        } else {
-            tg.showAlert('❌ فشل الحذف: ' + (result?.error || 'خطأ غير معروف'));
+        } catch(e) {
+            tg.showAlert('❌ خطأ في الحذف: ' + e.message);
         }
-    } catch(e) {
-        tg.showAlert('❌ خطأ في الاتصال بالخادم: ' + e.message);
     }
-}
 
     async function showItemsForDelete(type, govId, govName) {
         await loadData();
@@ -628,6 +637,7 @@
         document.getElementById('deleteContent').innerHTML = html;
     }
 
+    // ============ بدء التشغيل ============
     loadStats();
 </script>
 </body>
