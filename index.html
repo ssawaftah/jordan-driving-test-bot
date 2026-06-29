@@ -116,6 +116,11 @@
             background: #e8f5e9; padding: 12px; border-radius: 12px;
             color: #2e7d32; font-weight: 600; margin: 10px 0;
         }
+
+        .error-message {
+            background: #fff5f5; padding: 12px; border-radius: 12px;
+            color: #c53030; font-size: 14px; margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -145,12 +150,28 @@
             </div>
             <div class="form-group">
                 <label>رقم الهاتف</label>
-                <div id="phoneDisplay"></div>
-                <button class="btn btn-outline" onclick="requestPhoneViaBot()" id="phoneBtn">
-                    <i class="ph ph-phone"></i> مشاركة رقم الهاتف
+                <input type="tel" class="form-input" id="phoneInput" placeholder="مثال: 0791234567">
+            </div>
+            
+            <div id="verificationSection" style="display:none;">
+                <div class="form-group">
+                    <label>رمز التحقق</label>
+                    <input type="text" class="form-input" id="codeInput" placeholder="الرمز المكون من 6 أرقام" maxlength="6">
+                </div>
+                <button class="btn btn-outline" onclick="verifyCode()" style="margin-bottom:10px;">
+                    <i class="ph ph-check-circle"></i> تأكيد الرمز
                 </button>
             </div>
-            <button class="btn btn-primary" id="registerBtn" onclick="completeRegistration()">موافق</button>
+
+            <div id="errorMessage" class="error-message" style="display:none;"></div>
+
+            <button class="btn btn-outline" onclick="sendVerificationCode()" id="sendCodeBtn">
+                <i class="ph ph-paper-plane"></i> إرسال رمز التحقق
+            </button>
+
+            <button class="btn btn-primary" id="registerBtn" onclick="completeRegistration()" style="margin-top:20px;" disabled>
+                موافق
+            </button>
         </div>
 
         <div id="homeScreen" class="screen">
@@ -175,15 +196,16 @@
         tg.ready();
         tg.expand();
 
+        // استبدل بعنوان Pages الفعلي الخاص بك
+        const WORKER_URL = "https://jordan-driving-test-bot.pages.dev";
+
         let phoneNumber = '';
         let isPhoneVerified = false;
         let currentScreen = 'landingScreen';
-        let phoneCheckInterval = null;
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if (currentScreen === 'registerScreen' && id !== 'registerScreen') stopPhoneCheck();
             currentScreen = id;
         }
 
@@ -200,50 +222,112 @@
             else showScreen('registerScreen');
         }
 
-        function requestPhoneViaBot() {
-            tg.openTelegramLink('https://t.me/Jordan_Driving_Test_2026_Bot?start=share_phone');
-            document.getElementById('phoneBtn').style.display = 'none';
-            document.getElementById('phoneDisplay').innerHTML = '<p style="color:#e65100;">⏳ تابع التعليمات في البوت ثم عد للتطبيق</p>';
-            startPhoneCheckInterval();
+        function showError(msg) {
+            const el = document.getElementById('errorMessage');
+            if (el) {
+                el.textContent = msg;
+                el.style.display = 'block';
+            }
         }
 
-        function startPhoneCheckInterval() {
-            if (phoneCheckInterval) clearInterval(phoneCheckInterval);
-            phoneCheckInterval = setInterval(checkPhoneSaved, 2000);
+        function hideError() {
+            const el = document.getElementById('errorMessage');
+            if (el) el.style.display = 'none';
         }
 
-        function stopPhoneCheck() {
-            if (phoneCheckInterval) { clearInterval(phoneCheckInterval); phoneCheckInterval = null; }
+        async function sendVerificationCode() {
+            const phone = document.getElementById('phoneInput').value.trim();
+            if (!phone || phone.length < 10) {
+                showError('الرجاء إدخال رقم هاتف صحيح');
+                return;
+            }
+
+            if (!tg.initDataUnsafe?.user?.id) {
+                showError('تعذر التحقق من حسابك');
+                return;
+            }
+
+            hideError();
+            const btn = document.getElementById('sendCodeBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner"></i> جاري الإرسال...';
+
+            try {
+                const res = await fetch(`${WORKER_URL}/send-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, phone })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('verificationSection').style.display = 'block';
+                    btn.style.display = 'none';
+                    showError('');
+                } else {
+                    showError(data.error || 'فشل في إرسال الرمز');
+                }
+            } catch (e) {
+                showError('خطأ في الاتصال. تأكد من اتصالك بالإنترنت.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-paper-plane"></i> إرسال رمز التحقق';
+            }
         }
 
-        async function checkPhoneSaved() {
+        async function verifyCode() {
+            const code = document.getElementById('codeInput').value.trim();
+            if (!code || code.length !== 6) {
+                showError('الرجاء إدخال رمز مكون من 6 أرقام');
+                return;
+            }
+
             if (!tg.initDataUnsafe?.user?.id) return;
-            const snap = await db.ref('users/' + tg.initDataUnsafe.user.id + '/phone').once('value');
-            const phone = snap.val();
-            if (phone) {
-                stopPhoneCheck();
-                phoneNumber = phone;
-                isPhoneVerified = true;
-                document.getElementById('phoneDisplay').innerHTML = '<div class="success-box">✅ تم التحقق من الرقم</div>';
-                document.getElementById('registerBtn').style.display = 'flex';
+            hideError();
+
+            try {
+                const res = await fetch(`${WORKER_URL}/verify-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    isPhoneVerified = true;
+                    phoneNumber = data.phone || document.getElementById('phoneInput').value;
+                    document.getElementById('verificationSection').style.display = 'none';
+                    document.getElementById('registerBtn').disabled = false;
+                    showError('');
+                    tg.showAlert('تم التحقق من رقم الهاتف بنجاح!');
+                } else {
+                    showError(data.error || 'الرمز غير صحيح');
+                }
+            } catch (e) {
+                showError('خطأ في الاتصال');
             }
         }
 
         async function completeRegistration() {
             const name = document.getElementById('fullName').value.trim();
-            if (!name) { alert('أدخل الاسم'); return; }
-            if (!isPhoneVerified) { alert('شارك رقم الهاتف أولاً'); return; }
+            if (!name) { showError('الرجاء إدخال اسمك الكامل'); return; }
+            if (!isPhoneVerified) { showError('الرجاء تأكيد رقم الهاتف أولاً'); return; }
 
             const userId = tg.initDataUnsafe.user.id;
-            await db.ref('users/' + userId).set({
-                name, phone: phoneNumber,
-                username: tg.initDataUnsafe.user.username || '',
-                registeredAt: new Date().toISOString()
-            });
-            document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name;
-            showScreen('homeScreen');
+            try {
+                await db.ref('users/' + userId).set({
+                    name,
+                    phone: phoneNumber,
+                    username: tg.initDataUnsafe.user.username || '',
+                    userId,
+                    registeredAt: new Date().toISOString()
+                });
+                document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name;
+                showScreen('homeScreen');
+            } catch (e) {
+                showError('حدث خطأ في التسجيل');
+            }
         }
 
+        // ملء الاسم تلقائياً
         if (tg.initDataUnsafe?.user?.first_name) {
             document.getElementById('fullName').value = tg.initDataUnsafe.user.first_name;
         }
