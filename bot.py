@@ -8,8 +8,21 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 BOT_TOKEN = "8993443266:AAFUQsnrVjRpYjox5OQoHUg_CacbuC-leek"
 BLOGGER_URL = "https://idriverjo.blogspot.com/p/theory-test-practice.html"
 
-# استخدام ملف credentials منفصل
-cred = credentials.Certificate('firebase-key.json')
+# تهيئة Firebase باستخدام المتغيرات
+cred_dict = {
+    "type": "service_account",
+    "project_id": "al3arbicv",
+    "private_key_id": "94fed52b41652433ad3e2fe36026979f7eddcbfe",
+    "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace('\\n', '\n'),
+    "client_email": "firebase-adminsdk-nnswm@al3arbicv.iam.gserviceaccount.com",
+    "client_id": "101502612516719102132",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-nnswm%40al3arbicv.iam.gserviceaccount.com"
+}
+
+cred = credentials.Certificate(cred_dict)
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app'
 })
