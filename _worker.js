@@ -76,6 +76,7 @@ async function sendWelcome(chatId, isAdmin) {
   
   if (isAdmin) {
     kb.inline_keyboard.push([{ text: "⚙️ إدارة رسالة الترحيب", callback_data: "admin_welcome" }]);
+    kb.inline_keyboard.push([{ text: "🏢 إدارة مراكز التدريب", callback_data: "admin_centers" }]);
   }
   
   if (photo) {
@@ -92,39 +93,23 @@ async function handleMessage(msg) {
   const text = msg.text || '';
   const isAdmin = userId === ADMIN_ID;
 
-  if (msg.contact) {
-    const phone = msg.contact.phone_number;
-    // حفظ الرقم في Firebase
-    await fetch(`${FIREBASE_URL}/users/${userId}/phone.json`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(phone)
-    });
-
-    // رابط العودة للتطبيق مع متغيرات النجاح
-    const appUrlWithSuccess = `${APP_URL}?phone_verified=1&phone=${encodeURIComponent(phone)}`;
-    const backKeyboard = {
-      inline_keyboard: [[{ text: "✅ العودة للتطبيق", web_app: { url: appUrlWithSuccess } }]]
-    };
-    await sendMsg(chatId, "✅ تم استلام رقم هاتفك بنجاح! يمكنك العودة للتطبيق الآن.", backKeyboard);
-    return;
-  }
-
   if (text === '/start' || text.startsWith('/start')) {
-    if (text.includes('share_phone')) {
-      const requestKeyboard = {
-        keyboard: [[{ text: "📱 مشاركة رقم الهاتف", request_contact: true }]],
-        resize_keyboard: true,
-        one_time_keyboard: true
+    if (isAdmin) {
+      const kb = {
+        inline_keyboard: [
+          [{ text: "📱 افتح تطبيق الدراسة", web_app: { url: APP_URL } }],
+          [{ text: "⚙️ إدارة رسالة الترحيب", callback_data: "admin_welcome" }],
+          [{ text: "🏢 إدارة مراكز التدريب", callback_data: "admin_centers" }]
+        ]
       };
-      await sendMsg(chatId, "للتحقق من هويتك، الرجاء مشاركة رقم هاتفك:", requestKeyboard);
+      await sendMsg(chatId, "🔧 <b>لوحة تحكم المشرف</b>", kb);
       return;
     }
-    await sendWelcome(chatId, isAdmin);
+    await sendWelcome(chatId, false);
     return;
   }
 
-  // معالجات الأدمن
+  // معالجات الأدمن (تعديل رسالة الترحيب)
   const s = sessions[userId];
   if (!s || !s.step) return;
 
@@ -178,6 +163,14 @@ async function handleCallback(cb) {
     return;
   }
   
+  if (data === 'admin_centers') {
+    const kb = {
+      inline_keyboard: [[{ text: "🚀 فتح لوحة إدارة المراكز", web_app: { url: APP_URL + "?admin=centers" } }]]
+    };
+    await editMsg(chatId, msgId, "ستتمكن من إضافة وتعديل وحذف المحافظات والمناطق والمراكز من خلال التطبيق.", kb);
+    return;
+  }
+  
   if (data === 'edit_text') {
     sessions[userId] = { step: 'edit_text' };
     await editMsg(chatId, msgId, "📝 أرسل نص الترحيب الجديد:\n\n<i>يدعم تنسيق HTML</i>");
@@ -207,21 +200,91 @@ async function handleCallback(cb) {
 
 const sessions = {};
 
+// ============ نقاط نهاية REST API للإدارة ============
+async function handleApiRequest(path, request) {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const body = request.method !== 'GET' ? await request.json() : {};
+    let result;
+
+    // ========== المحافظات ==========
+    if (path === '/api/governorates' && request.method === 'GET') {
+      const res = await fetch(`${FIREBASE_URL}/governorates.json`);
+      result = await res.json() || {};
+    } else if (path === '/api/governorates' && request.method === 'POST') {
+      const ref = await fetch(`${FIREBASE_URL}/governorates.json`, { method: 'POST', body: JSON.stringify({ name: body.name }) });
+      result = await ref.json();
+    } else if (path.startsWith('/api/governorates/') && request.method === 'PUT') {
+      const id = path.split('/')[3];
+      await fetch(`${FIREBASE_URL}/governorates/${id}.json`, { method: 'PUT', body: JSON.stringify({ name: body.name }) });
+      result = { success: true };
+    } else if (path.startsWith('/api/governorates/') && request.method === 'DELETE') {
+      const id = path.split('/')[3];
+      await fetch(`${FIREBASE_URL}/governorates/${id}.json`, { method: 'DELETE' });
+      result = { success: true };
+    }
+
+    // ========== المناطق ==========
+    else if (path === '/api/areas' && request.method === 'GET') {
+      const res = await fetch(`${FIREBASE_URL}/areas.json`);
+      result = await res.json() || {};
+    } else if (path === '/api/areas' && request.method === 'POST') {
+      const ref = await fetch(`${FIREBASE_URL}/areas.json`, { method: 'POST', body: JSON.stringify(body) });
+      result = await ref.json();
+    } else if (path.startsWith('/api/areas/') && request.method === 'PUT') {
+      const id = path.split('/')[3];
+      await fetch(`${FIREBASE_URL}/areas/${id}.json`, { method: 'PUT', body: JSON.stringify({ name: body.name, governorateId: body.governorateId }) });
+      result = { success: true };
+    } else if (path.startsWith('/api/areas/') && request.method === 'DELETE') {
+      const id = path.split('/')[3];
+      await fetch(`${FIREBASE_URL}/areas/${id}.json`, { method: 'DELETE' });
+      result = { success: true };
+    }
+
+    // ========== المراكز ==========
+    else if (path === '/api/centers' && request.method === 'GET') {
+      const res = await fetch(`${FIREBASE_URL}/centers.json`);
+      result = await res.json() || {};
+    } else if (path === '/api/centers' && request.method === 'POST') {
+      const ref = await fetch(`${FIREBASE_URL}/centers.json`, { method: 'POST', body: JSON.stringify(body) });
+      result = await ref.json();
+    } else if (path.startsWith('/api/centers/') && request.method === 'PUT') {
+      const id = path.split('/')[3];
+      await fetch(`${FIREBASE_URL}/centers/${id}.json`, { method: 'PUT', body: JSON.stringify(body) });
+      result = { success: true };
+    } else if (path.startsWith('/api/centers/') && request.method === 'DELETE') {
+      const id = path.split('/')[3];
+      await fetch(`${FIREBASE_URL}/centers/${id}.json`, { method: 'DELETE' });
+      result = { success: true };
+    }
+
+    return new Response(JSON.stringify(result), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+}
+
 // ============ التصدير ============
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    };
+    const path = url.pathname;
 
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
+    // توجيه طلبات API
+    if (path.startsWith('/api/')) {
+      return handleApiRequest(path, request);
     }
 
+    // Webhook تيليجرام
     if (request.method === 'POST') {
       try {
         const body = await request.json();
