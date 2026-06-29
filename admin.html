@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المشرف - الفحص النظري</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --primary-light: #1E3A5F;
+            --gold: #F59E0B;
+            --text: #F1F5F9;
+            --text-light: #94A3B8;
+            --bg: #0F172A;
+            --bg-secondary: #1E293B;
+            --card-bg: #1E293B;
+            --border: #334155;
+            --danger: #EF4444;
+            --danger-light: #7F1D1D;
+            --success: #10B981;
+            --radius: 20px;
+            --transition: all 0.25s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Header */
+        .admin-header {
+            background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-brand { display: flex; align-items: center; gap: 12px; }
+        .admin-logo {
+            width: 44px; height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--primary), #8B5CF6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+        .admin-title { font-size: 17px; font-weight: 800; }
+        .admin-subtitle { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+        /* Screens */
+        .screen {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.35s ease;
+        }
+        .screen.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-family: 'Tajawal', sans-serif; transition: var(--transition);
+            border-radius: 16px;
+            font-size: 15px; font-weight: 700;
+            padding: 15px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #8B5CF6);
+            color: white;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+        }
+        .btn-primary:active { opacity: 0.85; transform: scale(0.97); }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+        }
+        .btn-outline:active { background: var(--bg-secondary); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; border-radius: 12px; }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-light); }
+        .form-input {
+            width: 100%; height: 52px;
+            padding: 0 16px;
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text);
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+            transition: .2s;
+        }
+        .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        textarea.form-input { height: auto; padding: 14px; min-height: 100px; resize: vertical; }
+        select.form-input { appearance: none; -webkit-appearance: none; }
+
+        /* Lists */
+        .list-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: var(--transition);
+        }
+        .list-item:active { background: var(--bg-secondary); }
+
+        /* Back button */
+        .back-btn {
+            background: none; border: none;
+            color: var(--primary);
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 700; font-size: 14px;
+            cursor: pointer; padding: 8px 0;
+            margin-bottom: 20px;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 10px; border-radius: 999px;
+            font-size: 11px; font-weight: 700;
+        }
+        .badge-success { background: rgba(16, 185, 129, 0.2); color: #10B981; }
+        .badge-warning { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 999;
+        }
+        .spinner {
+            width: 48px; height: 48px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="admin-brand">
+            <div class="admin-logo"><i class="ph ph-shield-check"></i></div>
+            <div>
+                <div class="admin-title">لوحة التحكم</div>
+                <div class="admin-subtitle">إدارة مراكز التدريب</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- الشاشة الرئيسية -->
+    <div id="mainScreen" class="screen active">
+        <div class="stat-grid">
+            <div class="stat-card"><div class="stat-value" id="govCount">0</div><div class="stat-label">محافظة</div></div>
+            <div class="stat-card"><div class="stat-value" id="areaCount">0</div><div class="stat-label">منطقة</div></div>
+            <div class="stat-card"><div class="stat-value" id="centerCount">0</div><div class="stat-label">مركز تدريب</div></div>
+        </div>
+
+        <button class="btn btn-primary" onclick="showWelcomeManager()" style="margin-bottom:12px;">⚙️ إدارة رسالة الترحيب</button>
+        <button class="btn btn-primary" onclick="showAddForm('governorate')" style="margin-bottom:12px;">➕ إضافة محافظة</button>
+        <button class="btn btn-primary" onclick="showAddForm('area')" style="margin-bottom:12px;">➕ إضافة منطقة</button>
+        <button class="btn btn-primary" onclick="showAddForm('center')" style="margin-bottom:12px;">➕ إضافة مركز</button>
+        <button class="btn btn-outline" onclick="showList('governorates', 'edit')" style="margin-bottom:12px;">✏️ تعديل</button>
+        <button class="btn btn-outline" onclick="showList('governorates', 'delete')" style="margin-bottom:12px;">🗑 حذف</button>
+    </div>
+
+    <!-- شاشة إدارة الترحيب -->
+    <div id="welcomeScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
+        <h3 style="margin-bottom:16px;">⚙️ إدارة رسالة الترحيب</h3>
+        <div class="form-group"><label class="form-label">نص الترحيب (يدعم HTML)</label><textarea class="form-input" id="welcomeText" rows="5"></textarea></div>
+        <div class="form-group"><label class="form-label">رابط الصورة</label><input type="text" class="form-input" id="welcomePhoto" placeholder="https://..."></div>
+        <button class="btn btn-primary" onclick="saveWelcome()" style="margin-bottom:12px;">💾 حفظ</button>
+        <button class="btn btn-outline" onclick="resetWelcome()">🔄 إعادة للافتراضي</button>
+    </div>
+
+    <!-- شاشة الإضافة -->
+    <div id="addScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
+        <div id="addFormContent"></div>
+    </div>
+
+    <!-- شاشة القوائم (تعديل/حذف) -->
+    <div id="listScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
+        <div id="listContent"></div>
+    </div>
+
+    <!-- تحميل -->
+    <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+        <div class="spinner"></div>
+        <p style="font-weight:600;" id="loadingText">جارٍ التحميل...</p>
+    </div>
+
+</div>
+
+<script>
+    // Firebase
+    firebase.initializeApp({
+        apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
+        databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "al3arbicv"
+    });
+    const db = firebase.database();
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    const WORKER_URL = "https://jordan-driving-test-bot.pages.dev";
+    let allGovs = {}, allAreas = {}, allCenters = {};
+
+    // ============ دوال عامة ============
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    function showMain() {
+        showScreen('mainScreen');
+        loadStats();
+    }
+
+    function showLoading(text = 'جارٍ التحميل...') {
+        document.getElementById('loadingText').textContent = text;
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    async function loadData() {
+        try {
+            const [govRes, areaRes, centerRes] = await Promise.all([
+                fetch(`${WORKER_URL}/api/governorates`),
+                fetch(`${WORKER_URL}/api/areas`),
+                fetch(`${WORKER_URL}/api/centers`)
+            ]);
+            allGovs = await govRes.json() || {};
+            allAreas = await areaRes.json() || {};
+            allCenters = await centerRes.json() || {};
+        } catch(e) { console.error(e); }
+    }
+
+    async function loadStats() {
+        await loadData();
+        document.getElementById('govCount').textContent = Object.keys(allGovs).length;
+        document.getElementById('areaCount').textContent = Object.keys(allAreas).length;
+        document.getElementById('centerCount').textContent = Object.keys(allCenters).length;
+    }
+
+    // ============ إدارة الترحيب ============
+    async function showWelcomeManager() {
+        showScreen('welcomeScreen');
+        const snap = await db.ref('welcome').once('value');
+        const data = snap.val() || {};
+        document.getElementById('welcomeText').value = data.text || '';
+        document.getElementById('welcomePhoto').value = data.photo || '';
+    }
+
+    async function saveWelcome() {
+        const text = document.getElementById('welcomeText').value;
+        const photo = document.getElementById('welcomePhoto').value.trim();
+        await db.ref('welcome').set({ text, photo: photo || null });
+        tg.showAlert('✅ تم الحفظ بنجاح!');
+    }
+
+    async function resetWelcome() {
+        await db.ref('welcome').set({ text: '', photo: null });
+        document.getElementById('welcomeText').value = '';
+        document.getElementById('welcomePhoto').value = '';
+        tg.showAlert('✅ تمت الإعادة للافتراضي!');
+    }
+
+    // ============ الإضافة ============
+    async function showAddForm(type) {
+        showScreen('addScreen');
+        await loadData();
+        let html = '';
+        
+        if (type === 'governorate') {
+            html = `
+                <h3 style="margin-bottom:16px;">➕ إضافة محافظة</h3>
+                <div class="form-group"><label class="form-label">اسم المحافظة</label><input type="text" class="form-input" id="govName"></div>
+                <button class="btn btn-primary" onclick="addGovernorate()">حفظ</button>
+            `;
+        } else if (type === 'area') {
+            const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
+            html = `
+                <h3 style="margin-bottom:16px;">➕ إضافة منطقة</h3>
+                <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="areaGov">${govOptions}</select></div>
+                <div class="form-group"><label class="form-label">اسم المنطقة</label><input type="text" class="form-input" id="areaName"></div>
+                <button class="btn btn-primary" onclick="addArea()">حفظ</button>
+            `;
+        } else if (type === 'center') {
+            const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
+            html = `
+                <h3 style="margin-bottom:16px;">➕ إضافة مركز</h3>
+                <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="centerGov" onchange="loadAreasForSelect()">${govOptions}</select></div>
+                <div class="form-group"><label class="form-label">المنطقة</label><select class="form-input" id="centerArea"></select></div>
+                <div class="form-group"><label class="form-label">اسم المركز</label><input type="text" class="form-input" id="centerName"></div>
+                <div class="form-group"><label class="form-label">العنوان</label><input type="text" class="form-input" id="centerAddress"></div>
+                <div class="form-group"><label class="form-label">رابط الخريطة</label><input type="text" class="form-input" id="centerMapLink"></div>
+                <div class="form-group"><label class="form-label">رقم الهاتف</label><input type="tel" class="form-input" id="centerPhone"></div>
+                <div class="form-group"><label class="form-label">التقييم (من 5)</label><input type="number" class="form-input" id="centerRating" min="0" max="5" step="0.1" value="0"></div>
+                <button class="btn btn-primary" onclick="addCenter()">حفظ</button>
+            `;
+        }
+        
+        document.getElementById('addFormContent').innerHTML = html;
+        if (type === 'center') setTimeout(loadAreasForSelect, 300);
+    }
+
+    function loadAreasForSelect() {
+        const govId = document.getElementById('centerGov')?.value;
+        if (!govId) return;
+        const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+        const sel = document.getElementById('centerArea');
+        if (sel) sel.innerHTML = areas.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    }
+
+    async function addGovernorate() {
+        const name = document.getElementById('govName').value.trim();
+        if (!name) { tg.showAlert('الرجاء إدخال اسم المحافظة'); return; }
+        await fetch(`${WORKER_URL}/api/governorates`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+        tg.showAlert('✅ تمت الإضافة بنجاح!');
+        showMain();
+    }
+
+    async function addArea() {
+        const name = document.getElementById('areaName').value.trim();
+        const governorateId = document.getElementById('areaGov').value;
+        if (!name) { tg.showAlert('الرجاء إدخال اسم المنطقة'); return; }
+        await fetch(`${WORKER_URL}/api/areas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, governorateId }) });
+        tg.showAlert('✅ تمت الإضافة بنجاح!');
+        showMain();
+    }
+
+    async function addCenter() {
+        const name = document.getElementById('centerName').value.trim();
+        const areaId = document.getElementById('centerArea').value;
+        const address = document.getElementById('centerAddress').value.trim();
+        const mapLink = document.getElementById('centerMapLink').value.trim();
+        const phone = document.getElementById('centerPhone').value.trim();
+        const rating = parseFloat(document.getElementById('centerRating').value) || 0;
+        if (!name) { tg.showAlert('الرجاء إدخال اسم المركز'); return; }
+        await fetch(`${WORKER_URL}/api/centers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, areaId, address, mapLink, phone, rating }) });
+        tg.showAlert('✅ تمت الإضافة بنجاح!');
+        showMain();
+    }
+
+    // ============ القوائم (تعديل/حذف) ============
+    async function showList(type, action) {
+        showScreen('listScreen');
+        await loadData();
+        let items = [];
+        if (type === 'governorates') items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
+        else if (type === 'areas') items = Object.entries(allAreas).map(([id, a]) => ({ id, ...a }));
+        else items = Object.entries(allCenters).map(([id, c]) => ({ id, ...c }));
+        
+        const title = action === 'edit' ? '✏️ تعديل' : '🗑 حذف';
+        const typeLabel = type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز';
+        
+        let html = `<h3 style="margin-bottom:16px;">${title} ${typeLabel}</h3>`;
+        
+        if (action === 'edit') {
+            html += items.map(item => `
+                <div class="list-item" onclick="editItemPrompt('${type}', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">
+                    <span>${item.name}</span>
+                    <span class="badge badge-warning"><i class="ph ph-pencil-simple"></i> تعديل</span>
+                </div>
+            `).join('');
+        } else {
+            html += items.map(item => `
+                <div class="list-item">
+                    <span>${item.name}</span>
+                    <button class="btn btn-sm btn-danger" onclick="deleteItemConfirm('${type}', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑 حذف</button>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('listContent').innerHTML = html;
+    }
+
+    function editItemPrompt(type, id, oldName) {
+        const newName = prompt('الاسم الجديد:', oldName);
+        if (!newName || newName === oldName) return;
+        editItem(type, id, newName);
+    }
+
+    async function editItem(type, id, newName) {
+        const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
+        await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName }) });
+        tg.showAlert('✅ تم التعديل بنجاح!');
+        showList(type, 'edit');
+    }
+
+    async function deleteItemConfirm(type, id, name) {
+        if (!confirm(`هل أنت متأكد من حذف "${name}"؟`)) return;
+        const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
+        const res = await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+            tg.showAlert('✅ تم الحذف بنجاح!');
+            showList(type, 'delete');
+        } else {
+            tg.showAlert('❌ حدث خطأ في الحذف.');
+        }
+    }
+
+    // ============ بدء التشغيل ============
+    loadStats();
+</script>
+</body>
+</html>
