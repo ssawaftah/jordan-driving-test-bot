@@ -48,7 +48,6 @@
             box-shadow: 0 0 40px rgba(0,0,0,0.03);
         }
 
-        /* ============ Header ============ */
         .app-header {
             background: #fff;
             padding: 16px 20px;
@@ -73,7 +72,6 @@
         .header-title { font-size: 17px; font-weight: 700; }
         .header-subtitle { font-size: 11px; color: var(--text-light); }
 
-        /* ============ الشاشات ============ */
         .screen {
             display: none;
             padding: 24px 20px;
@@ -83,7 +81,6 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } }
 
-        /* ============ الصفحة الرئيسية ============ */
         .hero-section { text-align: center; margin-bottom: 32px; }
         .hero-icon {
             width: 80px; height: 80px;
@@ -125,7 +122,6 @@
         .feature-icon.complete { background: #fce4ec; color: #c62828; }
         .feature-label { font-size: 14px; font-weight: 600; }
 
-        /* ============ أزرار ============ */
         .btn {
             display: flex; align-items: center; justify-content: center; gap: 8px;
             width: 100%; padding: 16px; border-radius: var(--radius);
@@ -137,7 +133,6 @@
         .btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
         .btn-outline:active { background: var(--primary-light); }
 
-        /* ============ بطاقات الصفحة الداخلية ============ */
         .btn-card {
             background: var(--card-bg); border: 1px solid var(--border);
             padding: 20px; margin: 14px 0; border-radius: var(--radius);
@@ -160,7 +155,6 @@
         .btn-card .card-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
         .btn-card .card-desc { font-size: 13px; color: var(--text-light); }
 
-        /* ============ حقول الإدخال ============ */
         .form-group { margin-bottom: 20px; }
         .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
         .form-input {
@@ -170,20 +164,47 @@
         }
         .form-input:focus { outline: none; border-color: var(--primary); background: #fff; }
 
-        .success-box {
-            background: #e8f5e9; padding: 14px; border-radius: 12px;
-            color: #2e7d32; font-weight: 600; margin: 12px 0;
-            display: flex; align-items: center; gap: 8px;
+        /* شاشة التحميل */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            backdrop-filter: blur(5px);
         }
-        .error-message {
-            background: #fff5f5; padding: 14px; border-radius: 12px;
-            color: #c53030; font-size: 14px; margin: 12px 0;
-            display: flex; align-items: center; gap: 8px;
+        .loading-spinner {
+            width: 64px; height: 64px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .success-animation {
+            transform: scale(0);
+            animation: popIn 0.4s ease forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .decorative-line {
             width: 48px; height: 4px; background: var(--gold);
             border-radius: 2px; margin: 0 auto 20px;
+        }
+
+        .phone-success-box {
+            background: #e8f5e9; padding: 14px; border-radius: 12px;
+            color: #2e7d32; font-weight: 600; margin: 12px 0;
+            display: flex; align-items: center; gap: 8px;
         }
     </style>
 </head>
@@ -232,23 +253,30 @@
         <!-- شاشة التسجيل -->
         <div id="registerScreen" class="screen">
             <h2 style="text-align:center; margin-bottom:24px; font-weight:700;">أدخل بياناتك للمتابعة</h2>
-            <div class="form-group">
-                <label class="form-label">الاسم الكامل</label>
-                <input type="text" class="form-input" id="fullName" placeholder="أدخل اسمك الكامل">
-            </div>
-            <div class="form-group">
-                <label class="form-label">رقم الهاتف</label>
-                <input type="tel" class="form-input" id="phoneInput" placeholder="مثال: 0791234567">
-            </div>
             
-            <div id="verificationStatus" class="success-box" style="display:none;">
-                <i class="ph ph-check-circle"></i> <span id="statusText">تم إرسال رمز التحقق...</span>
+            <div id="registrationForm">
+                <div class="form-group">
+                    <label class="form-label">الاسم الكامل</label>
+                    <input type="text" class="form-input" id="fullName" placeholder="أدخل اسمك الكامل">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">رقم الهاتف</label>
+                    <div id="phoneDisplay" class="phone-success-box" style="display:none;">
+                        <i class="ph ph-check-circle"></i> <span id="phoneValue"></span>
+                    </div>
+                    <button class="btn btn-outline" onclick="requestPhoneViaBot()" id="sharePhoneBtn">
+                        <i class="ph ph-phone"></i> مشاركة رقم الهاتف عبر Telegram
+                    </button>
+                    <p style="font-size:12px; color:var(--text-light); margin-top:8px;">سيتم فتح محادثة البوت لمشاركة رقمك الحقيقي المرتبط بحسابك.</p>
+                </div>
             </div>
-            <div id="errorMessage" class="error-message" style="display:none;"></div>
 
-            <button class="btn btn-outline" onclick="sendVerificationCode()" id="sendCodeBtn">
-                <i class="ph ph-paper-plane"></i> تحقق
-            </button>
+            <!-- شاشة التحميل (تظهر داخل الشاشة) -->
+            <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+                <div class="loading-spinner"></div>
+                <p style="font-weight:600; color:var(--text);">جارٍ التحقق...</p>
+                <p style="font-size:14px; color:var(--text-light); margin-top:8px;">يرجى مشاركة رقمك في البوت</p>
+            </div>
 
             <button class="btn btn-primary" id="registerBtn" onclick="completeRegistration()" style="margin-top:20px;" disabled>
                 موافق
@@ -260,7 +288,7 @@
             <div style="text-align:center; margin-bottom: 24px;">
                 <div class="decorative-line"></div>
                 <h1 class="main-title" style="margin-bottom:4px;">اختبار الفحص النظري</h1>
-                <p class="subtitle" id="greetingText">مرحباً بك! منصتك للاستعداد لاختبار السواقة النظري من خلال الدراسة المنظمة والمحاكاة الواقعية.</p>
+                <p class="subtitle" id="greetingText">مرحباً بك! منصتك للاستعداد لاختبار السواقة النظري.</p>
             </div>
 
             <div class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل الامتحان التجريبي قريباً')">
@@ -292,7 +320,6 @@
         </div>
     </div>
 
-    <!-- السكريبت الخاص بالوظائف (كما هو بدون تغيير) -->
     <script>
         // Firebase
         firebase.initializeApp({
@@ -305,154 +332,136 @@
         tg.ready();
         tg.expand();
 
-        const WORKER_URL = "https://jordan-driving-test-bot.pages.dev"; // تأكد من الرابط
-
         let phoneNumber = '';
         let isPhoneVerified = false;
         let currentScreen = 'landingScreen';
-        let verificationListener = null;
+        let phoneListener = null;
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if (currentScreen === 'registerScreen' && id !== 'registerScreen') stopVerificationListener();
+            if (currentScreen === 'registerScreen' && id !== 'registerScreen') stopAllListeners();
             currentScreen = id;
         }
 
         async function checkUserRegistration() {
             if (tg.initDataUnsafe?.user?.id) {
                 const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
-                if (snap.val()) return true;
+                return !!snap.val();
             }
             return false;
         }
 
         async function handleStart() {
-            if (await checkUserRegistration()) showScreen('homeScreen');
-            else showScreen('registerScreen');
-        }
-
-        function showError(msg) {
-            const el = document.getElementById('errorMessage');
-            if (el) {
-                el.innerHTML = `<i class="ph ph-warning-circle"></i> ${msg}`;
-                el.style.display = 'flex';
+            if (await checkUserRegistration()) {
+                showScreen('homeScreen');
+            } else {
+                showScreen('registerScreen');
             }
         }
 
-        function hideError() {
-            const el = document.getElementById('errorMessage');
-            if (el) el.style.display = 'none';
+        // ============ مشاركة رقم الهاتف ============
+        function requestPhoneViaBot() {
+            // إظهار شاشة التحميل
+            document.getElementById('registrationForm').style.display = 'none';
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // فتح البوت
+            tg.openTelegramLink('https://t.me/Jordan_Driving_Test_2026_Bot?start=share_phone');
+            
+            // بدء الاستماع لوصول الرقم
+            startListeningForPhone();
         }
 
-        function stopVerificationListener() {
-            if (verificationListener) {
-                const userId = tg.initDataUnsafe?.user?.id;
-                if (userId) db.ref(`pendingVerifications/${userId}`).off('value', verificationListener);
-                verificationListener = null;
-            }
-        }
+        function startListeningForPhone() {
+            const userId = tg.initDataUnsafe?.user?.id;
+            if (!userId) return;
+            stopPhoneListener();
+            phoneListener = db.ref(`users/${userId}/phone`).on('value', async (snap) => {
+                const phone = snap.val();
+                if (phone) {
+                    stopPhoneListener();
+                    phoneNumber = phone;
+                    isPhoneVerified = true;
 
-        async function sendVerificationCode() {
-            const phone = document.getElementById('phoneInput').value.trim();
-            if (!phone || phone.length < 10) {
-                showError('الرجاء إدخال رقم هاتف صحيح');
-                return;
-            }
+                    // إخفاء التحميل وإظهار رسالة نجاح
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    tg.showAlert('✅ تم التحقق من رقم هاتفك بنجاح!');
 
-            if (!tg.initDataUnsafe?.user?.id) {
-                showError('تعذر التحقق من حسابك');
-                return;
-            }
-
-            hideError();
-            const btn = document.getElementById('sendCodeBtn');
-            btn.innerHTML = '<i class="ph ph-spinner"></i> جارٍ التحقق...';
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(`${WORKER_URL}/send-code`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, phone })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('verificationStatus').style.display = 'flex';
-                    document.getElementById('statusText').textContent = 'تم إرسال رمز التحقق. جاري التحقق التلقائي...';
-                    btn.style.display = 'none';
-                    hideError();
-                    startListeningForVerificationCode();
-                } else {
-                    showError(data.error || 'فشل في إرسال الرمز');
-                    btn.innerHTML = '<i class="ph ph-paper-plane"></i> تحقق';
-                    btn.disabled = false;
-                }
-            } catch (e) {
-                showError('خطأ في الاتصال.');
-                btn.innerHTML = '<i class="ph ph-paper-plane"></i> تحقق';
-                btn.disabled = false;
-            }
-        }
-
-        function startListeningForVerificationCode() {
-            const userId = tg.initDataUnsafe.user.id;
-            stopVerificationListener();
-            verificationListener = db.ref(`pendingVerifications/${userId}`).on('value', async (snap) => {
-                const data = snap.val();
-                if (data) {
-                    const { code, phone: verifiedPhone } = data;
-                    db.ref(`pendingVerifications/${userId}`).off('value', verificationListener);
-                    verificationListener = null;
-
-                    document.getElementById('statusText').textContent = 'جاري تأكيد الرقم...';
-
-                    try {
-                        const res = await fetch(`${WORKER_URL}/verify-code`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId, code })
-                        });
-                        const result = await res.json();
-                        if (result.success) {
-                            phoneNumber = result.phone || verifiedPhone;
-                            isPhoneVerified = true;
-                            document.getElementById('verificationStatus').style.display = 'none';
-                            document.getElementById('registerBtn').disabled = false;
-                            tg.showAlert('✅ تم التحقق من رقم هاتفك بنجاح!');
-                        } else {
-                            showError(result.error || 'فشل التحقق');
-                            document.getElementById('sendCodeBtn').style.display = 'flex';
-                            document.getElementById('sendCodeBtn').innerHTML = '<i class="ph ph-paper-plane"></i> تحقق';
-                            document.getElementById('sendCodeBtn').disabled = false;
-                            document.getElementById('verificationStatus').style.display = 'none';
-                        }
-                    } catch (e) {
-                        showError('خطأ في الاتصال أثناء التحقق');
-                    }
+                    // تسجيل الدخول تلقائياً والانتقال للصفحة الرئيسية
+                    const name = document.getElementById('fullName').value.trim() || 'مستخدم';
+                    await db.ref('users/' + userId).update({
+                        name: name,
+                        phone: phoneNumber,
+                        username: tg.initDataUnsafe.user.username || '',
+                        registeredAt: new Date().toISOString()
+                    });
+                    
+                    document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '! منصتك للاستعداد لاختبار السواقة النظري.';
+                    showScreen('homeScreen');
                 }
             });
         }
 
+        function stopPhoneListener() {
+            if (phoneListener) {
+                const userId = tg.initDataUnsafe?.user?.id;
+                if (userId) db.ref(`users/${userId}/phone`).off('value', phoneListener);
+                phoneListener = null;
+            }
+        }
+
+        function stopAllListeners() {
+            stopPhoneListener();
+        }
+
+        // التحقق من نجاح التحقق عند العودة من البوت (عبر الرابط)
+        (async function checkAutoLogin() {
+            const params = new URLSearchParams(window.location.search);
+            const phoneVerified = params.get('phone_verified');
+            const phoneFromUrl = params.get('phone');
+            if (phoneVerified === '1' && phoneFromUrl) {
+                phoneNumber = phoneFromUrl;
+                isPhoneVerified = true;
+                // تنظيف الرابط
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                if (currentScreen === 'registerScreen') {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    document.getElementById('registrationForm').style.display = 'none';
+                    tg.showAlert('✅ تم التحقق من رقم هاتفك بنجاح!');
+                    
+                    const name = document.getElementById('fullName').value.trim() || 'مستخدم';
+                    const userId = tg.initDataUnsafe?.user?.id;
+                    if (userId) {
+                        await db.ref('users/' + userId).update({
+                            name: name,
+                            phone: phoneNumber,
+                            username: tg.initDataUnsafe.user.username || '',
+                            registeredAt: new Date().toISOString()
+                        });
+                    }
+                    document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '!';
+                    showScreen('homeScreen');
+                }
+            }
+        })();
+
+        // زر موافق (للحالات اليدوية)
         async function completeRegistration() {
             const name = document.getElementById('fullName').value.trim();
-            if (!name) { showError('الرجاء إدخال اسمك الكامل'); return; }
-            if (!isPhoneVerified) { showError('الرجاء تأكيد رقم الهاتف أولاً'); return; }
+            if (!name) { tg.showAlert('الرجاء إدخال اسمك الكامل'); return; }
+            if (!isPhoneVerified) { tg.showAlert('الرجاء مشاركة رقم الهاتف أولاً'); return; }
 
             const userId = tg.initDataUnsafe.user.id;
-            try {
-                await db.ref('users/' + userId).set({
-                    name,
-                    phone: phoneNumber,
-                    username: tg.initDataUnsafe.user.username || '',
-                    userId,
-                    registeredAt: new Date().toISOString()
-                });
-                document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '! منصتك للاستعداد لاختبار السواقة النظري.';
-                showScreen('homeScreen');
-            } catch (e) {
-                showError('حدث خطأ في التسجيل');
-            }
+            await db.ref('users/' + userId).update({
+                name: name,
+                phone: phoneNumber,
+                username: tg.initDataUnsafe.user.username || '',
+                registeredAt: new Date().toISOString()
+            });
+            document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '!';
+            showScreen('homeScreen');
         }
 
         // ملء الاسم تلقائياً
