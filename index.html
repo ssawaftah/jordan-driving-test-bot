@@ -12,47 +12,31 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <style>
-        /* نفس التنسيقات السابقة بالكامل دون تغيير */
         :root {
             --primary: #1a6b3c;
             --primary-dark: #145a30;
             --primary-light: #e8f5e9;
-            --primary-lighter: #f1f8f2;
             --gold: #c9a84c;
-            --gold-light: #fdf6e3;
             --text: #1a1a1a;
             --text-light: #666666;
-            --text-lighter: #999999;
             --bg: #ffffff;
             --bg-secondary: #f5f5f7;
             --card-bg: #fafafa;
             --border: #e8e8e8;
-            --border-light: #f0f0f0;
-            --radius-lg: 20px;
             --radius: 16px;
-            --radius-sm: 12px;
-            --radius-xs: 8px;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-            --shadow: 0 2px 12px rgba(0,0,0,0.06);
-            --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --danger: #dc3545;
-            --danger-light: #fce4ec;
+            --transition: all 0.3s ease;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+            font-family: 'Tajawal', sans-serif;
             background: var(--bg-secondary);
             color: var(--text);
             direction: rtl;
             text-align: right;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
-            line-height: 1.6;
         }
 
         .container {
@@ -64,14 +48,12 @@
         }
 
         .app-header {
-            background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+            background: #fff;
             padding: 16px 20px;
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 1px solid var(--border-light);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -80,320 +62,104 @@
         .header-brand { display: flex; align-items: center; gap: 12px; }
         .header-logo {
             width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--primary), #2d8f52);
+            background: var(--primary);
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             font-size: 20px;
-            box-shadow: 0 4px 12px rgba(26, 107, 60, 0.2);
         }
-        .header-title { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
-        .header-subtitle { font-size: 11px; color: var(--text-light); font-weight: 500; }
-        .header-back {
-            width: 40px; height: 40px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            color: var(--text);
-            font-size: 20px;
-        }
-        .header-back:active { background: var(--bg-secondary); transform: scale(0.95); }
+        .header-title { font-size: 17px; font-weight: 700; }
+        .header-subtitle { font-size: 11px; color: var(--text-light); }
 
         .screen {
             display: none;
-            padding: 20px;
-            min-height: calc(100vh - 73px);
-            animation: fadeSlideIn 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 24px 20px;
+            animation: fadeIn 0.4s ease;
         }
         .screen.active { display: block; }
 
-        @keyframes fadeSlideIn {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } }
 
-        .hero-section { text-align: center; padding: 20px 0 10px; }
         .hero-icon {
             width: 80px; height: 80px;
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            background: var(--primary-light);
             border-radius: 24px;
             display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 20px;
+            margin: 20px auto;
             font-size: 40px;
-            box-shadow: 0 12px 32px rgba(26, 107, 60, 0.12);
         }
-        .main-title { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 10px; letter-spacing: -0.5px; }
-        .subtitle { font-size: 14px; color: var(--text-light); line-height: 1.8; padding: 0 5px; }
-
-        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 28px 0; }
-        .feature-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 18px 14px;
-            text-align: center;
-            transition: var(--transition);
-        }
-        .feature-card:active { transform: scale(0.97); background: #f0f0f0; }
-        .feature-icon {
-            width: 48px; height: 48px;
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 12px;
-            font-size: 24px;
-        }
-        .feature-icon.trust { background: #e8f5e9; color: #2e7d32; }
-        .feature-icon.simulation { background: #e3f2fd; color: #1565c0; }
-        .feature-icon.match { background: #fff3e0; color: #e65100; }
-        .feature-icon.complete { background: #fce4ec; color: #c62828; }
-        .feature-label { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.5; }
+        .main-title { font-size: 26px; font-weight: 800; text-align: center; margin-bottom: 8px; }
+        .subtitle { text-align: center; color: var(--text-light); margin-bottom: 24px; font-size: 14px; }
 
         .btn {
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            width: 100%;
-            padding: 16px 20px;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 16px; font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: 'Tajawal', sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            width: 100%; padding: 16px; border-radius: var(--radius);
+            font-size: 16px; font-weight: 700; border: none; cursor: pointer;
+            font-family: 'Tajawal', sans-serif; transition: var(--transition);
         }
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(26, 107, 60, 0.25);
-            margin-top: 8px;
-        }
-        .btn-primary:active { background: var(--primary-dark); transform: scale(0.97); box-shadow: 0 2px 8px rgba(26, 107, 60, 0.2); }
-        .btn-outline { background: var(--bg); color: var(--primary); border: 2px solid var(--primary); }
-        .btn-outline:active { background: var(--primary-light); transform: scale(0.97); }
-
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:active { background: var(--primary-dark); }
+        .btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
         .btn-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            margin: 12px 0;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex; align-items: center; gap: 16px;
-            text-align: right;
-            width: 100%;
-            font-family: 'Tajawal', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            box-shadow: var(--shadow-sm);
+            background: var(--card-bg); border: 1px solid var(--border);
+            padding: 18px; margin: 12px 0; border-radius: var(--radius);
+            display: flex; align-items: center; gap: 14px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
         }
-        .btn-card:active { background: var(--card-bg); transform: scale(0.98); box-shadow: var(--shadow); }
-        .btn-card .card-icon {
-            width: 56px; height: 56px;
-            border-radius: var(--radius);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px;
-            flex-shrink: 0;
-        }
-        .btn-card .card-icon.green { background: #e8f5e9; color: #2e7d32; }
-        .btn-card .card-icon.blue { background: #e3f2fd; color: #1565c0; }
-        .btn-card .card-icon.gold { background: #fff8e1; color: #f9a825; }
-        .btn-card .card-content { flex: 1; }
-        .btn-card .card-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-        .btn-card .card-desc { font-size: 12px; color: var(--text-light); font-weight: 500; }
 
-        .form-group { margin: 18px 0; }
-        .form-label { display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-        .form-required { color: var(--danger); margin-right: 4px; }
+        .form-group { margin-bottom: 20px; }
         .form-input {
-            display: block;
-            width: 100%;
-            padding: 15px 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 15px;
-            font-family: 'Tajawal', sans-serif;
-            background: var(--card-bg);
-            color: var(--text);
-            transition: var(--transition);
-            text-align: right;
+            width: 100%; padding: 15px; border: 1px solid var(--border);
+            border-radius: var(--radius); font-size: 15px; background: var(--card-bg);
         }
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: #fff;
-            box-shadow: 0 0 0 4px rgba(26, 107, 60, 0.06);
-        }
-        .form-hint { font-size: 12px; color: var(--text-lighter); margin-top: 6px; }
 
         .success-box {
-            background: #e8f5e9; border-radius: var(--radius-sm);
-            padding: 12px 16px; color: #2e7d32; font-weight: 600;
-            display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
-        }
-
-        .error-message {
-            background: #fff5f5;
-            border: 1px solid #fed7d7;
-            border-radius: var(--radius-sm);
-            padding: 12px 16px;
-            color: #c53030;
-            font-size: 13px; font-weight: 500;
-            margin-top: 8px;
-            display: none;
-            align-items: center; gap: 8px;
-        }
-        .error-message.show { display: flex; }
-
-        .welcome-inner { text-align: center; padding: 10px 0; }
-        .decorative-line { width: 48px; height: 4px; background: var(--gold); border-radius: 2px; margin: 0 auto 20px; }
-        .user-greeting { font-size: 22px; font-weight: 800; margin-bottom: 8px; color: var(--text); }
-        .user-subtitle { font-size: 14px; color: var(--text-light); margin-bottom: 32px; line-height: 1.7; padding: 0 10px; }
-
-        .mt-3 { margin-top: 24px; }
-        .mt-2 { margin-top: 16px; }
-        .text-center { text-align: center; }
-
-        @media (max-width: 400px) {
-            .screen { padding: 16px 12px; }
-            .main-title { font-size: 24px; }
-            .features-grid { gap: 8px; }
-            .feature-card { padding: 14px 10px; }
-            .btn-card { padding: 16px; }
+            background: #e8f5e9; padding: 12px; border-radius: 12px;
+            color: #2e7d32; font-weight: 600; margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        
         <header class="app-header">
             <div class="header-brand">
                 <div class="header-logo">🚗</div>
                 <div>
                     <div class="header-title">الفحص النظري</div>
-                    <div class="header-subtitle">دائرة الترخيص الأردنية</div>
+                    <div class="header-subtitle">دائرة الترخيص</div>
                 </div>
             </div>
-            <button class="header-back" id="backButton" style="display:none;" onclick="goBack()">
-                <i class="ph ph-arrow-right"></i>
-            </button>
         </header>
 
-        <!-- الشاشات كما هي مع تعديل شاشة التسجيل -->
         <div id="landingScreen" class="screen active">
-            <!-- نفس المحتوى -->
-            <div class="hero-section">
-                <div class="hero-icon">📋</div>
-                <h1 class="main-title">اختبار الفحص النظري</h1>
-                <p class="subtitle">دراسة مصنفة حسب أقسام المادة النظرية، اختبار محاكي قريب من التجربة الفعلية، وترشيح مراكز تدريب قيادة قريبة منك.</p>
-            </div>
-
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon trust"><i class="ph ph-shield-check"></i></div>
-                    <div class="feature-label">موثوق من دائرة الترخيص</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon simulation"><i class="ph ph-target"></i></div>
-                    <div class="feature-label">محاكاة فعلية</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon match"><i class="ph ph-list-checks"></i></div>
-                    <div class="feature-label">مطابق لأسئلة الاختبار</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon complete"><i class="ph ph-timer"></i></div>
-                    <div class="feature-label">تجربة امتحان كاملة</div>
-                </div>
-            </div>
-
-            <button class="btn btn-primary" onclick="handleStart()">
-                <i class="ph ph-play-circle"></i> ابدأ
-            </button>
+            <div class="hero-icon">📋</div>
+            <h1 class="main-title">اختبار الفحص النظري</h1>
+            <p class="subtitle">دراسة مصنفة حسب الأقسام، محاكاة واقعية، ومراكز تدريب قريبة منك.</p>
+            <button class="btn btn-primary" onclick="handleStart()">ابدأ</button>
         </div>
 
-        <!-- شاشة التسجيل الجديدة مع التحقق -->
         <div id="registerScreen" class="screen">
-            <h2 style="font-size:22px; margin-bottom:8px; text-align:center; font-weight:700;">أدخل بياناتك للمتابعة</h2>
-            <p class="text-center" style="color:var(--text-light);font-size:13px;margin-bottom:24px;">جميع الحقول مطلوبة</p>
-            
+            <h2 style="text-align:center; margin-bottom:24px;">أدخل بياناتك</h2>
             <div class="form-group">
-                <label class="form-label">الاسم الكامل <span class="form-required">*</span></label>
-                <input type="text" class="form-input" id="fullName" placeholder="أدخل اسمك الكامل" autocomplete="name">
+                <label>الاسم الكامل</label>
+                <input type="text" class="form-input" id="fullName" placeholder="أدخل اسمك">
             </div>
-            
             <div class="form-group">
-                <label class="form-label">رقم الهاتف <span class="form-required">*</span></label>
-                <input type="tel" class="form-input" id="phoneInput" placeholder="مثال: 0791234567" inputmode="numeric">
-                <p class="form-hint">سنتحقق من رقمك عبر رمز تأكيد يرسله البوت</p>
-            </div>
-
-            <div id="verificationSection" style="display:none;">
-                <div class="form-group">
-                    <label class="form-label">رمز التحقق <span class="form-required">*</span></label>
-                    <input type="text" class="form-input" id="codeInput" placeholder="أدخل الرمز المكون من 6 أرقام" inputmode="numeric" maxlength="6">
-                    <p class="form-hint">تم إرسال رمز إلى محادثتك مع البوت في تيليجرام</p>
-                </div>
-                <button class="btn btn-outline" onclick="verifyCode()" style="margin-bottom:12px;">
-                    <i class="ph ph-check-circle"></i> تأكيد الرمز
-                </button>
-                <button class="btn btn-outline" onclick="sendCodeAgain()" style="margin-bottom:12px;">
-                    <i class="ph ph-arrow-counter-clockwise"></i> إعادة إرسال الرمز
+                <label>رقم الهاتف</label>
+                <div id="phoneDisplay"></div>
+                <button class="btn btn-outline" onclick="requestPhoneViaBot()" id="phoneBtn">
+                    <i class="ph ph-phone"></i> مشاركة رقم الهاتف
                 </button>
             </div>
-
-            <div class="error-message" id="errorMessage">
-                <i class="ph ph-warning-circle"></i>
-                <span id="errorText"></span>
-            </div>
-
-            <button class="btn btn-primary" id="registerBtn" onclick="completeRegistration()" style="margin-top:28px;">
-                <i class="ph ph-check-circle"></i> موافق
-            </button>
-            <button class="btn btn-outline" onclick="goBack()" style="margin-top:12px;">
-                <i class="ph ph-arrow-right"></i> رجوع
-            </button>
+            <button class="btn btn-primary" id="registerBtn" onclick="completeRegistration()">موافق</button>
         </div>
 
-        <!-- الصفحة الرئيسية بعد التسجيل -->
         <div id="homeScreen" class="screen">
-            <div class="welcome-inner">
-                <div class="decorative-line"></div>
-                <h1 class="main-title" style="margin-bottom:6px;">اختبار الفحص النظري</h1>
-                <p class="user-greeting" id="greetingText">مرحباً بك!</p>
-                <p class="user-subtitle">منصتك الشاملة للاستعداد لاختبار السواقة النظري من خلال الدراسة المنظمة والمحاكاة الواقعية للاختبار.</p>
-            </div>
-
-            <button class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل الامتحان التجريبي قريباً')">
-                <div class="card-icon green"><i class="ph ph-pencil-line"></i></div>
-                <div class="card-content">
-                    <div class="card-title">بدء الامتحان النظري الحي</div>
-                    <div class="card-desc">محاكاة واقعية لاختبار القيادة النظري</div>
-                </div>
-                <i class="ph ph-caret-left" style="color:#ccc;font-size:24px;"></i>
-            </button>
-
-            <button class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل دراسة الأسئلة قريباً')">
-                <div class="card-icon blue"><i class="ph ph-book-open"></i></div>
-                <div class="card-content">
-                    <div class="card-title">دراسة الأسئلة</div>
-                    <div class="card-desc">مراجعة الأسئلة حسب الأقسام المختلفة</div>
-                </div>
-                <i class="ph ph-caret-left" style="color:#ccc;font-size:24px;"></i>
-            </button>
-
-            <button class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل مراكز التدريب قريباً')">
-                <div class="card-icon gold"><i class="ph ph-map-pin"></i></div>
-                <div class="card-content">
-                    <div class="card-title">مراكز تدريب القيادة القريبة</div>
-                    <div class="card-desc">اعثر على أقرب مركز تدريب معتمد</div>
-                </div>
-                <i class="ph ph-caret-left" style="color:#ccc;font-size:24px;"></i>
-            </button>
-
-            <button class="btn btn-outline mt-3" onclick="goBack()">
-                <i class="ph ph-arrow-right"></i> الرجوع للرئيسية
-            </button>
+            <div class="hero-icon">🏠</div>
+            <h2 class="main-title">مرحباً!</h2>
+            <p class="subtitle" id="greetingText">أهلاً بك في المنصة</p>
+            <div class="btn-card">📝 الامتحان النظري الحي</div>
+            <div class="btn-card">📚 دراسة الأسئلة</div>
+            <div class="btn-card">📍 مراكز التدريب</div>
         </div>
     </div>
 
@@ -405,8 +171,6 @@
             projectId: "al3arbicv"
         });
         const db = firebase.database();
-        const WORKER_URL = "https://jordan-driving-test-bot.pages.dev"; // استبدل بعنوان Pages الفعلي
-
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
@@ -414,167 +178,74 @@
         let phoneNumber = '';
         let isPhoneVerified = false;
         let currentScreen = 'landingScreen';
-        const screenHistory = [];
+        let phoneCheckInterval = null;
 
-        function showScreen(screenId, addToHistory = true) {
+        function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            if (addToHistory && currentScreen !== screenId) screenHistory.push(currentScreen);
-            currentScreen = screenId;
-            document.getElementById('backButton').style.display = (screenId === 'landingScreen') ? 'none' : 'flex';
-            const errorMsg = document.getElementById('errorMessage');
-            if (errorMsg) errorMsg.classList.remove('show');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById(id).classList.add('active');
+            if (currentScreen === 'registerScreen' && id !== 'registerScreen') stopPhoneCheck();
+            currentScreen = id;
         }
 
-        function goBack() {
-            if (screenHistory.length > 0) {
-                const prev = screenHistory.pop();
-                showScreen(prev, false);
-            } else {
-                showScreen('landingScreen', false);
-            }
-        }
-
-        function showError(msg) {
-            const el = document.getElementById('errorMessage');
-            const txt = document.getElementById('errorText');
-            if (el && txt) {
-                txt.textContent = msg;
-                el.classList.add('show');
-            }
-        }
-
-        // التحقق من التسجيل
         async function checkUserRegistration() {
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                const userId = tg.initDataUnsafe.user.id;
-                const snap = await db.ref('users/' + userId).once('value');
-                const data = snap.val();
-                if (data) {
-                    document.getElementById('greetingText').textContent = 'أهلاً بك، ' + data.name + ' 👋';
-                    return true;
-                }
+            if (tg.initDataUnsafe?.user?.id) {
+                const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
+                if (snap.val()) return true;
             }
             return false;
         }
 
         async function handleStart() {
-            if (await checkUserRegistration()) {
-                showScreen('homeScreen');
-            } else {
-                showScreen('registerScreen');
-            }
+            if (await checkUserRegistration()) showScreen('homeScreen');
+            else showScreen('registerScreen');
         }
 
-        // إرسال رمز التحقق
-        async function sendVerificationCode() {
-            const phone = document.getElementById('phoneInput').value.trim();
-            if (!phone || phone.length < 10) {
-                showError('الرجاء إدخال رقم هاتف صحيح');
-                return;
-            }
-            if (!tg.initDataUnsafe?.user?.id) {
-                showError('تعذر التحقق من حسابك');
-                return;
-            }
-
-            const userId = tg.initDataUnsafe.user.id;
-            try {
-                const res = await fetch(`${WORKER_URL}/send-code`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, phone })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('verificationSection').style.display = 'block';
-                    document.getElementById('registerBtn').style.display = 'none';
-                    phoneNumber = phone;
-                    showError(''); // إخفاء الخطأ
-                    tg.showAlert('تم إرسال رمز التحقق إلى محادثتك مع البوت. تفقده وأدخله هنا.');
-                } else {
-                    showError(data.error || 'فشل في إرسال الرمز');
-                }
-            } catch (e) {
-                showError('خطأ في الاتصال. حاول مرة أخرى.');
-            }
+        function requestPhoneViaBot() {
+            tg.openTelegramLink('https://t.me/Jordan_Driving_Test_2026_Bot?start=share_phone');
+            document.getElementById('phoneBtn').style.display = 'none';
+            document.getElementById('phoneDisplay').innerHTML = '<p style="color:#e65100;">⏳ تابع التعليمات في البوت ثم عد للتطبيق</p>';
+            startPhoneCheckInterval();
         }
 
-        async function verifyCode() {
-            const code = document.getElementById('codeInput').value.trim();
-            if (!code || code.length !== 6) {
-                showError('الرجاء إدخال رمز التحقق المكون من 6 أرقام');
-                return;
-            }
+        function startPhoneCheckInterval() {
+            if (phoneCheckInterval) clearInterval(phoneCheckInterval);
+            phoneCheckInterval = setInterval(checkPhoneSaved, 2000);
+        }
+
+        function stopPhoneCheck() {
+            if (phoneCheckInterval) { clearInterval(phoneCheckInterval); phoneCheckInterval = null; }
+        }
+
+        async function checkPhoneSaved() {
             if (!tg.initDataUnsafe?.user?.id) return;
-            const userId = tg.initDataUnsafe.user.id;
-
-            try {
-                const res = await fetch(`${WORKER_URL}/verify-code`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, code })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    isPhoneVerified = true;
-                    phoneNumber = data.phone || phoneNumber;
-                    document.getElementById('verificationSection').innerHTML = '<div class="success-box"><i class="ph ph-check-circle"></i> تم التحقق من رقم الهاتف بنجاح</div>';
-                    document.getElementById('registerBtn').style.display = 'flex';
-                    showError('');
-                } else {
-                    showError(data.error || 'الرمز غير صحيح');
-                }
-            } catch (e) {
-                showError('خطأ في الاتصال');
+            const snap = await db.ref('users/' + tg.initDataUnsafe.user.id + '/phone').once('value');
+            const phone = snap.val();
+            if (phone) {
+                stopPhoneCheck();
+                phoneNumber = phone;
+                isPhoneVerified = true;
+                document.getElementById('phoneDisplay').innerHTML = '<div class="success-box">✅ تم التحقق من الرقم</div>';
+                document.getElementById('registerBtn').style.display = 'flex';
             }
         }
-
-        async function sendCodeAgain() {
-            document.getElementById('verificationSection').style.display = 'block';
-            await sendVerificationCode();
-        }
-
-        // ربط زر موافق بإرسال الرمز أولاً إذا لم يتم التحقق
-        document.addEventListener('DOMContentLoaded', function() {
-            const registerBtn = document.getElementById('registerBtn');
-            registerBtn.addEventListener('click', async function(e) {
-                if (!isPhoneVerified) {
-                    e.preventDefault();
-                    await sendVerificationCode();
-                } else {
-                    await completeRegistration();
-                }
-            });
-        });
 
         async function completeRegistration() {
             const name = document.getElementById('fullName').value.trim();
-            if (!name) { showError('الرجاء إدخال اسمك الكامل'); return; }
-            if (!isPhoneVerified) { showError('الرجاء تأكيد رقم الهاتف أولاً'); return; }
-            if (!tg.initDataUnsafe?.user?.id) return;
+            if (!name) { alert('أدخل الاسم'); return; }
+            if (!isPhoneVerified) { alert('شارك رقم الهاتف أولاً'); return; }
 
             const userId = tg.initDataUnsafe.user.id;
-            const username = tg.initDataUnsafe.user.username || '';
-
-            try {
-                await db.ref('users/' + userId).set({
-                    name, phone: phoneNumber, username, userId,
-                    registeredAt: new Date().toISOString()
-                });
-                document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + ' 👋';
-                screenHistory.length = 0;
-                showScreen('homeScreen', false);
-            } catch (e) {
-                showError('حدث خطأ في التسجيل');
-            }
+            await db.ref('users/' + userId).set({
+                name, phone: phoneNumber,
+                username: tg.initDataUnsafe.user.username || '',
+                registeredAt: new Date().toISOString()
+            });
+            document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name;
+            showScreen('homeScreen');
         }
 
-        // ملء الاسم تلقائياً
-        if (tg.initDataUnsafe?.user) {
-            const u = tg.initDataUnsafe.user;
-            document.getElementById('fullName').value = u.first_name + (u.last_name ? ' ' + u.last_name : '');
+        if (tg.initDataUnsafe?.user?.first_name) {
+            document.getElementById('fullName').value = tg.initDataUnsafe.user.first_name;
         }
     </script>
 </body>
