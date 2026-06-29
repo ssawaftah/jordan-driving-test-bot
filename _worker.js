@@ -80,8 +80,41 @@ async function sendWelcome(chatId, isAdmin) {
   }
 }
 
-// ============ جلسات المستخدم ============
-const sessions = {};
+// ============ دوال رمز التحقق ============
+async function sendVerificationCode(userId, phone) {
+  try {
+    // التحقق من أن المستخدم موجود (يمكن إرسال رسالة له)
+    await tg('sendChatAction', { chat_id: userId, action: 'typing' });
+  } catch (e) {
+    return { success: false, error: "عذراً، لا يمكن التواصل مع حسابك. تأكد من أنك بدأت محادثة مع البوت بالضغط على /start." };
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  
+  await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, phone, expiresAt })
+  });
+
+  await sendMsg(userId, `🔐 <b>رمز التحقق:</b> <code>${code}</code>\n\nهذا الرمز صالح لمدة 5 دقائق. أدخله في التطبيق للمتابعة.`);
+  return { success: true };
+}
+
+async function verifyCode(userId, code) {
+  const ref = await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`);
+  const data = await ref.json();
+  if (!data) return { success: false, error: "لم يتم طلب رمز تحقق. اطلب رمزاً جديداً." };
+  if (Date.now() > data.expiresAt) {
+    await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`, { method: 'DELETE' });
+    return { success: false, error: "انتهت صلاحية الرمز. اطلب رمزاً جديداً." };
+  }
+  if (data.code !== code) return { success: false, error: "الرمز غير صحيح." };
+  
+  await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`, { method: 'DELETE' });
+  return { success: true, phone: data.phone };
+}
 
 // ============ handleMessage ============
 async function handleMessage(msg) {
@@ -90,17 +123,14 @@ async function handleMessage(msg) {
   const text = msg.text || '';
   const isAdmin = userId === ADMIN_ID;
 
-  // --- استقبال مشاركة جهة الاتصال (رقم الهاتف) ---
+  // استقبال جهة الاتصال (عند مشاركة الرقم عبر البوت)
   if (msg.contact) {
     const phone = msg.contact.phone_number;
-    // حفظ الرقم في Firebase
     await fetch(`${FIREBASE_URL}/users/${userId}/phone.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(phone)
     });
-
-    // إرسال رسالة تأكيد مع زر العودة للتطبيق
     const backKeyboard = {
       inline_keyboard: [[{ text: "✅ العودة للتطبيق", web_app: { url: APP_URL } }]]
     };
@@ -108,10 +138,8 @@ async function handleMessage(msg) {
     return;
   }
 
-  // --- معالجة أوامر /start ---
   if (text === '/start' || text.startsWith('/start')) {
     if (text.includes('share_phone')) {
-      // طلب مشاركة رقم الهاتف باستخدام لوحة مفاتيح مخصصة
       const requestKeyboard = {
         keyboard: [[{ text: "📱 مشاركة رقم الهاتف", request_contact: true }]],
         resize_keyboard: true,
@@ -120,12 +148,11 @@ async function handleMessage(msg) {
       await sendMsg(chatId, "للتحقق من هويتك، الرجاء مشاركة رقم هاتفك:", requestKeyboard);
       return;
     }
-    // start عادي
     await sendWelcome(chatId, isAdmin);
     return;
   }
 
-  // --- معالجات تعديل رسالة الترحيب (للأدمن) ---
+  // معالجات الأدمن
   const s = sessions[userId];
   if (!s || !s.step) return;
 
@@ -148,7 +175,7 @@ async function handleMessage(msg) {
   }
 }
 
-// ============ handleCallback (أزرار الأدمن) ============
+// ============ handleCallback ============
 async function handleCallback(cb) {
   const chatId = cb.message.chat.id;
   const msgId = cb.message.message_id;
@@ -206,9 +233,36 @@ async function handleCallback(cb) {
   }
 }
 
+// ============ التخزين المؤقت ============
+const sessions = {};
+
 // ============ التصدير ============
 export default {
   async fetch(request) {
+    const url = new URL(request.url);
+    
+    // مسارات التحقق من الرقم
+    if (request.method === 'POST' && url.pathname === '/send-code') {
+      try {
+        const { userId, phone } = await request.json();
+        const result = await sendVerificationCode(userId, phone);
+        return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500 });
+      }
+    }
+    
+    if (request.method === 'POST' && url.pathname === '/verify-code') {
+      try {
+        const { userId, code } = await request.json();
+        const result = await verifyCode(userId, code);
+        return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500 });
+      }
+    }
+
+    // Webhook تيليجرام
     if (request.method === 'POST') {
       try {
         const body = await request.json();
@@ -217,6 +271,7 @@ export default {
       } catch (e) { console.error(e); }
       return new Response('OK');
     }
+    
     return new Response('OK', { status: 200 });
   }
 };
