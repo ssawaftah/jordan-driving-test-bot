@@ -51,9 +51,11 @@ async function answerCb(cbId, text = null, alert = false) {
 // ============ النص الافتراضي ============
 const DEFAULT_TEXT = `اهلا بك في بوت الفحص النظري الشامل 2026 👋
 
-إذا كنت تستعد لتقديم اختبار القيادة النظري في الأردن فإن دراسة المادة النظرية بشكل جيد تعتبر الخطوة الأهم للنجاح في الفحص من المرة الأولى...
+إذا كنت تستعد لتقديم اختبار القيادة النظري في الأردن فإن دراسة المادة النظرية بشكل جيد تعتبر الخطوة الأهم للنجاح في الفحص من المرة الأولى. في هذه الصفحة يمكنك مراجعة أسئلة اختبار السواقة مع الإجابات الصحيحة والشرح التوضيحي لكل سؤال لمساعدتك على فهم المادة بشكل أفضل.
 
-(نفس النص السابق)`;
+تم تقسيم المادة إلى عدة أقسام رئيسية مثل قواعد السير والمرور و الميكانيك و السلامة على الطريق و الإسعافات الأولية و الشواخص المرورية والخطوط الأرضية إضافة إلى المخالفات المرورية واحتساب النقاط. يمكنك اختيار القسم الذي تريد دراسته ومراجعة الأسئلة الخاصة به خطوة بخطوة.
+
+ننصحك بدراسة جميع الأقسام جيدًا قبل الدخول إلى اختبار القيادة النظري حتى تكون مستعدًا بشكل كامل لاجتياز الفحص النظري للسواقة بثقة ونجاح.`;
 
 // ============ إرسال رسالة الترحيب ============
 async function sendWelcome(chatId, isAdmin) {
@@ -81,67 +83,52 @@ async function sendWelcome(chatId, isAdmin) {
 // ============ جلسات المستخدم ============
 const sessions = {};
 
-// ============ دوال التحقق من رقم الهاتف ============
-async function sendVerificationCode(userId, phone) {
-  // توليد رمز عشوائي من 6 أرقام
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  
-  // حفظ الرمز مؤقتاً في Firebase مع تاريخ انتهاء (5 دقائق)
-  const expiresAt = Date.now() + 5 * 60 * 1000;
-  await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, phone, expiresAt })
-  });
-  
-  // إرسال الرمز للمستخدم عبر تيليجرام
-  try {
-    await sendMsg(userId, `🔐 <b>رمز التحقق:</b> <code>${code}</code>\n\nهذا الرمز صالح لمدة 5 دقائق. أدخله في التطبيق للمتابعة.`);
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: "لا يمكن إرسال رسالة للمستخدم. تأكد من أنه بدأ محادثة مع البوت." };
-  }
-}
-
-async function verifyCode(userId, code) {
-  const ref = await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`);
-  const data = await ref.json();
-  
-  if (!data) return { success: false, error: "لم يتم طلب رمز تحقق." };
-  
-  if (Date.now() > data.expiresAt) {
-    // حذف الرمز المنتهي
-    await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`, { method: 'DELETE' });
-    return { success: false, error: "انتهت صلاحية الرمز. اطلب رمزاً جديداً." };
-  }
-  
-  if (data.code !== code) {
-    return { success: false, error: "الرمز غير صحيح." };
-  }
-  
-  // الرمز صحيح - حذفه من قاعدة البيانات
-  await fetch(`${FIREBASE_URL}/verificationCodes/${userId}.json`, { method: 'DELETE' });
-  
-  // إرجاع رقم الهاتف الذي تم التحقق منه
-  return { success: true, phone: data.phone };
-}
-
-// ============ handleMessage (البوت العادي) ============
+// ============ handleMessage ============
 async function handleMessage(msg) {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const text = msg.text || '';
   const isAdmin = userId === ADMIN_ID;
-  
-  if (text === '/start') {
+
+  // --- استقبال مشاركة جهة الاتصال (رقم الهاتف) ---
+  if (msg.contact) {
+    const phone = msg.contact.phone_number;
+    // حفظ الرقم في Firebase
+    await fetch(`${FIREBASE_URL}/users/${userId}/phone.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(phone)
+    });
+
+    // إرسال رسالة تأكيد مع زر العودة للتطبيق
+    const backKeyboard = {
+      inline_keyboard: [[{ text: "✅ العودة للتطبيق", web_app: { url: APP_URL } }]]
+    };
+    await sendMsg(chatId, "✅ تم استلام رقم هاتفك بنجاح! يمكنك العودة للتطبيق الآن.", backKeyboard);
+    return;
+  }
+
+  // --- معالجة أوامر /start ---
+  if (text === '/start' || text.startsWith('/start')) {
+    if (text.includes('share_phone')) {
+      // طلب مشاركة رقم الهاتف باستخدام لوحة مفاتيح مخصصة
+      const requestKeyboard = {
+        keyboard: [[{ text: "📱 مشاركة رقم الهاتف", request_contact: true }]],
+        resize_keyboard: true,
+        one_time_keyboard: true
+      };
+      await sendMsg(chatId, "للتحقق من هويتك، الرجاء مشاركة رقم هاتفك:", requestKeyboard);
+      return;
+    }
+    // start عادي
     await sendWelcome(chatId, isAdmin);
     return;
   }
-  
-  // باقي معالجات الأدمن (تعديل الترحيب) كما هي...
+
+  // --- معالجات تعديل رسالة الترحيب (للأدمن) ---
   const s = sessions[userId];
   if (!s || !s.step) return;
-  
+
   if (s.step === 'edit_text') {
     const data = await getWelcomeData();
     data.text = text;
@@ -219,40 +206,9 @@ async function handleCallback(cb) {
   }
 }
 
-// ============ Fetch العام (يجمع Webhook وطلبات Mini App) ============
+// ============ التصدير ============
 export default {
   async fetch(request) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-    
-    // طلبات Mini App للتحقق
-    if (request.method === 'POST' && path === '/send-code') {
-      try {
-        const { userId, phone } = await request.json();
-        if (!userId || !phone) {
-          return new Response(JSON.stringify({ success: false, error: "بيانات ناقصة" }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-        }
-        const result = await sendVerificationCode(userId, phone);
-        return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
-      } catch (e) {
-        return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-      }
-    }
-    
-    if (request.method === 'POST' && path === '/verify-code') {
-      try {
-        const { userId, code } = await request.json();
-        if (!userId || !code) {
-          return new Response(JSON.stringify({ success: false, error: "بيانات ناقصة" }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-        }
-        const result = await verifyCode(userId, code);
-        return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
-      } catch (e) {
-        return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-      }
-    }
-    
-    // Webhook تيليجرام
     if (request.method === 'POST') {
       try {
         const body = await request.json();
@@ -261,7 +217,6 @@ export default {
       } catch (e) { console.error(e); }
       return new Response('OK');
     }
-    
     return new Response('OK', { status: 200 });
   }
 };
