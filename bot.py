@@ -2,208 +2,250 @@ import os
 import json
 import requests
 from datetime import datetime
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ConversationHandler, filters, ContextTypes
 
 BOT_TOKEN = "8993443266:AAFUQsnrVjRpYjox5OQoHUg_CacbuC-leek"
-BLOGGER_URL = "https://idriverjo.blogspot.com/p/theory-test-practice.html"
 FIREBASE_DB_URL = "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app"
-
-SELECTING_CATEGORY, ENTERING_QUESTION, ENTERING_OPTIONS, ENTERING_ANSWER, ENTERING_EXPLANATION = range(5)
+ADMIN_ID = 1376513623  # غيّره لمعرفك
 
 CATEGORIES = [
-    "قواعد السير والمرور",
-    "الميكانيك",
-    "السلامة على الطريق",
-    "أسعافات أولية",
-    "الشواخص والخطوط والعلامات",
-    "المخالفات واحتساب النقاط"
+    "قواعد السير والمرور", "الميكانيك", "السلامة على الطريق",
+    "أسعافات أولية", "الشواخص والخطوط والعلامات", "المخالفات واحتساب النقاط"
 ]
 
-def save_to_firebase(data):
-    """حفظ سؤال في Firebase باستخدام REST API"""
-    url = f"{FIREBASE_DB_URL}/questions.json"
-    response = requests.post(url, json=data)
-    return response.json()
+# حالات المحادثة
+(MAIN, CATEGORIES_MENU, STUDY_QUESTION, TEST_INFO, TEST_QUESTION,
+ ADD_CAT, ADD_Q, ADD_OPT, ADD_ANS, ADD_EXP) = range(10)
 
-ADMIN_ID = 1376513623  # ضع معرف تيليجرام الخاص بك هنا
+# ============ تخزين مؤقت للمستخدم ============
+user_data = {}
 
+def get_questions_from_firebase():
+    r = requests.get(f"{FIREBASE_DB_URL}/questions.json")
+    return r.json() or {}
+
+def save_question(data):
+    r = requests.post(f"{FIREBASE_DB_URL}/questions.json", json=data)
+    return r.json()
+
+# ============ الصفحة الرئيسية ============
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
+    msg = (
+        "🚗 **اختبار الفحص النظري**\n\n"
+        "دراسة مصنفة حسب أقسام المادة النظرية، اختبار محاكي قريب من التجربة الفعلية.\n\n"
+        "✅ موثوق من دائرة الترخيص\n"
+        "✅ محاكاة فعلية\n"
+        "✅ مطابق لأسئلة الاختبار\n"
+        "✅ تجربة امتحان كاملة"
+    )
+    
     keyboard = [
-        [InlineKeyboardButton("📱 افتح تطبيق الدراسة", web_app=WebAppInfo(url=BLOGGER_URL))]
+        [InlineKeyboardButton("📚 اسئلة الترخيص للفحص النظري الشامل 2026", callback_data="menu_categories")],
+        [InlineKeyboardButton("🎯 اختبار الفحص النظري", callback_data="test_info")]
     ]
     
-    # أزرار الإدارة تظهر للأدمن فقط
     if user_id == ADMIN_ID:
-        keyboard.append([InlineKeyboardButton("📊 إحصائيات", callback_data="stats")])
-        keyboard.append([InlineKeyboardButton("➕ إضافة سؤال", callback_data="add_question")])
+        keyboard.append([InlineKeyboardButton("➕ إضافة سؤال (أدمن)", callback_data="admin_add")])
+        keyboard.append([InlineKeyboardButton("📊 إحصائيات (أدمن)", callback_data="admin_stats")])
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(
-        "🚗 **مرحباً بك في بوت الفحص النظري للقيادة 2026**\n\nاختر من القائمة:",
-        reply_markup=reply_markup,
-        parse_mode='Markdown'
-    )
+    await update.message.reply_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+    return MAIN
 
-async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ============ قائمة الأقسام ============
+async def show_categories(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    url = f"{FIREBASE_DB_URL}/questions.json"
-    response = requests.get(url)
-    questions = response.json() or {}
-    total = len(questions)
+    keyboard = []
+    for i, cat in enumerate(CATEGORIES):
+        keyboard.append([InlineKeyboardButton(f"{i+1}. {cat}", callback_data=f"study_{i}")])
+    keyboard.append([InlineKeyboardButton("⬅️ الرجوع", callback_data="back_main")])
     
-    cats_count = {}
-    for q in questions.values():
-        cat = q.get('category', 'غير محدد')
-        cats_count[cat] = cats_count.get(cat, 0) + 1
-    
-    msg = f"📊 **إحصائيات الأسئلة**\n\n📝 المجموع: {total} سؤال\n\n📂 **حسب الأقسام:**\n"
-    for cat, count in cats_count.items():
-        msg += f"• {cat}: {count}\n"
-    
-    await query.edit_message_text(msg, parse_mode='Markdown')
+    await query.edit_message_text("📂 **اختر القسم الذي تريد دراسته:**", reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+    return CATEGORIES_MENU
 
-async def add_question_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ============ بدء الدراسة ============
+async def start_study(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    
-    keyboard = [[InlineKeyboardButton(cat, callback_data=f"cat_{i}")] for i, cat in enumerate(CATEGORIES)]
-    keyboard.append([InlineKeyboardButton("❌ إلغاء", callback_data="cancel")])
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await query.edit_message_text("📝 **إضافة سؤال جديد**\n\nاختر القسم:", reply_markup=reply_markup, parse_mode='Markdown')
-    return SELECTING_CATEGORY
-
-async def select_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    
-    if query.data == "cancel":
-        await query.edit_message_text("✅ تم الإلغاء.")
-        return ConversationHandler.END
     
     cat_index = int(query.data.split("_")[1])
-    context.user_data['category'] = CATEGORIES[cat_index]
+    category = CATEGORIES[cat_index]
+    questions = get_questions_from_firebase()
     
-    await query.edit_message_text(
-        f"✅ القسم: **{CATEGORIES[cat_index]}**\n\nأرسل نص السؤال الآن:",
-        parse_mode='Markdown'
-    )
-    return ENTERING_QUESTION
+    # فلترة أسئلة القسم
+    study_qs = []
+    for qid, q in questions.items():
+        if q.get('category') == category:
+            study_qs.append({'id': qid, **q})
+    
+    if not study_qs:
+        await query.edit_message_text(f"❌ لا توجد أسئلة في قسم {category} بعد.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ الرجوع", callback_data="menu_categories")]]))
+        return CATEGORIES_MENU
+    
+    user_id = query.from_user.id
+    user_data[user_id] = {
+        'study_qs': study_qs,
+        'study_index': 0,
+        'category': category
+    }
+    
+    await show_study_question(query, user_id)
+    return STUDY_QUESTION
 
-async def receive_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message
-    context.user_data['media_type'] = 'text'
-    context.user_data['question'] = message.text
+async def show_study_question(query_or_msg, user_id):
+    data = user_data.get(user_id, {})
+    qs = data.get('study_qs', [])
+    idx = data.get('study_index', 0)
     
-    await message.reply_text(
-        "✅ تم استلام السؤال\n\nالآن أرسل **4 خيارات**، كل خيار في سطر منفصل:\n\n*مثال:*\nتوقف تام\nاستعد للتحرك\nأبطئ السرعة\nالطريق مفتوح",
-        parse_mode='Markdown'
-    )
-    return ENTERING_OPTIONS
+    if idx >= len(qs):
+        # انتهت الأسئلة
+        keyboard = [
+            [InlineKeyboardButton("🧪 بدء اختبار هذا القسم", callback_data="test_category")],
+            [InlineKeyboardButton("📂 الرجوع للأقسام", callback_data="menu_categories")],
+            [InlineKeyboardButton("🏠 الرجوع للرئيسية", callback_data="back_main")]
+        ]
+        await query_or_msg.edit_message_text(
+            "✅ **لقد أنهيت جميع أسئلة هذا القسم!**\n\nماذا تريد أن تفعل؟",
+            reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown'
+        )
+        return STUDY_QUESTION
+    
+    q = qs[idx]
+    total = len(qs)
+    
+    # نص السؤال مع الوسائط
+    msg = f"📝 **السؤال {idx + 1} من {total}**\n\n"
+    msg += f"*{q.get('question', '')}*\n"
+    
+    if q.get('mediaUrl') and q.get('mediaType') == 'image':
+        msg += f"\n🖼 [اضغط لمشاهدة الصورة]({q['mediaUrl']})\n"
+    
+    # خيارات على شكل أزرار
+    keyboard = []
+    for i, opt in enumerate(q.get('options', [])):
+        prefix = "✅ " if i == q.get('correctAnswer') else ""
+        keyboard.append([InlineKeyboardButton(f"{prefix}{i+1}. {opt}", callback_data=f"ans_{i}")])
+    
+    # أزرار التنقل
+    nav = []
+    if idx > 0:
+        nav.append(InlineKeyboardButton("◀ السابق", callback_data="prev_q"))
+    if idx < total - 1:
+        nav.append(InlineKeyboardButton("التالي ▶", callback_data="next_q"))
+    if nav:
+        keyboard.append(nav)
+    
+    keyboard.append([InlineKeyboardButton("🚪 إنهاء المراجعة", callback_data="back_main")])
+    
+    if isinstance(query_or_msg, Update):
+        await query_or_msg.message.reply_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown', disable_web_page_preview=True)
+    else:
+        await query_or_msg.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown', disable_web_page_preview=True)
 
-async def receive_options(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    options = update.message.text.strip().split('\n')
-    
-    if len(options) != 4:
-        await update.message.reply_text("❌ يجب إدخال 4 خيارات بالضبط! حاول مرة أخرى:")
-        return ENTERING_OPTIONS
-    
-    context.user_data['options'] = options
-    
-    keyboard = [[InlineKeyboardButton(f"{i+1}. {opt[:50]}", callback_data=f"ans_{i}")] for i, opt in enumerate(options)]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(
-        "✅ تم استلام الخيارات\n\nاختر **الإجابة الصحيحة**:",
-        reply_markup=reply_markup,
-        parse_mode='Markdown'
-    )
-    return ENTERING_ANSWER
-
-async def receive_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_answer_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عند الضغط على خيار - يظهر شرح الإجابة"""
     query = update.callback_query
     await query.answer()
     
-    correct_index = int(query.data.split("_")[1])
-    context.user_data['correct_answer'] = correct_index
+    user_id = query.from_user.id
+    data = user_data.get(user_id, {})
+    qs = data.get('study_qs', [])
+    idx = data.get('study_index', 0)
+    q = qs[idx]
     
-    await query.edit_message_text(
-        f"✅ الإجابة الصحيحة: **{context.user_data['options'][correct_index]}**\n\n"
-        "أرسل شرح الإجابة الآن:\n(أو أرسل /skip للتخطي)",
-        parse_mode='Markdown'
+    ans_index = int(query.data.split("_")[1])
+    
+    if ans_index == q.get('correctAnswer'):
+        await query.answer("✅ إجابة صحيحة!", show_alert=True)
+    else:
+        await query.answer("❌ إجابة خاطئة", show_alert=True)
+    
+    if q.get('explanation'):
+        await query.message.reply_text(f"💡 *شرح الإجابة:*\n{q['explanation']}", parse_mode='Markdown')
+
+async def study_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
+    action = query.data
+    
+    if action == "prev_q":
+        user_data[user_id]['study_index'] -= 1
+    elif action == "next_q":
+        user_data[user_id]['study_index'] += 1
+    
+    await show_study_question(query, user_id)
+    return STUDY_QUESTION
+
+# ============ الاختبار ============
+async def show_test_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    msg = (
+        "🎯 **اختبار الفحص النظري**\n\n"
+        "يقدم اختبار الفحص النظري تجربة واقعية تحاكي الفحص النظري لرخصة القيادة المعتمد في دائرة الترخيص.\n\n"
+        "📋 60 سؤالاً عشوائياً\n"
+        "✅ النجاح من 51 إجابة صحيحة\n"
+        "⏱ المدة: 60 دقيقة"
     )
-    return ENTERING_EXPLANATION
+    keyboard = [
+        [InlineKeyboardButton("🚀 ابدأ الاختبار", callback_data="start_test")],
+        [InlineKeyboardButton("⬅️ الرجوع", callback_data="back_main")]
+    ]
+    await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+    return TEST_INFO
 
-async def receive_explanation(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    explanation = update.message.text
-    
-    if explanation == '/skip':
-        explanation = ''
-    
-    question_data = {
-        'category': context.user_data.get('category', ''),
-        'question': context.user_data.get('question', ''),
-        'options': context.user_data.get('options', []),
-        'correctAnswer': context.user_data.get('correct_answer', 0),
-        'explanation': explanation,
-        'mediaUrl': None,
-        'mediaType': 'text',
-        'createdAt': datetime.now().isoformat()
-    }
-    
-    result = save_to_firebase(question_data)
-    
-    await update.message.reply_text(
-        f"🎉 **تم حفظ السؤال بنجاح!**\n\n"
-        f"📂 القسم: {context.user_data.get('category', '')}\n"
-        f"📝 السؤال: {context.user_data.get('question', '')[:50]}...\n"
-        f"🆔 المعرف: {result.get('name', '')}",
-        parse_mode='Markdown'
-    )
-    return ConversationHandler.END
+# ============ العودة للرئيسية ============
+async def back_to_main(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    # نعيد start كرسالة جديدة
+    await start(update, context)
+    return MAIN
 
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("✅ تم الإلغاء. أرسل /start للعودة للقائمة.")
-    return ConversationHandler.END
+# ============ أدمن ============
+async def admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    questions = get_questions_from_firebase()
+    total = len(questions)
+    cats = {}
+    for q in questions.values():
+        c = q.get('category', 'غير محدد')
+        cats[c] = cats.get(c, 0) + 1
+    msg = f"📊 **الإحصائيات**\n\n📝 المجموع: {total}\n"
+    for c, n in cats.items():
+        msg += f"• {c}: {n}\n"
+    await query.edit_message_text(msg, parse_mode='Markdown')
 
+# ============ Handlers ============
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
     
-    conv_handler = ConversationHandler(
-        entry_points=[CallbackQueryHandler(add_question_start, pattern="^add_question$")],
-        states={
-            SELECTING_CATEGORY: [CallbackQueryHandler(select_category, pattern="^cat_|^cancel$")],
-            ENTERING_QUESTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_question)],
-            ENTERING_OPTIONS: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_options)],
-            ENTERING_ANSWER: [CallbackQueryHandler(receive_answer, pattern="^ans_")],
-            ENTERING_EXPLANATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_explanation)],
-        },
-        fallbacks=[CommandHandler("cancel", cancel)],
-    )
-    
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(stats, pattern="^stats$"))
-    app.add_handler(conv_handler)
+    app.add_handler(CallbackQueryHandler(show_categories, pattern="^menu_categories$"))
+    app.add_handler(CallbackQueryHandler(back_to_main, pattern="^back_main$"))
+    app.add_handler(CallbackQueryHandler(start_study, pattern="^study_"))
+    app.add_handler(CallbackQueryHandler(handle_answer_click, pattern="^ans_"))
+    app.add_handler(CallbackQueryHandler(study_nav, pattern="^(prev_q|next_q)$"))
+    app.add_handler(CallbackQueryHandler(show_test_info, pattern="^test_info$"))
+    app.add_handler(CallbackQueryHandler(admin_stats, pattern="^admin_stats$"))
     
     print("🤖 البوت يعمل...")
     
     port = int(os.environ.get("PORT", 8080))
     from threading import Thread
     from http.server import HTTPServer, BaseHTTPRequestHandler
-    
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"Bot is running")
-    
     server = HTTPServer(('0.0.0.0', port), Handler)
     Thread(target=server.serve_forever, daemon=True).start()
     
