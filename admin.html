@@ -27,6 +27,7 @@
             --danger-light: #7F1D1D;
             --success: #10B981;
             --radius: 20px;
+            --radius-sm: 14px;
             --transition: all 0.25s ease;
         }
 
@@ -49,7 +50,6 @@
             position: relative;
         }
 
-        /* Header */
         .admin-header {
             background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
             padding: 20px;
@@ -74,7 +74,6 @@
         .admin-title { font-size: 17px; font-weight: 800; }
         .admin-subtitle { font-size: 11px; color: var(--text-light); margin-top: 2px; }
 
-        /* Screens */
         .screen {
             display: none;
             padding: 20px;
@@ -87,7 +86,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Cards */
         .stat-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -103,19 +101,9 @@
             text-align: center;
         }
 
-        .stat-value {
-            font-size: 28px;
-            font-weight: 900;
-            color: var(--primary);
-        }
+        .stat-value { font-size: 28px; font-weight: 900; color: var(--primary); }
+        .stat-label { font-size: 12px; color: var(--text-light); margin-top: 4px; }
 
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-top: 4px;
-        }
-
-        /* Buttons */
         .btn {
             width: 100%; border: none; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -139,7 +127,6 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; border-radius: 12px; }
 
-        /* Forms */
         .form-group { margin-bottom: 16px; }
         .form-label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-light); }
         .form-input {
@@ -157,7 +144,6 @@
         textarea.form-input { height: auto; padding: 14px; min-height: 100px; resize: vertical; }
         select.form-input { appearance: none; -webkit-appearance: none; }
 
-        /* Lists */
         .list-item {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -169,7 +155,6 @@
         }
         .list-item:active { background: var(--bg-secondary); }
 
-        /* Back button */
         .back-btn {
             background: none; border: none;
             color: var(--primary);
@@ -180,16 +165,14 @@
             display: flex; align-items: center; gap: 6px;
         }
 
-        /* Badge */
         .badge {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 4px 10px; border-radius: 999px;
             font-size: 11px; font-weight: 700;
         }
-        .badge-success { background: rgba(16, 185, 129, 0.2); color: #10B981; }
         .badge-warning { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
+        .badge-danger { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
 
-        /* Loading */
         .loading-overlay {
             position: fixed; inset: 0;
             background: rgba(15, 23, 42, 0.95);
@@ -206,12 +189,25 @@
             margin-bottom: 16px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        .selection-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .selection-card:active { background: var(--bg-secondary); border-color: var(--primary); }
     </style>
 </head>
 <body>
 <div class="container">
 
-    <!-- Header -->
     <header class="admin-header">
         <div class="admin-brand">
             <div class="admin-logo"><i class="ph ph-shield-check"></i></div>
@@ -234,8 +230,8 @@
         <button class="btn btn-primary" onclick="showAddForm('governorate')" style="margin-bottom:12px;">➕ إضافة محافظة</button>
         <button class="btn btn-primary" onclick="showAddForm('area')" style="margin-bottom:12px;">➕ إضافة منطقة</button>
         <button class="btn btn-primary" onclick="showAddForm('center')" style="margin-bottom:12px;">➕ إضافة مركز</button>
-        <button class="btn btn-outline" onclick="showList('governorates', 'edit')" style="margin-bottom:12px;">✏️ تعديل</button>
-        <button class="btn btn-outline" onclick="showList('governorates', 'delete')" style="margin-bottom:12px;">🗑 حذف</button>
+        <button class="btn btn-outline" onclick="showEditMenu()" style="margin-bottom:12px;">✏️ تعديل</button>
+        <button class="btn btn-outline" onclick="showDeleteMenu()" style="margin-bottom:12px;">🗑 حذف</button>
     </div>
 
     <!-- شاشة إدارة الترحيب -->
@@ -254,10 +250,16 @@
         <div id="addFormContent"></div>
     </div>
 
-    <!-- شاشة القوائم (تعديل/حذف) -->
-    <div id="listScreen" class="screen">
+    <!-- شاشة التعديل -->
+    <div id="editScreen" class="screen">
         <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
-        <div id="listContent"></div>
+        <div id="editContent"></div>
+    </div>
+
+    <!-- شاشة الحذف -->
+    <div id="deleteScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
+        <div id="deleteContent"></div>
     </div>
 
     <!-- تحميل -->
@@ -269,7 +271,6 @@
 </div>
 
 <script>
-    // Firebase
     firebase.initializeApp({
         apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
         databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -283,7 +284,6 @@
     const WORKER_URL = "https://jordan-driving-test-bot.pages.dev";
     let allGovs = {}, allAreas = {}, allCenters = {};
 
-    // ============ دوال عامة ============
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -424,37 +424,83 @@
         showMain();
     }
 
-    // ============ القوائم (تعديل/حذف) ============
-    async function showList(type, action) {
-        showScreen('listScreen');
+    // ============ التعديل (هرمي) ============
+    function showEditMenu() {
+        showScreen('editScreen');
+        document.getElementById('editContent').innerHTML = `
+            <h3 style="margin-bottom:16px;">✏️ ماذا تريد أن تعدل؟</h3>
+            <div class="selection-card" onclick="startEdit('governorates')">🏙 المحافظات</div>
+            <div class="selection-card" onclick="startEdit('areas')">📍 المناطق</div>
+            <div class="selection-card" onclick="startEdit('centers')">🏢 المراكز</div>
+        `;
+    }
+
+    async function startEdit(type) {
         await loadData();
-        let items = [];
-        if (type === 'governorates') items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
-        else if (type === 'areas') items = Object.entries(allAreas).map(([id, a]) => ({ id, ...a }));
-        else items = Object.entries(allCenters).map(([id, c]) => ({ id, ...c }));
+        let html = `<h3 style="margin-bottom:16px;">✏️ تعديل ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h3>`;
         
-        const title = action === 'edit' ? '✏️ تعديل' : '🗑 حذف';
-        const typeLabel = type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز';
-        
-        let html = `<h3 style="margin-bottom:16px;">${title} ${typeLabel}</h3>`;
-        
-        if (action === 'edit') {
-            html += items.map(item => `
-                <div class="list-item" onclick="editItemPrompt('${type}', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">
-                    <span>${item.name}</span>
-                    <span class="badge badge-warning"><i class="ph ph-pencil-simple"></i> تعديل</span>
-                </div>
-            `).join('');
-        } else {
+        if (type === 'governorates') {
+            // عرض المحافظات مباشرة مع زر تعديل
+            const items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
             html += items.map(item => `
                 <div class="list-item">
                     <span>${item.name}</span>
-                    <button class="btn btn-sm btn-danger" onclick="deleteItemConfirm('${type}', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑 حذف</button>
+                    <button class="btn btn-sm btn-outline" onclick="editItemPrompt('governorates', '${item.id}', '${item.name.replace(/'/g, "\\'")}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
+                </div>
+            `).join('');
+        } else {
+            // عرض المحافظات أولاً للاختيار
+            const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
+            html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المحافظة أولاً:</p>';
+            html += govs.map(g => `
+                <div class="selection-card" onclick="showItemsForEdit('${type}', '${g.id}', '${g.name}')">
+                    ${g.name}
                 </div>
             `).join('');
         }
         
-        document.getElementById('listContent').innerHTML = html;
+        document.getElementById('editContent').innerHTML = html;
+    }
+
+    async function showItemsForEdit(type, govId, govName) {
+        await loadData();
+        let html = `<button class="back-btn" onclick="startEdit('${type}')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+        html += `<h3 style="margin-bottom:8px;">${govName}</h3>`;
+        
+        if (type === 'areas') {
+            const items = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+            html += items.map(item => `
+                <div class="list-item">
+                    <span>${item.name}</span>
+                    <button class="btn btn-sm btn-outline" onclick="editItemPrompt('areas', '${item.id}', '${item.name.replace(/'/g, "\\'")}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
+                </div>
+            `).join('');
+        } else if (type === 'centers') {
+            // عرض مناطق المحافظة أولاً
+            const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+            html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المنطقة:</p>';
+            html += areas.map(a => `
+                <div class="selection-card" onclick="showCentersForEdit('${a.id}', '${govName} - ${a.name}')">
+                    ${a.name}
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('editContent').innerHTML = html;
+    }
+
+    async function showCentersForEdit(areaId, title) {
+        await loadData();
+        const items = Object.entries(allCenters).filter(([_, c]) => c.areaId === areaId).map(([id, c]) => ({ id, ...c }));
+        let html = `<button class="back-btn" onclick="showItemsForEdit('centers', '${allAreas[areaId]?.governorateId || ''}', '')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+        html += `<h3 style="margin-bottom:8px;">${title}</h3>`;
+        html += items.map(item => `
+            <div class="list-item">
+                <span>${item.name}</span>
+                <button class="btn btn-sm btn-outline" onclick="editItemPrompt('centers', '${item.id}', '${item.name.replace(/'/g, "\\'")}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
+            </div>
+        `).join('');
+        document.getElementById('editContent').innerHTML = html;
     }
 
     function editItemPrompt(type, id, oldName) {
@@ -467,7 +513,83 @@
         const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
         await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName }) });
         tg.showAlert('✅ تم التعديل بنجاح!');
-        showList(type, 'edit');
+        showMain();
+    }
+
+    // ============ الحذف (هرمي) ============
+    function showDeleteMenu() {
+        showScreen('deleteScreen');
+        document.getElementById('deleteContent').innerHTML = `
+            <h3 style="margin-bottom:16px;">🗑 ماذا تريد أن تحذف؟</h3>
+            <div class="selection-card" onclick="startDelete('governorates')">🏙 المحافظات</div>
+            <div class="selection-card" onclick="startDelete('areas')">📍 المناطق</div>
+            <div class="selection-card" onclick="startDelete('centers')">🏢 المراكز</div>
+        `;
+    }
+
+    async function startDelete(type) {
+        await loadData();
+        let html = `<h3 style="margin-bottom:16px;">🗑 حذف ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h3>`;
+        
+        if (type === 'governorates') {
+            const items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
+            html += items.map(item => `
+                <div class="list-item">
+                    <span>${item.name}</span>
+                    <button class="btn btn-sm btn-danger" onclick="deleteItemConfirm('governorates', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑 حذف</button>
+                </div>
+            `).join('');
+        } else {
+            const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
+            html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المحافظة أولاً:</p>';
+            html += govs.map(g => `
+                <div class="selection-card" onclick="showItemsForDelete('${type}', '${g.id}', '${g.name}')">
+                    ${g.name}
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('deleteContent').innerHTML = html;
+    }
+
+    async function showItemsForDelete(type, govId, govName) {
+        await loadData();
+        let html = `<button class="back-btn" onclick="startDelete('${type}')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+        html += `<h3 style="margin-bottom:8px;">${govName}</h3>`;
+        
+        if (type === 'areas') {
+            const items = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+            html += items.map(item => `
+                <div class="list-item">
+                    <span>${item.name}</span>
+                    <button class="btn btn-sm btn-danger" onclick="deleteItemConfirm('areas', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑 حذف</button>
+                </div>
+            `).join('');
+        } else if (type === 'centers') {
+            const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+            html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المنطقة:</p>';
+            html += areas.map(a => `
+                <div class="selection-card" onclick="showCentersForDelete('${a.id}', '${govName} - ${a.name}')">
+                    ${a.name}
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('deleteContent').innerHTML = html;
+    }
+
+    async function showCentersForDelete(areaId, title) {
+        await loadData();
+        const items = Object.entries(allCenters).filter(([_, c]) => c.areaId === areaId).map(([id, c]) => ({ id, ...c }));
+        let html = `<button class="back-btn" onclick="showItemsForDelete('centers', '${allAreas[areaId]?.governorateId || ''}', '')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+        html += `<h3 style="margin-bottom:8px;">${title}</h3>`;
+        html += items.map(item => `
+            <div class="list-item">
+                <span>${item.name}</span>
+                <button class="btn btn-sm btn-danger" onclick="deleteItemConfirm('centers', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑 حذف</button>
+            </div>
+        `).join('');
+        document.getElementById('deleteContent').innerHTML = html;
     }
 
     async function deleteItemConfirm(type, id, name) {
@@ -477,13 +599,12 @@
         const result = await res.json();
         if (result.success) {
             tg.showAlert('✅ تم الحذف بنجاح!');
-            showList(type, 'delete');
+            showMain();
         } else {
             tg.showAlert('❌ حدث خطأ في الحذف.');
         }
     }
 
-    // ============ بدء التشغيل ============
     loadStats();
 </script>
 </body>
