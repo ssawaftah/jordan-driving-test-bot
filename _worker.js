@@ -2,6 +2,7 @@ const BOT_TOKEN = "8993443266:AAFUQsnrVjRpYjox5OQoHUg_CacbuC-leek";
 const FIREBASE_URL = "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app";
 const ADMIN_ID = 1376513623;
 const APP_URL = "https://ssawaftah.github.io/jordan-driving-test-bot/";
+const ADMIN_URL = "https://ssawaftah.github.io/jordan-driving-test-bot/admin.html";
 
 // ============ Firebase ============
 async function getWelcomeData() {
@@ -164,9 +165,9 @@ async function handleCallback(cb) {
   
   if (data === 'admin_centers') {
     const kb = {
-      inline_keyboard: [[{ text: "🚀 فتح لوحة إدارة المراكز", web_app: { url: APP_URL + "?admin=centers" } }]]
+      inline_keyboard: [[{ text: "🚀 فتح لوحة إدارة المراكز", web_app: { url: ADMIN_URL } }]]
     };
-    await editMsg(chatId, msgId, "ستتمكن من إضافة وتعديل وحذف المحافظات والمناطق والمراكز من خلال التطبيق.", kb);
+    await editMsg(chatId, msgId, "ستتمكن من إضافة وتعديل وحذف المحافظات والمناطق والمراكز من خلال لوحة التحكم.", kb);
     return;
   }
   
@@ -220,14 +221,23 @@ async function handleApiRequest(path, request) {
       const res = await fetch(`${FIREBASE_URL}/governorates.json`);
       result = await res.json() || {};
     } else if (path === '/api/governorates' && request.method === 'POST') {
-      const ref = await fetch(`${FIREBASE_URL}/governorates.json`, { method: 'POST', body: JSON.stringify({ name: body.name }) });
+      const ref = await fetch(`${FIREBASE_URL}/governorates.json`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: body.name }) 
+      });
       result = await ref.json();
     } else if (path.startsWith('/api/governorates/') && request.method === 'PUT') {
       const id = path.split('/')[3];
-      await fetch(`${FIREBASE_URL}/governorates/${id}.json`, { method: 'PUT', body: JSON.stringify({ name: body.name }) });
+      await fetch(`${FIREBASE_URL}/governorates/${id}.json`, { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: body.name }) 
+      });
       result = { success: true };
     } else if (path.startsWith('/api/governorates/') && request.method === 'DELETE') {
       const id = path.split('/')[3];
+      // حذف المحافظة
       await fetch(`${FIREBASE_URL}/governorates/${id}.json`, { method: 'DELETE' });
       // حذف المناطق والمراكز المرتبطة
       const areasRes = await fetch(`${FIREBASE_URL}/areas.json`);
@@ -238,7 +248,9 @@ async function handleApiRequest(path, request) {
           const centersRes = await fetch(`${FIREBASE_URL}/centers.json`);
           const centers = await centersRes.json() || {};
           for (const [cId, c] of Object.entries(centers)) {
-            if (c.areaId === areaId) await fetch(`${FIREBASE_URL}/centers/${cId}.json`, { method: 'DELETE' });
+            if (c.areaId === areaId) {
+              await fetch(`${FIREBASE_URL}/centers/${cId}.json`, { method: 'DELETE' });
+            }
           }
         }
       }
@@ -250,19 +262,30 @@ async function handleApiRequest(path, request) {
       const res = await fetch(`${FIREBASE_URL}/areas.json`);
       result = await res.json() || {};
     } else if (path === '/api/areas' && request.method === 'POST') {
-      const ref = await fetch(`${FIREBASE_URL}/areas.json`, { method: 'POST', body: JSON.stringify(body) });
+      const ref = await fetch(`${FIREBASE_URL}/areas.json`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: body.name, governorateId: body.governorateId }) 
+      });
       result = await ref.json();
     } else if (path.startsWith('/api/areas/') && request.method === 'PUT') {
       const id = path.split('/')[3];
-      await fetch(`${FIREBASE_URL}/areas/${id}.json`, { method: 'PUT', body: JSON.stringify({ name: body.name, governorateId: body.governorateId }) });
+      await fetch(`${FIREBASE_URL}/areas/${id}.json`, { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: body.name, governorateId: body.governorateId }) 
+      });
       result = { success: true };
     } else if (path.startsWith('/api/areas/') && request.method === 'DELETE') {
       const id = path.split('/')[3];
       await fetch(`${FIREBASE_URL}/areas/${id}.json`, { method: 'DELETE' });
+      // حذف المراكز المرتبطة
       const centersRes = await fetch(`${FIREBASE_URL}/centers.json`);
       const centers = await centersRes.json() || {};
       for (const [cId, c] of Object.entries(centers)) {
-        if (c.areaId === id) await fetch(`${FIREBASE_URL}/centers/${cId}.json`, { method: 'DELETE' });
+        if (c.areaId === id) {
+          await fetch(`${FIREBASE_URL}/centers/${cId}.json`, { method: 'DELETE' });
+        }
       }
       result = { success: true };
     }
@@ -272,11 +295,19 @@ async function handleApiRequest(path, request) {
       const res = await fetch(`${FIREBASE_URL}/centers.json`);
       result = await res.json() || {};
     } else if (path === '/api/centers' && request.method === 'POST') {
-      const ref = await fetch(`${FIREBASE_URL}/centers.json`, { method: 'POST', body: JSON.stringify(body) });
+      const ref = await fetch(`${FIREBASE_URL}/centers.json`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body) 
+      });
       result = await ref.json();
     } else if (path.startsWith('/api/centers/') && request.method === 'PUT') {
       const id = path.split('/')[3];
-      await fetch(`${FIREBASE_URL}/centers/${id}.json`, { method: 'PUT', body: JSON.stringify(body) });
+      await fetch(`${FIREBASE_URL}/centers/${id}.json`, { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body) 
+      });
       result = { success: true };
     } else if (path.startsWith('/api/centers/') && request.method === 'DELETE') {
       const id = path.split('/')[3];
@@ -284,9 +315,14 @@ async function handleApiRequest(path, request) {
       result = { success: true };
     }
 
-    return new Response(JSON.stringify(result), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify(result), { 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ error: e.message }), { 
+      status: 500, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    });
   }
 }
 
@@ -296,10 +332,12 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    // توجيه طلبات API
     if (path.startsWith('/api/')) {
       return handleApiRequest(path, request);
     }
 
+    // Webhook تيليجرام
     if (request.method === 'POST') {
       try {
         const body = await request.json();
