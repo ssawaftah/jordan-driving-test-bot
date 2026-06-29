@@ -1,5 +1,22 @@
 const BOT_TOKEN = "8993443266:AAFUQsnrVjRpYjox5OQoHUg_CacbuC-leek";
+const FIREBASE_URL = "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app";
+const ADMIN_ID = 1376513623;
 
+// ============ Firebase ============
+async function getWelcomeData() {
+  const res = await fetch(`${FIREBASE_URL}/welcome.json`);
+  return (await res.json()) || {};
+}
+
+async function saveWelcomeData(data) {
+  await fetch(`${FIREBASE_URL}/welcome.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+}
+
+// ============ تيليجرام ============
 async function tg(method, body) {
   return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
     method: 'POST',
@@ -8,7 +25,30 @@ async function tg(method, body) {
   });
 }
 
-const WELCOME_TEXT = `اهلا بك في بوت الفحص النظري الشامل 2026 👋
+async function sendMsg(chatId, text, kb = null, parseMode = 'HTML') {
+  const body = { chat_id: chatId, text, parse_mode: parseMode };
+  if (kb) body.reply_markup = JSON.stringify(kb);
+  return tg('sendMessage', body);
+}
+
+async function sendPhoto(chatId, photo, caption, kb = null) {
+  const body = { chat_id: chatId, photo, caption, parse_mode: 'HTML' };
+  if (kb) body.reply_markup = JSON.stringify(kb);
+  return tg('sendPhoto', body);
+}
+
+async function editMsg(chatId, msgId, text, kb = null) {
+  const body = { chat_id: chatId, message_id: msgId, text, parse_mode: 'HTML' };
+  if (kb) body.reply_markup = JSON.stringify(kb);
+  return tg('editMessageText', body);
+}
+
+async function answerCb(cbId, text = null, alert = false) {
+  return tg('answerCallbackQuery', { callback_query_id: cbId, text, show_alert: alert });
+}
+
+// ============ النص الافتراضي ============
+const DEFAULT_TEXT = `اهلا بك في بوت الفحص النظري الشامل 2026 👋
 
 إذا كنت تستعد لتقديم اختبار القيادة النظري في الأردن فإن دراسة المادة النظرية بشكل جيد تعتبر الخطوة الأهم للنجاح في الفحص من المرة الأولى. في هذه الصفحة يمكنك مراجعة أسئلة اختبار السواقة مع الإجابات الصحيحة والشرح التوضيحي لكل سؤال لمساعدتك على فهم المادة بشكل أفضل.
 
@@ -16,23 +56,143 @@ const WELCOME_TEXT = `اهلا بك في بوت الفحص النظري الشا
 
 ننصحك بدراسة جميع الأقسام جيدًا قبل الدخول إلى اختبار القيادة النظري حتى تكون مستعدًا بشكل كامل لاجتياز الفحص النظري للسواقة بثقة ونجاح.`;
 
+// ============ إرسال رسالة الترحيب ============
+async function sendWelcome(chatId) {
+  const data = await getWelcomeData();
+  const text = data.text || DEFAULT_TEXT;
+  const photo = data.photo || null;
+  
+  if (photo) {
+    await sendPhoto(chatId, photo, text);
+  } else {
+    await sendMsg(chatId, text);
+  }
+}
+
+// ============ جلسات المستخدم ============
+const sessions = {};
+
+// ============ handleMessage ============
+async function handleMessage(msg) {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  const text = msg.text || '';
+  const isAdmin = userId === ADMIN_ID;
+  
+  if (text === '/start') {
+    await sendWelcome(chatId);
+    
+    // زر الأدمن
+    if (isAdmin) {
+      const kb = { inline_keyboard: [
+        [{ text: "⚙️ إدارة رسالة الترحيب", callback_data: "admin_welcome" }]
+      ]};
+      await sendMsg(chatId, "🔧 <b>لوحة الأدمن</b>", kb);
+    }
+    return;
+  }
+  
+  // معالجة خطوات الأدمن
+  const s = sessions[userId];
+  if (!s || !s.step) return;
+  
+  if (s.step === 'edit_text') {
+    // حفظ النص الجديد
+    const data = await getWelcomeData();
+    data.text = text;
+    await saveWelcomeData(data);
+    sessions[userId] = null;
+    await sendMsg(chatId, "✅ <b>تم تحديث نص الترحيب!</b>");
+    await sendWelcome(chatId);
+    return;
+  }
+  
+  if (s.step === 'edit_photo') {
+    // حفظ رابط الصورة
+    const data = await getWelcomeData();
+    data.photo = text.trim();
+    await saveWelcomeData(data);
+    sessions[userId] = null;
+    await sendMsg(chatId, "✅ <b>تم تحديث صورة الترحيب!</b>");
+    await sendWelcome(chatId);
+    return;
+  }
+}
+
+// ============ handleCallback ============
+async function handleCallback(cb) {
+  const chatId = cb.message.chat.id;
+  const msgId = cb.message.message_id;
+  const data = cb.data;
+  const userId = cb.from.id;
+  
+  if (userId !== ADMIN_ID) {
+    await answerCb(cb.id, "❌ غير مصرح", true);
+    return;
+  }
+  
+  await answerCb(cb.id);
+  
+  // قائمة إدارة الترحيب
+  if (data === 'admin_welcome') {
+    const kb = { inline_keyboard: [
+      [{ text: "📝 تعديل نص الترحيب", callback_data: "edit_text" }],
+      [{ text: "🖼 تعيين صورة", callback_data: "edit_photo" }],
+      [{ text: "🗑 حذف الصورة", callback_data: "delete_photo" }],
+      [{ text: "🔄 إعادة للنص الافتراضي", callback_data: "reset_default" }]
+    ]};
+    
+    const wData = await getWelcomeData();
+    let info = "⚙️ <b>إدارة رسالة الترحيب</b>\n\n";
+    info += `📝 النص: ${wData.text ? 'مخصص' : 'افتراضي'}\n`;
+    info += `🖼 الصورة: ${wData.photo ? 'موجودة' : 'لا يوجد'}\n`;
+    
+    await editMsg(chatId, msgId, info, kb);
+    return;
+  }
+  
+  // تعديل النص
+  if (data === 'edit_text') {
+    sessions[userId] = { step: 'edit_text' };
+    await editMsg(chatId, msgId, "📝 أرسل نص الترحيب الجديد:\n\n<i>يدعم تنسيق HTML</i>");
+    return;
+  }
+  
+  // تعيين صورة
+  if (data === 'edit_photo') {
+    sessions[userId] = { step: 'edit_photo' };
+    await editMsg(chatId, msgId, "🖼 أرسل رابط الصورة:\n\n<i>يجب أن يكون رابط مباشر (ينتهي بـ .jpg .png .gif)</i>");
+    return;
+  }
+  
+  // حذف الصورة
+  if (data === 'delete_photo') {
+    const wData = await getWelcomeData();
+    wData.photo = null;
+    await saveWelcomeData(wData);
+    await editMsg(chatId, msgId, "✅ <b>تم حذف الصورة!</b>");
+    await sendWelcome(chatId);
+    return;
+  }
+  
+  // إعادة للنص الافتراضي
+  if (data === 'reset_default') {
+    await saveWelcomeData({ text: DEFAULT_TEXT, photo: null });
+    await editMsg(chatId, msgId, "✅ <b>تمت إعادة النص الافتراضي!</b>");
+    await sendWelcome(chatId);
+    return;
+  }
+}
+
+// ============ Export ============
 export default {
   async fetch(request) {
     if (request.method === 'POST') {
       try {
         const body = await request.json();
-        
-        if (body.message && body.message.text === '/start') {
-          const chatId = body.message.chat.id;
-          await tg('sendMessage', {
-            chat_id: chatId,
-            text: WELCOME_TEXT,
-            parse_mode: 'Markdown'
-          });
-        }
-      } catch (e) {
-        console.error(e);
-      }
+        if (body.message) await handleMessage(body.message);
+        else if (body.callback_query) await handleCallback(body.callback_query);
+      } catch (e) { console.error(e); }
       return new Response('OK');
     }
     return new Response('OK', { status: 200 });
