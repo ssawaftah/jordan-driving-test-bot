@@ -12,6 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <style>
+        /* نفس التنسيقات السابقة بالكامل دون تغيير */
         :root {
             --primary: #1a6b3c;
             --primary-dark: #145a30;
@@ -34,7 +35,6 @@
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
             --shadow: 0 2px 12px rgba(0,0,0,0.06);
             --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
-            --shadow-xl: 0 20px 60px rgba(0,0,0,0.1);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --danger: #dc3545;
             --danger-light: #fce4ec;
@@ -63,7 +63,6 @@
             position: relative;
         }
 
-        /* ============ Header ============ */
         .app-header {
             background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
             padding: 16px 20px;
@@ -78,115 +77,57 @@
             justify-content: space-between;
         }
 
-        .header-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
+        .header-brand { display: flex; align-items: center; gap: 12px; }
         .header-logo {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             background: linear-gradient(135deg, var(--primary), #2d8f52);
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 20px;
             box-shadow: 0 4px 12px rgba(26, 107, 60, 0.2);
         }
-
-        .header-title {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.3px;
-        }
-
-        .header-subtitle {
-            font-size: 11px;
-            color: var(--text-light);
-            font-weight: 500;
-        }
-
+        .header-title { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+        .header-subtitle { font-size: 11px; color: var(--text-light); font-weight: 500; }
         .header-back {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border-radius: 12px;
             border: 1px solid var(--border);
             background: var(--bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             cursor: pointer;
             transition: var(--transition);
             color: var(--text);
             font-size: 20px;
         }
+        .header-back:active { background: var(--bg-secondary); transform: scale(0.95); }
 
-        .header-back:active {
-            background: var(--bg-secondary);
-            transform: scale(0.95);
-        }
-
-        /* ============ الشاشات ============ */
         .screen {
             display: none;
             padding: 20px;
             min-height: calc(100vh - 73px);
             animation: fadeSlideIn 0.45s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .screen.active {
-            display: block;
-        }
+        .screen.active { display: block; }
 
         @keyframes fadeSlideIn {
             from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ============ الصفحة الرئيسية ============ */
-        .hero-section {
-            text-align: center;
-            padding: 20px 0 10px;
-        }
-
+        .hero-section { text-align: center; padding: 20px 0 10px; }
         .hero-icon {
-            width: 80px;
-            height: 80px;
+            width: 80px; height: 80px;
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             margin: 0 auto 20px;
             font-size: 40px;
             box-shadow: 0 12px 32px rgba(26, 107, 60, 0.12);
         }
+        .main-title { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 10px; letter-spacing: -0.5px; }
+        .subtitle { font-size: 14px; color: var(--text-light); line-height: 1.8; padding: 0 5px; }
 
-        .main-title {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--text);
-            margin-bottom: 10px;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: var(--text-light);
-            line-height: 1.8;
-            padding: 0 5px;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 28px 0;
-        }
-
+        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 28px 0; }
         .feature-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -195,76 +136,41 @@
             text-align: center;
             transition: var(--transition);
         }
-
-        .feature-card:active {
-            transform: scale(0.97);
-            background: #f0f0f0;
-        }
-
+        .feature-card:active { transform: scale(0.97); background: #f0f0f0; }
         .feature-icon {
-            width: 48px;
-            height: 48px;
+            width: 48px; height: 48px;
             border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             margin: 0 auto 12px;
             font-size: 24px;
         }
-
         .feature-icon.trust { background: #e8f5e9; color: #2e7d32; }
         .feature-icon.simulation { background: #e3f2fd; color: #1565c0; }
         .feature-icon.match { background: #fff3e0; color: #e65100; }
         .feature-icon.complete { background: #fce4ec; color: #c62828; }
+        .feature-label { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.5; }
 
-        .feature-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text);
-            line-height: 1.5;
-        }
-
-        /* ============ أزرار ============ */
         .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
             width: 100%;
             padding: 16px 20px;
             border: none;
             border-radius: var(--radius);
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 16px; font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
             font-family: 'Tajawal', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-
         .btn-primary {
             background: var(--primary);
             color: #fff;
             box-shadow: 0 4px 20px rgba(26, 107, 60, 0.25);
             margin-top: 8px;
         }
-
-        .btn-primary:active {
-            background: var(--primary-dark);
-            transform: scale(0.97);
-            box-shadow: 0 2px 8px rgba(26, 107, 60, 0.2);
-        }
-
-        .btn-outline {
-            background: var(--bg);
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-
-        .btn-outline:active {
-            background: var(--primary-light);
-            transform: scale(0.97);
-        }
+        .btn-primary:active { background: var(--primary-dark); transform: scale(0.97); box-shadow: 0 2px 8px rgba(26, 107, 60, 0.2); }
+        .btn-outline { background: var(--bg); color: var(--primary); border: 2px solid var(--primary); }
+        .btn-outline:active { background: var(--primary-light); transform: scale(0.97); }
 
         .btn-card {
             background: var(--bg);
@@ -274,46 +180,31 @@
             margin: 12px 0;
             cursor: pointer;
             transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 16px;
+            display: flex; align-items: center; gap: 16px;
             text-align: right;
             width: 100%;
             font-family: 'Tajawal', sans-serif;
             -webkit-tap-highlight-color: transparent;
             box-shadow: var(--shadow-sm);
         }
-
-        .btn-card:active {
-            background: var(--card-bg);
-            transform: scale(0.98);
-            box-shadow: var(--shadow);
-        }
-
+        .btn-card:active { background: var(--card-bg); transform: scale(0.98); box-shadow: var(--shadow); }
         .btn-card .card-icon {
-            width: 56px;
-            height: 56px;
+            width: 56px; height: 56px;
             border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 28px;
             flex-shrink: 0;
         }
-
         .btn-card .card-icon.green { background: #e8f5e9; color: #2e7d32; }
         .btn-card .card-icon.blue { background: #e3f2fd; color: #1565c0; }
         .btn-card .card-icon.gold { background: #fff8e1; color: #f9a825; }
-
         .btn-card .card-content { flex: 1; }
         .btn-card .card-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
         .btn-card .card-desc { font-size: 12px; color: var(--text-light); font-weight: 500; }
 
-        /* ============ نموذج التسجيل ============ */
         .form-group { margin: 18px 0; }
         .form-label { display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
         .form-required { color: var(--danger); margin-right: 4px; }
-
         .form-input {
             display: block;
             width: 100%;
@@ -327,57 +218,33 @@
             transition: var(--transition);
             text-align: right;
         }
-
         .form-input:focus {
             outline: none;
             border-color: var(--primary);
             background: #fff;
             box-shadow: 0 0 0 4px rgba(26, 107, 60, 0.06);
         }
+        .form-hint { font-size: 12px; color: var(--text-lighter); margin-top: 6px; }
 
-        .form-hint {
-            font-size: 12px;
-            color: var(--text-lighter);
-            margin-top: 6px;
+        .success-box {
+            background: #e8f5e9; border-radius: var(--radius-sm);
+            padding: 12px 16px; color: #2e7d32; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
         }
 
-        .phone-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 15px 16px;
-            background: #e8f5e9;
-            border: 2px solid #a5d6a7;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            color: #2e7d32;
-            transition: var(--transition);
-            font-family: 'Tajawal', sans-serif;
-            width: 100%;
-            text-align: right;
-        }
-
-        .phone-btn:active {
-            background: #c8e6c9;
-            transform: scale(0.98);
-        }
-
-        .phone-success {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .error-message {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: var(--radius-sm);
             padding: 12px 16px;
-            background: #e8f5e9;
-            border-radius: var(--radius);
-            color: #2e7d32;
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 8px;
+            color: #c53030;
+            font-size: 13px; font-weight: 500;
+            margin-top: 8px;
+            display: none;
+            align-items: center; gap: 8px;
         }
+        .error-message.show { display: flex; }
 
-        /* ============ الصفحة الداخلية ============ */
         .welcome-inner { text-align: center; padding: 10px 0; }
         .decorative-line { width: 48px; height: 4px; background: var(--gold); border-radius: 2px; margin: 0 auto 20px; }
         .user-greeting { font-size: 22px; font-weight: 800; margin-bottom: 8px; color: var(--text); }
@@ -387,24 +254,6 @@
         .mt-2 { margin-top: 16px; }
         .text-center { text-align: center; }
 
-        /* ============ رسائل الخطأ ============ */
-        .error-message {
-            background: #fff5f5;
-            border: 1px solid #fed7d7;
-            border-radius: var(--radius-sm);
-            padding: 12px 16px;
-            color: #c53030;
-            font-size: 13px;
-            font-weight: 500;
-            margin-top: 8px;
-            display: none;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .error-message.show { display: flex; }
-
-        /* ============ محسنات ============ */
         @media (max-width: 400px) {
             .screen { padding: 16px 12px; }
             .main-title { font-size: 24px; }
@@ -417,7 +266,6 @@
 <body>
     <div class="container">
         
-        <!-- ============ Header ============ -->
         <header class="app-header">
             <div class="header-brand">
                 <div class="header-logo">🚗</div>
@@ -431,8 +279,9 @@
             </button>
         </header>
 
-        <!-- ============ الصفحة الرئيسية ============ -->
+        <!-- الشاشات كما هي مع تعديل شاشة التسجيل -->
         <div id="landingScreen" class="screen active">
+            <!-- نفس المحتوى -->
             <div class="hero-section">
                 <div class="hero-icon">📋</div>
                 <h1 class="main-title">اختبار الفحص النظري</h1>
@@ -463,7 +312,7 @@
             </button>
         </div>
 
-        <!-- ============ شاشة التسجيل ============ -->
+        <!-- شاشة التسجيل الجديدة مع التحقق -->
         <div id="registerScreen" class="screen">
             <h2 style="font-size:22px; margin-bottom:8px; text-align:center; font-weight:700;">أدخل بياناتك للمتابعة</h2>
             <p class="text-center" style="color:var(--text-light);font-size:13px;margin-bottom:24px;">جميع الحقول مطلوبة</p>
@@ -475,11 +324,22 @@
             
             <div class="form-group">
                 <label class="form-label">رقم الهاتف <span class="form-required">*</span></label>
-                <div id="phoneDisplay"></div>
-                <button class="phone-btn" onclick="requestPhone()" id="phoneBtn">
-                    <i class="ph ph-phone"></i> مشاركة رقم الهاتف
+                <input type="tel" class="form-input" id="phoneInput" placeholder="مثال: 0791234567" inputmode="numeric">
+                <p class="form-hint">سنتحقق من رقمك عبر رمز تأكيد يرسله البوت</p>
+            </div>
+
+            <div id="verificationSection" style="display:none;">
+                <div class="form-group">
+                    <label class="form-label">رمز التحقق <span class="form-required">*</span></label>
+                    <input type="text" class="form-input" id="codeInput" placeholder="أدخل الرمز المكون من 6 أرقام" inputmode="numeric" maxlength="6">
+                    <p class="form-hint">تم إرسال رمز إلى محادثتك مع البوت في تيليجرام</p>
+                </div>
+                <button class="btn btn-outline" onclick="verifyCode()" style="margin-bottom:12px;">
+                    <i class="ph ph-check-circle"></i> تأكيد الرمز
                 </button>
-                <p class="form-hint">يتم جلب الرقم مباشرة من حساب تيليجرام الخاص بك</p>
+                <button class="btn btn-outline" onclick="sendCodeAgain()" style="margin-bottom:12px;">
+                    <i class="ph ph-arrow-counter-clockwise"></i> إعادة إرسال الرمز
+                </button>
             </div>
 
             <div class="error-message" id="errorMessage">
@@ -487,7 +347,7 @@
                 <span id="errorText"></span>
             </div>
 
-            <button class="btn btn-primary" onclick="completeRegistration()" style="margin-top:28px;">
+            <button class="btn btn-primary" id="registerBtn" onclick="completeRegistration()" style="margin-top:28px;">
                 <i class="ph ph-check-circle"></i> موافق
             </button>
             <button class="btn btn-outline" onclick="goBack()" style="margin-top:12px;">
@@ -495,7 +355,7 @@
             </button>
         </div>
 
-        <!-- ============ الصفحة الرئيسية بعد التسجيل ============ -->
+        <!-- الصفحة الرئيسية بعد التسجيل -->
         <div id="homeScreen" class="screen">
             <div class="welcome-inner">
                 <div class="decorative-line"></div>
@@ -538,168 +398,183 @@
     </div>
 
     <script>
-        // ============ Firebase ============
+        // Firebase
         firebase.initializeApp({
             apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
             databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "al3arbicv"
         });
         const db = firebase.database();
+        const WORKER_URL = "https://jordan-driving-test-bot.pages.dev"; // استبدل بعنوان Pages الفعلي
 
-        // ============ Telegram Web App ============
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // ============ المتغيرات ============
         let phoneNumber = '';
+        let isPhoneVerified = false;
         let currentScreen = 'landingScreen';
         const screenHistory = [];
 
-        // ============ التنقل بين الشاشات ============
         function showScreen(screenId, addToHistory = true) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            
-            if (addToHistory && currentScreen !== screenId) {
-                screenHistory.push(currentScreen);
-            }
-            
+            if (addToHistory && currentScreen !== screenId) screenHistory.push(currentScreen);
             currentScreen = screenId;
-            
-            const backBtn = document.getElementById('backButton');
-            backBtn.style.display = (screenId === 'landingScreen') ? 'none' : 'flex';
-            
+            document.getElementById('backButton').style.display = (screenId === 'landingScreen') ? 'none' : 'flex';
             const errorMsg = document.getElementById('errorMessage');
             if (errorMsg) errorMsg.classList.remove('show');
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function goBack() {
             if (screenHistory.length > 0) {
-                const prevScreen = screenHistory.pop();
-                showScreen(prevScreen, false);
+                const prev = screenHistory.pop();
+                showScreen(prev, false);
             } else {
                 showScreen('landingScreen', false);
             }
         }
 
-        function showError(message) {
-            const errorMsg = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            if (errorMsg && errorText) {
-                errorText.textContent = message;
-                errorMsg.classList.add('show');
+        function showError(msg) {
+            const el = document.getElementById('errorMessage');
+            const txt = document.getElementById('errorText');
+            if (el && txt) {
+                txt.textContent = msg;
+                el.classList.add('show');
             }
         }
 
-        // ============ التحقق من تسجيل المستخدم ============
+        // التحقق من التسجيل
         async function checkUserRegistration() {
             if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
                 const userId = tg.initDataUnsafe.user.id;
-                const snapshot = await db.ref('users/' + userId).once('value');
-                const userData = snapshot.val();
-                
-                if (userData) {
-                    document.getElementById('greetingText').textContent = 'أهلاً بك، ' + userData.name + ' 👋';
+                const snap = await db.ref('users/' + userId).once('value');
+                const data = snap.val();
+                if (data) {
+                    document.getElementById('greetingText').textContent = 'أهلاً بك، ' + data.name + ' 👋';
                     return true;
                 }
             }
             return false;
         }
 
-        // ============ بدء التطبيق ============
         async function handleStart() {
-            const isRegistered = await checkUserRegistration();
-            
-            if (isRegistered) {
+            if (await checkUserRegistration()) {
                 showScreen('homeScreen');
             } else {
                 showScreen('registerScreen');
             }
         }
 
-        // ============ مشاركة رقم الهاتف عبر تيليجرام ============
-        function requestPhone() {
-            const btn = document.getElementById('phoneBtn');
-            btn.innerHTML = '<i class="ph ph-spinner"></i> جاري الطلب...';
-            btn.disabled = true;
-            
-            // استخدام Telegram Web App API
-            tg.requestContact((success, result) => {
-                btn.innerHTML = '<i class="ph ph-phone"></i> مشاركة رقم الهاتف';
-                btn.disabled = false;
-                
-                if (success && result && result.phone_number) {
-                    phoneNumber = result.phone_number;
-                    document.getElementById('phoneDisplay').innerHTML = 
-                        '<div class="phone-success"><i class="ph ph-check-circle"></i> تم استلام الرقم بنجاح</div>';
-                    document.getElementById('phoneBtn').style.display = 'none';
+        // إرسال رمز التحقق
+        async function sendVerificationCode() {
+            const phone = document.getElementById('phoneInput').value.trim();
+            if (!phone || phone.length < 10) {
+                showError('الرجاء إدخال رقم هاتف صحيح');
+                return;
+            }
+            if (!tg.initDataUnsafe?.user?.id) {
+                showError('تعذر التحقق من حسابك');
+                return;
+            }
+
+            const userId = tg.initDataUnsafe.user.id;
+            try {
+                const res = await fetch(`${WORKER_URL}/send-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, phone })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('verificationSection').style.display = 'block';
+                    document.getElementById('registerBtn').style.display = 'none';
+                    phoneNumber = phone;
+                    showError(''); // إخفاء الخطأ
+                    tg.showAlert('تم إرسال رمز التحقق إلى محادثتك مع البوت. تفقده وأدخله هنا.');
                 } else {
-                    tg.showAlert('لم نتمكن من الحصول على رقمك. الرجاء المحاولة مرة أخرى.');
+                    showError(data.error || 'فشل في إرسال الرمز');
                 }
-            });
+            } catch (e) {
+                showError('خطأ في الاتصال. حاول مرة أخرى.');
+            }
         }
 
-        // ============ إكمال التسجيل ============
+        async function verifyCode() {
+            const code = document.getElementById('codeInput').value.trim();
+            if (!code || code.length !== 6) {
+                showError('الرجاء إدخال رمز التحقق المكون من 6 أرقام');
+                return;
+            }
+            if (!tg.initDataUnsafe?.user?.id) return;
+            const userId = tg.initDataUnsafe.user.id;
+
+            try {
+                const res = await fetch(`${WORKER_URL}/verify-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    isPhoneVerified = true;
+                    phoneNumber = data.phone || phoneNumber;
+                    document.getElementById('verificationSection').innerHTML = '<div class="success-box"><i class="ph ph-check-circle"></i> تم التحقق من رقم الهاتف بنجاح</div>';
+                    document.getElementById('registerBtn').style.display = 'flex';
+                    showError('');
+                } else {
+                    showError(data.error || 'الرمز غير صحيح');
+                }
+            } catch (e) {
+                showError('خطأ في الاتصال');
+            }
+        }
+
+        async function sendCodeAgain() {
+            document.getElementById('verificationSection').style.display = 'block';
+            await sendVerificationCode();
+        }
+
+        // ربط زر موافق بإرسال الرمز أولاً إذا لم يتم التحقق
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.addEventListener('click', async function(e) {
+                if (!isPhoneVerified) {
+                    e.preventDefault();
+                    await sendVerificationCode();
+                } else {
+                    await completeRegistration();
+                }
+            });
+        });
+
         async function completeRegistration() {
             const name = document.getElementById('fullName').value.trim();
-            
-            if (!name) {
-                showError('الرجاء إدخال اسمك الكامل');
-                document.getElementById('fullName').focus();
-                return;
-            }
-            
-            if (!phoneNumber) {
-                showError('الرجاء مشاركة رقم هاتفك أولاً');
-                return;
-            }
-            
-            if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
-                showError('تعذر التحقق من حسابك. الرجاء فتح التطبيق من داخل تيليجرام.');
-                return;
-            }
-            
+            if (!name) { showError('الرجاء إدخال اسمك الكامل'); return; }
+            if (!isPhoneVerified) { showError('الرجاء تأكيد رقم الهاتف أولاً'); return; }
+            if (!tg.initDataUnsafe?.user?.id) return;
+
             const userId = tg.initDataUnsafe.user.id;
             const username = tg.initDataUnsafe.user.username || '';
-            
-            const btn = document.querySelector('#registerScreen .btn-primary');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="ph ph-spinner"></i> جاري التسجيل...';
-            btn.style.opacity = '0.7';
-            btn.disabled = true;
-            
+
             try {
                 await db.ref('users/' + userId).set({
-                    name: name,
-                    phone: phoneNumber,
-                    username: username,
-                    userId: userId,
+                    name, phone: phoneNumber, username, userId,
                     registeredAt: new Date().toISOString()
                 });
-                
                 document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + ' 👋';
                 screenHistory.length = 0;
                 showScreen('homeScreen', false);
-                
-            } catch (error) {
-                showError('حدث خطأ في التسجيل. الرجاء المحاولة مرة أخرى.');
-                console.error(error);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.style.opacity = '1';
-                btn.disabled = false;
+            } catch (e) {
+                showError('حدث خطأ في التسجيل');
             }
         }
 
-        // ============ ملء الاسم تلقائياً ============
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            const user = tg.initDataUnsafe.user;
-            if (user.first_name) {
-                document.getElementById('fullName').value = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-            }
+        // ملء الاسم تلقائياً
+        if (tg.initDataUnsafe?.user) {
+            const u = tg.initDataUnsafe.user;
+            document.getElementById('fullName').value = u.first_name + (u.last_name ? ' ' + u.last_name : '');
         }
     </script>
 </body>
