@@ -24,7 +24,7 @@
             --card-bg: #fafafa;
             --border: #e8e8e8;
             --radius: 16px;
-            --transition: all 0.3s ease;
+            --transition: all 0.25s ease;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -45,8 +45,10 @@
             background: var(--bg);
             min-height: 100vh;
             position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,0.03);
         }
 
+        /* ============ Header ============ */
         .app-header {
             background: #fff;
             padding: 16px 20px;
@@ -66,10 +68,12 @@
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             font-size: 20px;
+            color: white;
         }
         .header-title { font-size: 17px; font-weight: 700; }
         .header-subtitle { font-size: 11px; color: var(--text-light); }
 
+        /* ============ الشاشات ============ */
         .screen {
             display: none;
             padding: 24px 20px;
@@ -79,6 +83,8 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } }
 
+        /* ============ الصفحة الرئيسية ============ */
+        .hero-section { text-align: center; margin-bottom: 32px; }
         .hero-icon {
             width: 80px; height: 80px;
             background: var(--primary-light);
@@ -86,10 +92,40 @@
             display: flex; align-items: center; justify-content: center;
             margin: 20px auto;
             font-size: 40px;
+            color: var(--primary);
         }
-        .main-title { font-size: 26px; font-weight: 800; text-align: center; margin-bottom: 8px; }
-        .subtitle { text-align: center; color: var(--text-light); margin-bottom: 24px; font-size: 14px; }
+        .main-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .subtitle { color: var(--text-light); font-size: 15px; line-height: 1.6; }
 
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 12px;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .feature-card:active { background: #f0f0f0; }
+        .feature-icon {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 24px;
+        }
+        .feature-icon.trust { background: #e8f5e9; color: #2e7d32; }
+        .feature-icon.simulation { background: #e3f2fd; color: #1565c0; }
+        .feature-icon.match { background: #fff3e0; color: #e65100; }
+        .feature-icon.complete { background: #fce4ec; color: #c62828; }
+        .feature-label { font-size: 14px; font-weight: 600; }
+
+        /* ============ أزرار ============ */
         .btn {
             display: flex; align-items: center; justify-content: center; gap: 8px;
             width: 100%; padding: 16px; border-radius: var(--radius);
@@ -99,27 +135,55 @@
         .btn-primary { background: var(--primary); color: #fff; }
         .btn-primary:active { background: var(--primary-dark); }
         .btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-outline:active { background: var(--primary-light); }
+
+        /* ============ بطاقات الصفحة الداخلية ============ */
         .btn-card {
             background: var(--card-bg); border: 1px solid var(--border);
-            padding: 18px; margin: 12px 0; border-radius: var(--radius);
-            display: flex; align-items: center; gap: 14px;
-            font-size: 15px; font-weight: 600; cursor: pointer;
+            padding: 20px; margin: 14px 0; border-radius: var(--radius);
+            display: flex; align-items: center; gap: 16px;
+            text-align: right; width: 100%; cursor: pointer;
+            transition: var(--transition); font-family: 'Tajawal', sans-serif;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
+        .btn-card:active { background: #f0f0f0; transform: scale(0.98); }
+        .btn-card .card-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; flex-shrink: 0;
+        }
+        .btn-card .card-icon.green { background: #e8f5e9; color: #2e7d32; }
+        .btn-card .card-icon.blue { background: #e3f2fd; color: #1565c0; }
+        .btn-card .card-icon.gold { background: #fff8e1; color: #f9a825; }
+        .btn-card .card-content { flex: 1; }
+        .btn-card .card-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+        .btn-card .card-desc { font-size: 13px; color: var(--text-light); }
 
+        /* ============ حقول الإدخال ============ */
         .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
         .form-input {
             width: 100%; padding: 15px; border: 1px solid var(--border);
             border-radius: var(--radius); font-size: 15px; background: var(--card-bg);
+            font-family: 'Tajawal', sans-serif;
         }
+        .form-input:focus { outline: none; border-color: var(--primary); background: #fff; }
 
         .success-box {
-            background: #e8f5e9; padding: 12px; border-radius: 12px;
-            color: #2e7d32; font-weight: 600; margin: 10px 0;
+            background: #e8f5e9; padding: 14px; border-radius: 12px;
+            color: #2e7d32; font-weight: 600; margin: 12px 0;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .error-message {
+            background: #fff5f5; padding: 14px; border-radius: 12px;
+            color: #c53030; font-size: 14px; margin: 12px 0;
+            display: flex; align-items: center; gap: 8px;
         }
 
-        .error-message {
-            background: #fff5f5; padding: 12px; border-radius: 12px;
-            color: #c53030; font-size: 14px; margin: 10px 0;
+        .decorative-line {
+            width: 48px; height: 4px; background: var(--gold);
+            border-radius: 2px; margin: 0 auto 20px;
         }
     </style>
 </head>
@@ -127,36 +191,59 @@
     <div class="container">
         <header class="app-header">
             <div class="header-brand">
-                <div class="header-logo">🚗</div>
+                <div class="header-logo"><i class="ph ph-car"></i></div>
                 <div>
                     <div class="header-title">الفحص النظري</div>
-                    <div class="header-subtitle">دائرة الترخيص</div>
+                    <div class="header-subtitle">دائرة الترخيص الأردنية</div>
                 </div>
             </div>
         </header>
 
+        <!-- الصفحة الرئيسية -->
         <div id="landingScreen" class="screen active">
-            <div class="hero-icon">📋</div>
-            <h1 class="main-title">اختبار الفحص النظري</h1>
-            <p class="subtitle">دراسة مصنفة حسب الأقسام، محاكاة واقعية، ومراكز تدريب قريبة منك.</p>
+            <div class="hero-section">
+                <div class="hero-icon"><i class="ph ph-clipboard-text"></i></div>
+                <h1 class="main-title">اختبار الفحص النظري</h1>
+                <p class="subtitle">دراسة مصنفة حسب أقسام المادة النظرية، اختبار محاكي قريب من التجربة الفعلية، وترشيح مراكز تدريب قيادة قريبة منك.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon trust"><i class="ph ph-shield-check"></i></div>
+                    <div class="feature-label">موثوق من دائرة الترخيص</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon simulation"><i class="ph ph-target"></i></div>
+                    <div class="feature-label">محاكاة فعلية</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon match"><i class="ph ph-list-checks"></i></div>
+                    <div class="feature-label">مطابق لأسئلة الاختبار</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon complete"><i class="ph ph-timer"></i></div>
+                    <div class="feature-label">تجربة امتحان كاملة</div>
+                </div>
+            </div>
+
             <button class="btn btn-primary" onclick="handleStart()">ابدأ</button>
         </div>
 
+        <!-- شاشة التسجيل -->
         <div id="registerScreen" class="screen">
-            <h2 style="text-align:center; margin-bottom:24px;">أدخل بياناتك</h2>
+            <h2 style="text-align:center; margin-bottom:24px; font-weight:700;">أدخل بياناتك للمتابعة</h2>
             <div class="form-group">
-                <label>الاسم الكامل</label>
-                <input type="text" class="form-input" id="fullName" placeholder="أدخل اسمك">
+                <label class="form-label">الاسم الكامل</label>
+                <input type="text" class="form-input" id="fullName" placeholder="أدخل اسمك الكامل">
             </div>
             <div class="form-group">
-                <label>رقم الهاتف</label>
+                <label class="form-label">رقم الهاتف</label>
                 <input type="tel" class="form-input" id="phoneInput" placeholder="مثال: 0791234567">
             </div>
             
             <div id="verificationStatus" class="success-box" style="display:none;">
                 <i class="ph ph-check-circle"></i> <span id="statusText">تم إرسال رمز التحقق...</span>
             </div>
-
             <div id="errorMessage" class="error-message" style="display:none;"></div>
 
             <button class="btn btn-outline" onclick="sendVerificationCode()" id="sendCodeBtn">
@@ -168,16 +255,44 @@
             </button>
         </div>
 
+        <!-- الصفحة الرئيسية بعد التسجيل -->
         <div id="homeScreen" class="screen">
-            <div class="hero-icon">🏠</div>
-            <h2 class="main-title">مرحباً!</h2>
-            <p class="subtitle" id="greetingText">أهلاً بك في المنصة</p>
-            <div class="btn-card">📝 الامتحان النظري الحي</div>
-            <div class="btn-card">📚 دراسة الأسئلة</div>
-            <div class="btn-card">📍 مراكز التدريب</div>
+            <div style="text-align:center; margin-bottom: 24px;">
+                <div class="decorative-line"></div>
+                <h1 class="main-title" style="margin-bottom:4px;">اختبار الفحص النظري</h1>
+                <p class="subtitle" id="greetingText">مرحباً بك! منصتك للاستعداد لاختبار السواقة النظري من خلال الدراسة المنظمة والمحاكاة الواقعية.</p>
+            </div>
+
+            <div class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل الامتحان التجريبي قريباً')">
+                <div class="card-icon green"><i class="ph ph-pencil-line"></i></div>
+                <div class="card-content">
+                    <div class="card-title">بدء الامتحان النظري الحي</div>
+                    <div class="card-desc">محاكاة واقعية لاختبار القيادة النظري</div>
+                </div>
+                <i class="ph ph-caret-left" style="color:#ccc; font-size:20px;"></i>
+            </div>
+
+            <div class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل دراسة الأسئلة قريباً')">
+                <div class="card-icon blue"><i class="ph ph-book-open"></i></div>
+                <div class="card-content">
+                    <div class="card-title">دراسة الأسئلة</div>
+                    <div class="card-desc">مراجعة الأسئلة حسب الأقسام المختلفة</div>
+                </div>
+                <i class="ph ph-caret-left" style="color:#ccc; font-size:20px;"></i>
+            </div>
+
+            <div class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل مراكز التدريب قريباً')">
+                <div class="card-icon gold"><i class="ph ph-map-pin"></i></div>
+                <div class="card-content">
+                    <div class="card-title">مراكز تدريب القيادة القريبة</div>
+                    <div class="card-desc">اعثر على أقرب مركز تدريب معتمد</div>
+                </div>
+                <i class="ph ph-caret-left" style="color:#ccc; font-size:20px;"></i>
+            </div>
         </div>
     </div>
 
+    <!-- السكريبت الخاص بالوظائف (كما هو بدون تغيير) -->
     <script>
         // Firebase
         firebase.initializeApp({
@@ -190,7 +305,7 @@
         tg.ready();
         tg.expand();
 
-        const WORKER_URL = "https://jordan-driving-test-bot.pages.dev";
+        const WORKER_URL = "https://jordan-driving-test-bot.pages.dev"; // تأكد من الرابط
 
         let phoneNumber = '';
         let isPhoneVerified = false;
@@ -220,8 +335,8 @@
         function showError(msg) {
             const el = document.getElementById('errorMessage');
             if (el) {
-                el.textContent = msg;
-                el.style.display = 'block';
+                el.innerHTML = `<i class="ph ph-warning-circle"></i> ${msg}`;
+                el.style.display = 'flex';
             }
         }
 
@@ -263,10 +378,10 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    document.getElementById('verificationStatus').style.display = 'block';
+                    document.getElementById('verificationStatus').style.display = 'flex';
                     document.getElementById('statusText').textContent = 'تم إرسال رمز التحقق. جاري التحقق التلقائي...';
                     btn.style.display = 'none';
-                    showError('');
+                    hideError();
                     startListeningForVerificationCode();
                 } else {
                     showError(data.error || 'فشل في إرسال الرمز');
@@ -307,7 +422,7 @@
                             tg.showAlert('✅ تم التحقق من رقم هاتفك بنجاح!');
                         } else {
                             showError(result.error || 'فشل التحقق');
-                            document.getElementById('sendCodeBtn').style.display = 'block';
+                            document.getElementById('sendCodeBtn').style.display = 'flex';
                             document.getElementById('sendCodeBtn').innerHTML = '<i class="ph ph-paper-plane"></i> تحقق';
                             document.getElementById('sendCodeBtn').disabled = false;
                             document.getElementById('verificationStatus').style.display = 'none';
@@ -333,13 +448,14 @@
                     userId,
                     registeredAt: new Date().toISOString()
                 });
-                document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name;
+                document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '! منصتك للاستعداد لاختبار السواقة النظري.';
                 showScreen('homeScreen');
             } catch (e) {
                 showError('حدث خطأ في التسجيل');
             }
         }
 
+        // ملء الاسم تلقائياً
         if (tg.initDataUnsafe?.user?.first_name) {
             document.getElementById('fullName').value = tg.initDataUnsafe.user.first_name;
         }
