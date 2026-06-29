@@ -83,7 +83,6 @@ async function sendWelcome(chatId, isAdmin) {
 // ============ دوال رمز التحقق ============
 async function sendVerificationCode(userId, phone) {
   try {
-    // التحقق من أن المستخدم موجود (يمكن إرسال رسالة له)
     await tg('sendChatAction', { chat_id: userId, action: 'typing' });
   } catch (e) {
     return { success: false, error: "عذراً، لا يمكن التواصل مع حسابك. تأكد من أنك بدأت محادثة مع البوت بالضغط على /start." };
@@ -123,7 +122,6 @@ async function handleMessage(msg) {
   const text = msg.text || '';
   const isAdmin = userId === ADMIN_ID;
 
-  // استقبال جهة الاتصال (عند مشاركة الرقم عبر البوت)
   if (msg.contact) {
     const phone = msg.contact.phone_number;
     await fetch(`${FIREBASE_URL}/users/${userId}/phone.json`, {
@@ -152,7 +150,6 @@ async function handleMessage(msg) {
     return;
   }
 
-  // معالجات الأدمن
   const s = sessions[userId];
   if (!s || !s.step) return;
 
@@ -233,7 +230,6 @@ async function handleCallback(cb) {
   }
 }
 
-// ============ التخزين المؤقت ============
 const sessions = {};
 
 // ============ التصدير ============
@@ -241,28 +237,46 @@ export default {
   async fetch(request) {
     const url = new URL(request.url);
     
-    // مسارات التحقق من الرقم
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
+
     if (request.method === 'POST' && url.pathname === '/send-code') {
       try {
         const { userId, phone } = await request.json();
         const result = await sendVerificationCode(userId, phone);
-        return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       } catch (e) {
-        return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500 });
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       }
     }
-    
+
     if (request.method === 'POST' && url.pathname === '/verify-code') {
       try {
         const { userId, code } = await request.json();
         const result = await verifyCode(userId, code);
-        return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       } catch (e) {
-        return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500 });
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       }
     }
 
-    // Webhook تيليجرام
     if (request.method === 'POST') {
       try {
         const body = await request.json();
