@@ -152,8 +152,10 @@
             margin-bottom: 10px;
             display: flex; align-items: center; justify-content: space-between;
             transition: var(--transition);
+            gap: 10px;
         }
         .list-item:active { background: var(--bg-secondary); }
+        .list-item span { flex: 1; }
 
         .back-btn {
             background: none; border: none;
@@ -165,13 +167,19 @@
             display: flex; align-items: center; gap: 6px;
         }
 
-        .badge {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 4px 10px; border-radius: 999px;
-            font-size: 11px; font-weight: 700;
+        .selection-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            font-weight: 700;
+            font-size: 16px;
         }
-        .badge-warning { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
-        .badge-danger { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
+        .selection-card:active { background: var(--bg-secondary); border-color: var(--primary); }
 
         .loading-overlay {
             position: fixed; inset: 0;
@@ -190,19 +198,15 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .selection-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: var(--transition);
+        /* Delete confirmation inline */
+        .confirm-box {
+            background: var(--danger-light);
+            border: 1px solid var(--danger);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin: 10px 0;
             text-align: center;
-            font-weight: 700;
-            font-size: 16px;
         }
-        .selection-card:active { background: var(--bg-secondary); border-color: var(--primary); }
     </style>
 </head>
 <body>
@@ -293,15 +297,6 @@
     function showMain() {
         showScreen('mainScreen');
         loadStats();
-    }
-
-    function showLoading(text = 'جارٍ التحميل...') {
-        document.getElementById('loadingText').textContent = text;
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    }
-
-    function hideLoading() {
-        document.getElementById('loadingOverlay').style.display = 'none';
     }
 
     async function loadData() {
@@ -424,7 +419,7 @@
         showMain();
     }
 
-    // ============ التعديل (هرمي) ============
+    // ============ التعديل (بدون نوافذ منبثقة) ============
     function showEditMenu() {
         showScreen('editScreen');
         document.getElementById('editContent').innerHTML = `
@@ -440,26 +435,43 @@
         let html = `<h3 style="margin-bottom:16px;">✏️ تعديل ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h3>`;
         
         if (type === 'governorates') {
-            // عرض المحافظات مباشرة مع زر تعديل
             const items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
             html += items.map(item => `
-                <div class="list-item">
-                    <span>${item.name}</span>
-                    <button class="btn btn-sm btn-outline" onclick="editItemPrompt('governorates', '${item.id}', '${item.name.replace(/'/g, "\\'")}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
+                <div class="list-item" id="edit-row-${item.id}">
+                    <span id="edit-name-${item.id}">${item.name}</span>
+                    <button class="btn btn-sm btn-outline" onclick="showEditInline('governorates', '${item.id}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
                 </div>
             `).join('');
         } else {
-            // عرض المحافظات أولاً للاختيار
             const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
             html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المحافظة أولاً:</p>';
             html += govs.map(g => `
-                <div class="selection-card" onclick="showItemsForEdit('${type}', '${g.id}', '${g.name}')">
-                    ${g.name}
-                </div>
+                <div class="selection-card" onclick="showItemsForEdit('${type}', '${g.id}', '${g.name}')">${g.name}</div>
             `).join('');
         }
         
         document.getElementById('editContent').innerHTML = html;
+    }
+
+    function showEditInline(type, id) {
+        const nameSpan = document.getElementById(`edit-name-${id}`);
+        const currentName = nameSpan.textContent;
+        const row = document.getElementById(`edit-row-${id}`);
+        
+        row.innerHTML = `
+            <input type="text" class="form-input" id="edit-input-${id}" value="${currentName.replace(/"/g, '&quot;')}" style="flex:1;height:44px;">
+            <button class="btn btn-sm btn-primary" onclick="saveEditInline('${type}', '${id}')">💾 حفظ</button>
+            <button class="btn btn-sm btn-outline" onclick="startEdit('${type}')">❌ إلغاء</button>
+        `;
+    }
+
+    async function saveEditInline(type, id) {
+        const newName = document.getElementById(`edit-input-${id}`).value.trim();
+        if (!newName) { tg.showAlert('الرجاء إدخال اسم'); return; }
+        const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
+        await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName }) });
+        tg.showAlert('✅ تم التعديل بنجاح!');
+        startEdit(type);
     }
 
     async function showItemsForEdit(type, govId, govName) {
@@ -470,19 +482,16 @@
         if (type === 'areas') {
             const items = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
             html += items.map(item => `
-                <div class="list-item">
-                    <span>${item.name}</span>
-                    <button class="btn btn-sm btn-outline" onclick="editItemPrompt('areas', '${item.id}', '${item.name.replace(/'/g, "\\'")}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
+                <div class="list-item" id="edit-row-${item.id}">
+                    <span id="edit-name-${item.id}">${item.name}</span>
+                    <button class="btn btn-sm btn-outline" onclick="showEditInline('areas', '${item.id}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
                 </div>
             `).join('');
         } else if (type === 'centers') {
-            // عرض مناطق المحافظة أولاً
             const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
             html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المنطقة:</p>';
             html += areas.map(a => `
-                <div class="selection-card" onclick="showCentersForEdit('${a.id}', '${govName} - ${a.name}')">
-                    ${a.name}
-                </div>
+                <div class="selection-card" onclick="showCentersForEdit('${a.id}', '${govName} - ${a.name}')">${a.name}</div>
             `).join('');
         }
         
@@ -495,28 +504,15 @@
         let html = `<button class="back-btn" onclick="showItemsForEdit('centers', '${allAreas[areaId]?.governorateId || ''}', '')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
         html += `<h3 style="margin-bottom:8px;">${title}</h3>`;
         html += items.map(item => `
-            <div class="list-item">
-                <span>${item.name}</span>
-                <button class="btn btn-sm btn-outline" onclick="editItemPrompt('centers', '${item.id}', '${item.name.replace(/'/g, "\\'")}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
+            <div class="list-item" id="edit-row-${item.id}">
+                <span id="edit-name-${item.id}">${item.name}</span>
+                <button class="btn btn-sm btn-outline" onclick="showEditInline('centers', '${item.id}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
             </div>
         `).join('');
         document.getElementById('editContent').innerHTML = html;
     }
 
-    function editItemPrompt(type, id, oldName) {
-        const newName = prompt('الاسم الجديد:', oldName);
-        if (!newName || newName === oldName) return;
-        editItem(type, id, newName);
-    }
-
-    async function editItem(type, id, newName) {
-        const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
-        await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName }) });
-        tg.showAlert('✅ تم التعديل بنجاح!');
-        showMain();
-    }
-
-    // ============ الحذف (هرمي) ============
+    // ============ الحذف (بدون نوافذ منبثقة) ============
     function showDeleteMenu() {
         showScreen('deleteScreen');
         document.getElementById('deleteContent').innerHTML = `
@@ -534,22 +530,47 @@
         if (type === 'governorates') {
             const items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
             html += items.map(item => `
-                <div class="list-item">
+                <div class="list-item" id="delete-row-${item.id}">
                     <span>${item.name}</span>
-                    <button class="btn btn-sm btn-danger" onclick="deleteItemConfirm('governorates', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑 حذف</button>
+                    <button class="btn btn-sm btn-outline" onclick="showDeleteConfirm('governorates', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑</button>
                 </div>
             `).join('');
         } else {
             const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
             html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المحافظة أولاً:</p>';
             html += govs.map(g => `
-                <div class="selection-card" onclick="showItemsForDelete('${type}', '${g.id}', '${g.name}')">
-                    ${g.name}
-                </div>
+                <div class="selection-card" onclick="showItemsForDelete('${type}', '${g.id}', '${g.name}')">${g.name}</div>
             `).join('');
         }
         
         document.getElementById('deleteContent').innerHTML = html;
+    }
+
+    function showDeleteConfirm(type, id, name) {
+        const row = document.getElementById(`delete-row-${id}`);
+        row.innerHTML = `
+            <div class="confirm-box" style="flex:1;">
+                <p style="margin-bottom:8px;">متأكد من حذف "${name}"؟</p>
+                <button class="btn btn-sm btn-danger" onclick="executeDelete('${type}', '${id}')">🗑 نعم، احذف</button>
+                <button class="btn btn-sm btn-outline" onclick="startDelete('${type}')" style="margin-top:8px;">❌ إلغاء</button>
+            </div>
+        `;
+    }
+
+    async function executeDelete(type, id) {
+        const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
+        try {
+            const res = await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'DELETE' });
+            const result = await res.json();
+            if (result && result.success) {
+                tg.showAlert('✅ تم الحذف بنجاح!');
+                startDelete(type);
+            } else {
+                tg.showAlert('❌ فشل الحذف: ' + (result?.error || 'خطأ غير معروف'));
+            }
+        } catch(e) {
+            tg.showAlert('❌ خطأ في الاتصال بالخادم');
+        }
     }
 
     async function showItemsForDelete(type, govId, govName) {
@@ -560,18 +581,16 @@
         if (type === 'areas') {
             const items = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
             html += items.map(item => `
-                <div class="list-item">
+                <div class="list-item" id="delete-row-${item.id}">
                     <span>${item.name}</span>
-                    <button class="btn btn-sm btn-danger" onclick="deleteItemConfirm('areas', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑 حذف</button>
+                    <button class="btn btn-sm btn-outline" onclick="showDeleteConfirm('areas', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑</button>
                 </div>
             `).join('');
         } else if (type === 'centers') {
             const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
             html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المنطقة:</p>';
             html += areas.map(a => `
-                <div class="selection-card" onclick="showCentersForDelete('${a.id}', '${govName} - ${a.name}')">
-                    ${a.name}
-                </div>
+                <div class="selection-card" onclick="showCentersForDelete('${a.id}', '${govName} - ${a.name}')">${a.name}</div>
             `).join('');
         }
         
@@ -584,25 +603,12 @@
         let html = `<button class="back-btn" onclick="showItemsForDelete('centers', '${allAreas[areaId]?.governorateId || ''}', '')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
         html += `<h3 style="margin-bottom:8px;">${title}</h3>`;
         html += items.map(item => `
-            <div class="list-item">
+            <div class="list-item" id="delete-row-${item.id}">
                 <span>${item.name}</span>
-                <button class="btn btn-sm btn-danger" onclick="deleteItemConfirm('centers', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑 حذف</button>
+                <button class="btn btn-sm btn-outline" onclick="showDeleteConfirm('centers', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑</button>
             </div>
         `).join('');
         document.getElementById('deleteContent').innerHTML = html;
-    }
-
-    async function deleteItemConfirm(type, id, name) {
-        if (!confirm(`هل أنت متأكد من حذف "${name}"؟`)) return;
-        const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
-        const res = await fetch(`${WORKER_URL}/api/${endpoint}/${id}`, { method: 'DELETE' });
-        const result = await res.json();
-        if (result.success) {
-            tg.showAlert('✅ تم الحذف بنجاح!');
-            showMain();
-        } else {
-            tg.showAlert('❌ حدث خطأ في الحذف.');
-        }
     }
 
     loadStats();
