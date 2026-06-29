@@ -109,7 +109,6 @@ async function handleMessage(msg) {
     return;
   }
 
-  // معالجات الأدمن (تعديل رسالة الترحيب)
   const s = sessions[userId];
   if (!s || !s.step) return;
 
@@ -200,7 +199,7 @@ async function handleCallback(cb) {
 
 const sessions = {};
 
-// ============ نقاط نهاية REST API للإدارة ============
+// ============ نقاط نهاية REST API ============
 async function handleApiRequest(path, request) {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -230,6 +229,19 @@ async function handleApiRequest(path, request) {
     } else if (path.startsWith('/api/governorates/') && request.method === 'DELETE') {
       const id = path.split('/')[3];
       await fetch(`${FIREBASE_URL}/governorates/${id}.json`, { method: 'DELETE' });
+      // حذف المناطق والمراكز المرتبطة
+      const areasRes = await fetch(`${FIREBASE_URL}/areas.json`);
+      const areas = await areasRes.json() || {};
+      for (const [areaId, area] of Object.entries(areas)) {
+        if (area.governorateId === id) {
+          await fetch(`${FIREBASE_URL}/areas/${areaId}.json`, { method: 'DELETE' });
+          const centersRes = await fetch(`${FIREBASE_URL}/centers.json`);
+          const centers = await centersRes.json() || {};
+          for (const [cId, c] of Object.entries(centers)) {
+            if (c.areaId === areaId) await fetch(`${FIREBASE_URL}/centers/${cId}.json`, { method: 'DELETE' });
+          }
+        }
+      }
       result = { success: true };
     }
 
@@ -247,6 +259,11 @@ async function handleApiRequest(path, request) {
     } else if (path.startsWith('/api/areas/') && request.method === 'DELETE') {
       const id = path.split('/')[3];
       await fetch(`${FIREBASE_URL}/areas/${id}.json`, { method: 'DELETE' });
+      const centersRes = await fetch(`${FIREBASE_URL}/centers.json`);
+      const centers = await centersRes.json() || {};
+      for (const [cId, c] of Object.entries(centers)) {
+        if (c.areaId === id) await fetch(`${FIREBASE_URL}/centers/${cId}.json`, { method: 'DELETE' });
+      }
       result = { success: true };
     }
 
@@ -279,12 +296,10 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // توجيه طلبات API
     if (path.startsWith('/api/')) {
       return handleApiRequest(path, request);
     }
 
-    // Webhook تيليجرام
     if (request.method === 'POST') {
       try {
         const body = await request.json();
