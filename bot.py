@@ -26,12 +26,21 @@ def save_to_firebase(data):
     response = requests.post(url, json=data)
     return response.json()
 
+ADMIN_ID = 1376513623  # ضع معرف تيليجرام الخاص بك هنا
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    
     keyboard = [
-        [InlineKeyboardButton("📱 افتح تطبيق الدراسة", web_app=WebAppInfo(url=BLOGGER_URL))],
-        [InlineKeyboardButton("📊 إحصائيات", callback_data="stats")],
-        [InlineKeyboardButton("➕ إضافة سؤال", callback_data="add_question")]
+        [InlineKeyboardButton("📱 افتح تطبيق الدراسة", web_app=WebAppInfo(url=BLOGGER_URL))]
     ]
+    
+    # أزرار الإدارة تظهر للأدمن فقط
+    if user_id == ADMIN_ID:
+        keyboard.append([InlineKeyboardButton("📊 إحصائيات", callback_data="stats")])
+        keyboard.append([InlineKeyboardButton("➕ إضافة سؤال", callback_data="add_question")])
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
