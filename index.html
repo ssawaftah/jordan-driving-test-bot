@@ -1180,520 +1180,403 @@ to{transform:rotate(360deg);}
     </div>
 
 </div>
-
 <script>
-    // Firebase
-    firebase.initializeApp({
-        apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
-        databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "al3arbicv"
-    });
-    const db = firebase.database();
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+/* =========================
+   INIT
+========================= */
 
-    let currentScreen = 'landingScreen';
-    let allGovs = {}, allAreas = {}, allCenters = {};
-    let currentGovId = null;
-    let currentAreaFilter = null;
+firebase.initializeApp({
+    apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
+    databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "al3arbicv"
+});
 
-    // ============ متغيرات الأسئلة ============
-    const STUDY_CATEGORIES = [
+const db = firebase.database();
+const tg = window.Telegram?.WebApp;
+
+tg?.ready();
+tg?.expand();
+
+/* =========================
+   STATE (CLEAN STRUCTURE)
+========================= */
+
+let state = {
+    screen: 'landingScreen',
+    govs: {},
+    areas: {},
+    centers: {},
+    questions: {},
+    currentGov: null,
+    currentArea: null,
+
+    study: {
+        list: [],
+        index: 0
+    },
+
+    test: {
+        list: [],
+        index: 0,
+        answers: []
+    }
+};
+
+/* =========================
+   SCREEN CONTROL
+========================= */
+
+function showScreen(id) {
+
+    document.querySelectorAll('.screen')
+        .forEach(s => s.classList.remove('active'));
+
+    document.getElementById(id)?.classList.add('active');
+
+    state.screen = id;
+}
+
+/* =========================
+   LOADING
+========================= */
+
+function showLoading(text = 'جارٍ التحميل...') {
+    const el = document.getElementById('loadingOverlay');
+    if (!el) return;
+
+    document.getElementById('loadingText').textContent = text;
+    el.style.display = 'flex';
+}
+
+function hideLoading() {
+    const el = document.getElementById('loadingOverlay');
+    if (el) el.style.display = 'none';
+}
+
+/* =========================
+   FIREBASE LOADERS
+========================= */
+
+async function loadData() {
+    try {
+
+        const [govSnap, areaSnap, centerSnap] = await Promise.all([
+            db.ref('governorates').once('value'),
+            db.ref('areas').once('value'),
+            db.ref('centers').once('value')
+        ]);
+
+        state.govs = govSnap.val() || {};
+        state.areas = areaSnap.val() || {};
+        state.centers = centerSnap.val() || {};
+
+    } catch (err) {
+        console.error("loadData error:", err);
+    }
+}
+
+async function loadQuestions() {
+    try {
+        const snap = await db.ref('questions').once('value');
+        state.questions = snap.val() || {};
+    } catch (err) {
+        console.error("loadQuestions error:", err);
+    }
+}
+
+/* =========================
+   USER SYSTEM
+========================= */
+
+async function checkUser() {
+
+    const userId = tg?.initDataUnsafe?.user?.id;
+    if (!userId) return false;
+
+    const snap = await db.ref('users/' + userId).once('value');
+    return snap.exists();
+}
+
+async function handleStart() {
+
+    if (await checkUser()) {
+
+        const userId = tg.initDataUnsafe.user.id;
+        const snap = await db.ref('users/' + userId).once('value');
+        const user = snap.val();
+
+        document.getElementById('greetingText').textContent =
+            `أهلاً بك، ${user?.name || ''}`;
+
+        showScreen('homeScreen');
+
+    } else {
+        showScreen('registerScreen');
+    }
+}
+
+async function completeRegistration() {
+
+    const name = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phoneInput').value.trim();
+
+    if (!name || !phone) {
+        return tg?.showAlert('أدخل البيانات بشكل صحيح');
+    }
+
+    const userId = tg?.initDataUnsafe?.user?.id;
+    if (!userId) return tg?.showAlert('خطأ في المستخدم');
+
+    showLoading('جارٍ التسجيل...');
+
+    try {
+
+        await db.ref('users/' + userId).set({
+            name,
+            phone,
+            createdAt: Date.now()
+        });
+
+        hideLoading();
+
+        tg?.showAlert('تم التسجيل بنجاح');
+
+        document.getElementById('greetingText').textContent =
+            `أهلاً بك، ${name}`;
+
+        showScreen('homeScreen');
+
+    } catch (err) {
+
+        hideLoading();
+        tg?.showAlert('حدث خطأ أثناء التسجيل');
+    }
+}
+
+/* =========================
+   CENTERS
+========================= */
+
+async function openTrainingCenters() {
+
+    showLoading();
+
+    await loadData();
+
+    hideLoading();
+
+    showScreen('trainingCentersScreen');
+
+    renderGovs();
+}
+
+function renderGovs() {
+
+    const list = document.getElementById('govList');
+
+    const data = Object.entries(state.govs)
+        .map(([id, g]) => ({ id, ...g }));
+
+    list.innerHTML = data.map(g => `
+        <div class="location-card" onclick="selectGov('${g.id}')">
+            <div class="loc-icon"><i class="ph ph-map-pin"></i></div>
+            <div class="loc-name">${g.name}</div>
+        </div>
+    `).join('');
+}
+
+function selectGov(id) {
+
+    state.currentGov = id;
+    state.currentArea = null;
+
+    document.getElementById('govLevel').style.display = 'none';
+    document.getElementById('detailLevel').style.display = 'block';
+
+    document.getElementById('centerGovTitle').textContent =
+        state.govs[id]?.name || '';
+
+    renderCenters();
+}
+
+function renderCenters() {
+
+    const container = document.getElementById('centerList');
+
+    const centers = Object.entries(state.centers)
+        .filter(([_, c]) => c.governorateId === state.currentGov)
+        .map(([id, c]) => ({ id, ...c }));
+
+    if (!centers.length) {
+        container.innerHTML = `<p style="text-align:center;">لا يوجد مراكز</p>`;
+        return;
+    }
+
+    container.innerHTML = centers.map(c => `
+        <div class="center-card">
+            <div class="center-name">${c.name}</div>
+            <div class="info-row">${c.address || ''}</div>
+        </div>
+    `).join('');
+}
+
+/* =========================
+   STUDY SYSTEM
+========================= */
+
+async function showStudyCategories() {
+
+    showLoading('تحميل الأسئلة...');
+
+    await loadQuestions();
+
+    hideLoading();
+
+    showScreen('studyCategoriesScreen');
+
+    renderCategories();
+}
+
+function renderCategories() {
+
+    const categories = [
         "قواعد السير والمرور",
         "الميكانيك",
         "السلامة على الطريق",
         "أسعافات أولية",
-        "الشواخص والخطوط والعلامات",
-        "المخالفات واحتساب النقاط"
+        "الشواخص",
+        "المخالفات"
     ];
-    let allQuestions = {}; // سيتم تحميلها من Firebase
-    let currentStudyQuestions = [];
-    let currentStudyIndex = 0;
-    let currentTestQuestions = [];
-    let currentTestIndex = 0;
-    let testAnswers = []; // لتخزين إجابات المستخدم أثناء الاختبار
 
-    // ============ دوال عامة ============
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        currentScreen = id;
-    }
+    const container = document.getElementById('categoriesList');
 
-    function showLoading(text = 'جارٍ التحميل...') {
-        document.getElementById('loadingText').textContent = text;
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    }
-
-    function hideLoading() {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
-
-    async function loadData() {
-        try {
-            const [govSnap, areaSnap, centerSnap] = await Promise.all([
-                db.ref('governorates').once('value'),
-                db.ref('areas').once('value'),
-                db.ref('centers').once('value')
-            ]);
-            allGovs = govSnap.val() || {};
-            allAreas = areaSnap.val() || {};
-            allCenters = centerSnap.val() || {};
-        } catch(e) { console.error(e); }
-    }
-
-    // ============ تحميل الأسئلة من Firebase ============
-    async function loadAllQuestions() {
-        try {
-            const snap = await db.ref('questions').once('value');
-            allQuestions = snap.val() || {};
-        } catch(e) { console.error(e); }
-    }
-
-    // ============ التسجيل ============
-    async function checkUserRegistration() {
-        if (tg.initDataUnsafe?.user?.id) {
-            const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
-            return !!snap.val();
-        }
-        return false;
-    }
-
-    async function handleStart() {
-        if (await checkUserRegistration()) {
-            const snap = await db.ref('users/' + tg.initDataUnsafe.user.id).once('value');
-            const user = snap.val();
-            document.getElementById('greetingText').textContent = 'أهلاً بك، ' + user.name + '! منصتك للاستعداد لاختبار السواقة النظري.';
-            showScreen('homeScreen');
-        } else {
-            showScreen('registerScreen');
-        }
-    }
-
-    async function completeRegistration() {
-        const name = document.getElementById('fullName').value.trim();
-        const phone = document.getElementById('phoneInput').value.trim();
-        if (!name) { tg.showAlert('الرجاء إدخال اسمك الكامل'); return; }
-        if (!phone || phone.length < 10) { tg.showAlert('الرجاء إدخال رقم هاتف صحيح'); return; }
-        if (!tg.initDataUnsafe?.user?.id) { tg.showAlert('تعذر التحقق من حسابك'); return; }
-
-        document.getElementById('registrationForm').style.display = 'none';
-        showLoading('جارٍ التسجيل...');
-        const userId = tg.initDataUnsafe.user.id;
-        try {
-            await db.ref('users/' + userId).set({
-                name, phone,
-                username: tg.initDataUnsafe.user.username || '',
-                userId,
-                registeredAt: new Date().toISOString()
-            });
-            await new Promise(r => setTimeout(r, 1500));
-            hideLoading();
-            tg.showAlert('✅ تم التسجيل بنجاح!');
-            document.getElementById('greetingText').textContent = 'أهلاً بك، ' + name + '! منصتك للاستعداد لاختبار السواقة النظري.';
-            showScreen('homeScreen');
-        } catch(e) {
-            hideLoading();
-            document.getElementById('registrationForm').style.display = 'block';
-            tg.showAlert('حدث خطأ في التسجيل.');
-        }
-    }
-
-    // ============ مراكز التدريب ============
-    async function openTrainingCenters() {
-        showLoading('جاري تحميل البيانات...');
-        await loadData();
-        hideLoading();
-        showScreen('trainingCentersScreen');
-        document.getElementById('govLevel').style.display = 'block';
-        document.getElementById('detailLevel').style.display = 'none';
-        document.getElementById('govSearch').value = '';
-        renderGovernorates(Object.entries(allGovs).map(([id, g]) => ({ id, ...g })));
-    }
-
-    function renderGovernorates(list) {
-        document.getElementById('govList').innerHTML = list.map(g => `
-            <div class="location-card" onclick="selectGovernorate('${g.id}')">
-                <div class="loc-icon"><i class="ph ph-map-pin"></i></div>
-                <div class="loc-info"><div class="loc-name">${g.name}</div></div>
-                <i class="ph ph-caret-left" style="color:var(--text-light);"></i>
-            </div>
-        `).join('');
-    }
-
-    function filterGovernorates() {
-        const q = document.getElementById('govSearch').value.trim();
-        const filtered = Object.entries(allGovs).filter(([_, g]) => g.name.includes(q)).map(([id, g]) => ({ id, ...g }));
-        renderGovernorates(filtered);
-    }
-
-    function selectGovernorate(govId) {
-        currentGovId = govId;
-        currentAreaFilter = null;
-        document.getElementById('govLevel').style.display = 'none';
-        document.getElementById('detailLevel').style.display = 'block';
-        document.getElementById('centerGovTitle').textContent = allGovs[govId]?.name || '';
-        document.getElementById('centerSearch').value = '';
-        renderAreasChips(govId);
-        renderAllCentersForGov(govId, null);
-    }
-
-    function goToGovernorates() {
-        document.getElementById('detailLevel').style.display = 'none';
-        document.getElementById('govLevel').style.display = 'block';
-        document.getElementById('govSearch').value = '';
-        renderGovernorates(Object.entries(allGovs).map(([id, g]) => ({ id, ...g })));
-    }
-
-    function renderAreasChips(govId) {
-        const scrollDiv = document.getElementById('areasScroll');
-        const areas = Object.entries(allAreas)
-            .filter(([_, a]) => a.governorateId === govId)
-            .map(([id, a]) => ({ id, ...a }));
-        let html = `<div class="area-chip active" onclick="filterByArea(null)">الكل</div>`;
-        html += areas.map(a => `<div class="area-chip" id="chip-${a.id}" onclick="filterByArea('${a.id}')">${a.name}</div>`).join('');
-        scrollDiv.innerHTML = html;
-    }
-
-    function filterByArea(areaId) {
-        currentAreaFilter = areaId;
-        document.querySelectorAll('.area-chip').forEach(chip => chip.classList.remove('active'));
-        if (areaId === null) {
-            document.querySelector('.area-chip').classList.add('active');
-        } else {
-            document.getElementById(`chip-${areaId}`)?.classList.add('active');
-        }
-        document.getElementById('centerSearch').value = '';
-        renderAllCentersForGov(currentGovId, areaId);
-    }
-
-    function renderAllCentersForGov(govId, areaId) {
-    let centers = Object.entries(allCenters)
-        .filter(([_, c]) => {
-            // إذا كان المركز له governorateId نستخدمه مباشرة
-            if (c.governorateId === govId) {
-                if (areaId) {
-                    // فلترة حسب المنطقة المحددة
-                    return (c.areas && c.areas.some(a => a.id === areaId)) || c.areaId === areaId;
-                }
-                return true;
-            }
-            // للتوافق مع النظام القديم
-            const area = allAreas[c.areaId];
-            if (area && area.governorateId === govId) {
-                if (areaId) return c.areaId === areaId;
-                return true;
-            }
-            return false;
-        })
-        .map(([id, c]) => ({ id, ...c }));
-    
-    centers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    document.getElementById('centerResultCount').textContent = `${centers.length} مركز تدريب`;
-    renderCenterCards(centers);
+    container.innerHTML = categories.map(c => `
+        <div class="location-card" onclick="startStudy('${c}')">
+            <div class="loc-icon"><i class="ph ph-book"></i></div>
+            <div class="loc-name">${c}</div>
+        </div>
+    `).join('');
 }
 
-    function filterCenters() {
-    const query = document.getElementById('centerSearch').value.trim().toLowerCase();
-    if (!currentGovId) return;
-    
-    let centers = Object.entries(allCenters)
-        .filter(([_, c]) => {
-            // فلترة حسب المحافظة والمنطقة
-            if (c.governorateId === currentGovId) {
-                if (currentAreaFilter) {
-                    const hasArea = (c.areas && c.areas.some(a => a.id === currentAreaFilter)) || c.areaId === currentAreaFilter;
-                    if (!hasArea) return false;
-                }
-            } else {
-                const area = allAreas[c.areaId];
-                if (!area || area.governorateId !== currentGovId) return false;
-                if (currentAreaFilter && c.areaId !== currentAreaFilter) return false;
-            }
-            
-            // فلترة نصية
-            if (query) {
-                return (c.name || '').toLowerCase().includes(query) ||
-                       (c.address || '').toLowerCase().includes(query);
-            }
-            return true;
-        })
-        .map(([id, c]) => ({ id, ...c }));
-    
-    centers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    document.getElementById('centerResultCount').textContent = `${centers.length} مركز`;
-    renderCenterCards(centers);
+function startStudy(category) {
+
+    const list = Object.values(state.questions)
+        .filter(q => q.category === category);
+
+    if (!list.length) {
+        return tg?.showAlert('لا يوجد أسئلة');
+    }
+
+    state.study.list = list;
+    state.study.index = 0;
+
+    showScreen('studyScreen');
+
+    renderStudy();
 }
 
-    function copyPhone(phone) {
-        if (!phone) return;
-        try {
-            navigator.clipboard.writeText(phone).then(() => {
-                tg.showAlert('✅ تم نسخ الرقم: ' + phone);
-            }).catch(() => {
-                const textarea = document.createElement('textarea');
-                textarea.value = phone;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                tg.showAlert('✅ تم نسخ الرقم: ' + phone);
-            });
-        } catch(e) {
-            tg.showAlert('❌ فشل نسخ الرقم');
-        }
-    }
+function renderStudy() {
 
-    function renderCenterCards(centers) {
-    const container = document.getElementById('centerList');
-    if (centers.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:40px 0;"><i class="ph ph-map-pin" style="font-size:40px; opacity:0.4;"></i><p>لا توجد مراكز تدريب مطابقة</p></div>`;
-        return;
-    }
+    const q = state.study.list[state.study.index];
+    if (!q) return;
 
-    const allDays = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+    document.getElementById('studyCounter').textContent =
+        `${state.study.index + 1} / ${state.study.list.length}`;
 
-    container.innerHTML = centers.map(c => {
-        // المناطق المغطاة
-        let areasHtml = '';
-        if (c.areas && c.areas.length > 0) {
-            areasHtml = `
-                <div class="areas-covered">
-                    <i class="ph ph-buildings"></i>
-                    ${c.areas.map(a => `<span class="area-tag">${a.name}</span>`).join('')}
-                </div>`;
-        }
+    document.getElementById('studyQuestionText').textContent =
+        q.question || '';
 
-        // أيام الدوام
-        const daysHtml = allDays.map(day => {
-            const isActive = c.workingDays && c.workingDays.includes(day);
-            return `<div class="day-chip ${isActive ? 'active' : ''}">${day}</div>`;
-        }).join('');
+    const options = (q.options || []).map((o, i) => `
+        <div class="option-item ${i === q.correctAnswer ? 'correct-answer' : ''}">
+            ${o}
+        </div>
+    `).join('');
 
-        // وقت الدوام
-        const timeHtml = c.workingHours ? `
-            <div class="time-box">
-                <i class="ph ph-clock"></i> ${c.workingHours}
-            </div>` : '';
-
-        // التقييم
-        const ratingHtml = `
-            <div class="rating-box">
-                <i class="ph-fill ph-star"></i> ${c.rating || 0}/5
-                <span class="rating-source">Google</span>
-            </div>`;
-
-        return `
-            <div class="center-card">
-                <div class="center-header">
-                    <div class="center-name">
-                        <a href="${c.mapLink || '#'}" target="_blank">${c.name}</a>
-                    </div>
-                </div>
-
-                ${areasHtml}
-
-                <div class="info-row">
-                    <span><i class="ph ph-map-pin"></i> ${c.address || 'لا يوجد عنوان'}</span>
-                    <span class="copy-phone" onclick="copyPhone('${c.phone}')">
-                        <i class="ph ph-phone"></i> ${c.phone || 'لا يوجد رقم'}
-                    </span>
-                </div>
-
-                <div class="days-title">أيام الدوام</div>
-                <div class="working-days-row">
-                    ${daysHtml}
-                </div>
-
-                <div class="bottom-row">
-                    ${timeHtml}
-                    ${ratingHtml}
-                </div>
-            </div>
-        `;
-    }).join('');
+    document.getElementById('studyOptionsContainer').innerHTML = options;
 }
-    // ============ دوال الأسئلة ============
-    async function showStudyCategories() {
-        showLoading('جاري تحميل الأسئلة...');
-        await loadAllQuestions();
-        hideLoading();
-        showScreen('studyCategoriesScreen');
-        renderStudyCategories();
+
+function nextStudy() {
+    if (state.study.index < state.study.list.length - 1) {
+        state.study.index++;
+        renderStudy();
     }
+}
 
-    function renderStudyCategories() {
-        const container = document.getElementById('categoriesList');
-        container.innerHTML = STUDY_CATEGORIES.map((cat, index) => `
-            <div class="location-card" onclick="startStudy('${cat}')">
-                <div class="loc-icon" style="background:#EEF4FF; color:#246BFD;"><i class="ph ph-bookmark-simple"></i></div>
-                <div class="loc-info">
-                    <div class="loc-name">${index+1}. ${cat}</div>
-                </div>
-                <i class="ph ph-caret-left" style="color:var(--text-light);"></i>
-            </div>
-        `).join('');
+function prevStudy() {
+    if (state.study.index > 0) {
+        state.study.index--;
+        renderStudy();
     }
+}
 
-    function startStudy(category) {
-        // فلترة الأسئلة حسب القسم
-        const qs = Object.values(allQuestions).filter(q => q.category === category);
-        if (qs.length === 0) {
-            tg.showAlert('لا توجد أسئلة في هذا القسم بعد.');
-            return;
-        }
-        currentStudyQuestions = qs;
-        currentStudyIndex = 0;
-        showScreen('studyScreen');
-        renderStudyQuestion();
-    }
+/* =========================
+   TEST SYSTEM (SIMPLIFIED)
+========================= */
 
-    function renderStudyQuestion() {
-        const q = currentStudyQuestions[currentStudyIndex];
-        const total = currentStudyQuestions.length;
-        document.getElementById('studyCounter').textContent = `السؤال ${currentStudyIndex+1} من ${total}`;
+function startTest(category) {
 
-        // وسائط
-        let mediaHtml = '';
-        if (q.mediaUrl && q.mediaType !== 'text') {
-            if (q.mediaType === 'image' || q.mediaType === 'gif') {
-                mediaHtml = `<img src="${q.mediaUrl}" class="question-media">`;
-            } else if (q.mediaType === 'video') {
-                mediaHtml = `<video controls src="${q.mediaUrl}" class="question-media"></video>`;
-            }
-        }
-        document.getElementById('studyMediaContainer').innerHTML = mediaHtml;
+    const list = Object.values(state.questions)
+        .filter(q => q.category === category)
+        .sort(() => Math.random() - 0.5);
 
-        // نص السؤال
-        document.getElementById('studyQuestionText').textContent = q.question;
+    state.test.list = list;
+    state.test.index = 0;
+    state.test.answers = [];
 
-        // خيارات (غير قابلة للنقر، مع تمييز الصحيحة)
-        const optionsHtml = q.options.map((opt, i) => {
-            const isCorrect = i === q.correctAnswer;
-            return `<div class="option-item ${isCorrect ? 'correct-answer' : ''}">${opt}</div>`;
-        }).join('');
-        document.getElementById('studyOptionsContainer').innerHTML = optionsHtml;
+    showScreen('testScreen');
 
-        // شرح (اختياري)
-        if (q.explanation) {
-            document.getElementById('studyOptionsContainer').innerHTML += `
-                <div style="margin-top:12px; padding:12px; background:#FEF3C7; border-radius:12px; font-size:14px;">
-                    💡 ${q.explanation}
-                </div>`;
-        }
+    renderTest();
+}
 
-        // تفعيل/تعطيل أزرار التنقل
-        document.querySelector('#studyScreen .btn-outline:nth-child(1)').disabled = (currentStudyIndex === 0);
-        document.querySelector('#studyScreen .btn-outline:nth-child(2)').disabled = (currentStudyIndex === total - 1);
-    }
+function renderTest() {
 
-    function prevStudyQuestion() {
-        if (currentStudyIndex > 0) {
-            currentStudyIndex--;
-            renderStudyQuestion();
-        }
-    }
+    const q = state.test.list[state.test.index];
+    if (!q) return;
 
-    function nextStudyQuestion() {
-        if (currentStudyIndex < currentStudyQuestions.length - 1) {
-            currentStudyIndex++;
-            renderStudyQuestion();
-        } else {
-            // انتهت الأسئلة
-            finishStudySession();
-        }
-    }
+    document.getElementById('testCounter').textContent =
+        `${state.test.index + 1} / ${state.test.list.length}`;
 
-    function finishStudySession() {
-        const currentCategory = currentStudyQuestions[0]?.category;
-        showScreen('studyCategoriesScreen');
-        // يمكن إظهار رسالة أو الانتقال مباشرة
-    }
+    document.getElementById('testQuestionText').textContent =
+        q.question || '';
 
-    // ============ اختبار القسم ============
-    function startCategoryTest(category) {
-        const qs = Object.values(allQuestions).filter(q => q.category === category);
-        if (qs.length === 0) {
-            tg.showAlert('لا توجد أسئلة للاختبار في هذا القسم.');
-            return;
-        }
-        // ترتيب عشوائي
-        currentTestQuestions = [...qs].sort(() => Math.random() - 0.5);
-        currentTestIndex = 0;
-        testAnswers = new Array(currentTestQuestions.length).fill(null);
-        showScreen('testScreen');
-        renderTestQuestion();
-    }
+    const options = (q.options || []).map((o, i) => `
+        <div class="option-item" onclick="selectAnswer(${i})">
+            ${o}
+        </div>
+    `).join('');
 
-    function renderTestQuestion() {
-        const q = currentTestQuestions[currentTestIndex];
-        const total = currentTestQuestions.length;
-        document.getElementById('testCounter').textContent = `السؤال ${currentTestIndex+1} من ${total}`;
+    document.getElementById('testOptionsContainer').innerHTML = options;
+}
 
-        // وسائط
-        let mediaHtml = '';
-        if (q.mediaUrl && q.mediaType !== 'text') {
-            if (q.mediaType === 'image' || q.mediaType === 'gif') {
-                mediaHtml = `<img src="${q.mediaUrl}" class="question-media">`;
-            } else if (q.mediaType === 'video') {
-                mediaHtml = `<video controls src="${q.mediaUrl}" class="question-media"></video>`;
-            }
-        }
-        document.getElementById('testMediaContainer').innerHTML = mediaHtml;
+function selectAnswer(i) {
+    state.test.answers[state.test.index] = i;
+}
 
-        // نص السؤال
-        document.getElementById('testQuestionText').textContent = q.question;
+function finishTest() {
 
-        // خيارات قابلة للنقر
-        const optionsHtml = q.options.map((opt, i) => {
-            const isSelected = testAnswers[currentTestIndex] === i;
-            return `<div class="option-item ${isSelected ? 'selected' : ''}" onclick="selectTestAnswer(${i})">${opt}</div>`;
-        }).join('');
-        document.getElementById('testOptionsContainer').innerHTML = optionsHtml;
+    let score = 0;
 
-        // أزرار التنقل
-        document.querySelector('#testScreen .btn-outline:nth-child(1)').disabled = (currentTestIndex === 0);
-        document.querySelector('#testScreen .btn-outline:nth-child(2)').disabled = (currentTestIndex === total - 1);
-    }
+    state.test.list.forEach((q, i) => {
+        if (state.test.answers[i] === q.correctAnswer) score++;
+    });
 
-    function selectTestAnswer(index) {
-        testAnswers[currentTestIndex] = index;
-        renderTestQuestion();
-    }
+    const percent = Math.round((score / state.test.list.length) * 100);
 
-    function prevTestQuestion() {
-        if (currentTestIndex > 0) {
-            currentTestIndex--;
-            renderTestQuestion();
-        }
-    }
+    document.getElementById('resultMessage').textContent =
+        `${score} / ${state.test.list.length} (${percent}%)`;
 
-    function nextTestQuestion() {
-        if (currentTestIndex < currentTestQuestions.length - 1) {
-            currentTestIndex++;
-            renderTestQuestion();
-        }
-    }
+    showScreen('resultScreen');
+}
 
-    function finishTestSession() {
-        let correctCount = 0;
-        for (let i = 0; i < currentTestQuestions.length; i++) {
-            if (testAnswers[i] === currentTestQuestions[i].correctAnswer) {
-                correctCount++;
-            }
-        }
-        const total = currentTestQuestions.length;
-        const percentage = Math.round((correctCount / total) * 100);
-        document.getElementById('resultMessage').innerHTML = 
-            `أجبت على ${correctCount} من ${total} إجابة صحيحة (${percentage}%)`;
-        showScreen('resultScreen');
-    }
+/* =========================
+   AUTO FILL USER
+========================= */
 
-    // ============ بدء التشغيل ============
-    if (tg.initDataUnsafe?.user?.first_name) {
-        document.getElementById('fullName').value = tg.initDataUnsafe.user.first_name;
-    }
+if (tg?.initDataUnsafe?.user?.first_name) {
+    const el = document.getElementById('fullName');
+    if (el) el.value = tg.initDataUnsafe.user.first_name;
+}
+
 </script>
 </body>
 </html>
