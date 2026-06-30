@@ -440,7 +440,16 @@ tg.expand();
 
 let allGovs = {}, allAreas = {}, allCenters = {};
 let allQuestions = {};
-let currentQuestionCategory = null; // لحفظ القسم المختار في التعديل/الحذف
+let currentQuestionCategory = null;
+
+const questionCategories = [
+    "قواعد السير والمرور",
+    "الميكانيك",
+    "السلامة على الطريق",
+    "أسعافات أولية",
+    "الشواخص والخطوط والعلامات",
+    "المخالفات واحتساب النقاط"
+];
 
 // ============ دوال عامة ============
 function showScreen(id) {
@@ -841,34 +850,103 @@ async function showCentersForDelete(areaId, title) {
     document.getElementById('deleteContent').innerHTML = html;
 }
 
-// ============ إدارة الأسئلة (معدلة بالكامل) ============
-const questionCategories = [
-    "قواعد السير والمرور",
-    "الميكانيك",
-    "السلامة على الطريق",
-    "أسعافات أولية",
-    "الشواخص والخطوط والعلامات",
-    "المخالفات واحتساب النقاط"
-];
-
+// ============ إدارة الأسئلة (مصححة بالكامل) ============
 async function loadAllQuestions() {
     try { const snap = await db.ref('questions').once('value'); allQuestions = snap.val() || {}; } catch(e) { console.error(e); }
 }
 
-function showQuestionsManager() { showScreen('questionsManagerScreen'); }
+function showQuestionsManagerMain() {
+    showScreen('questionsManagerScreen');
+    document.getElementById('questionsManagerScreen').innerHTML = `
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
+        <h3 style="margin-bottom:16px;">📚 إدارة الأسئلة</h3>
+        <button class="btn btn-primary" onclick="showAddQuestionForm()" style="margin-bottom:12px;">➕ إضافة سؤال جديد</button>
+        <button class="btn btn-outline" onclick="showEditQuestionList()" style="margin-bottom:12px;">✏️ تعديل سؤال</button>
+        <button class="btn btn-outline" onclick="showDeleteQuestionList()" style="margin-bottom:12px;">🗑 حذف سؤال</button>
+    `;
+}
 
-// ============ إضافة سؤال (لم تتغير) ============
-function showAddQuestionForm() { /* ... نفس الكود السابق ... */ }
-function toggleMediaField() { /* ... */ }
-function addOption() { /* ... */ }
-function removeOption(btn) { /* ... */ }
-function updateCorrectSelect() { /* ... */ }
-async function saveQuestion() { /* ... */ }
+function showQuestionsManager() {
+    showQuestionsManagerMain();
+}
 
-// ============ تعديل الأسئلة (تم تعديلها) ============
+function showAddQuestionForm() {
+    showScreen('addQuestionScreen');
+    document.getElementById('qCategory').value = 'قواعد السير والمرور';
+    document.getElementById('qType').value = 'text';
+    document.getElementById('qMediaUrl').value = '';
+    document.getElementById('qText').value = '';
+    document.getElementById('qExplanation').value = '';
+    document.getElementById('mediaField').style.display = 'none';
+    document.getElementById('optionsContainer').innerHTML = `
+        <div class="option-row"><input type="text" class="form-input option-input" placeholder="الخيار 1"><button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button></div>
+        <div class="option-row"><input type="text" class="form-input option-input" placeholder="الخيار 2"><button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button></div>
+    `;
+    updateCorrectSelect();
+}
+
+function toggleMediaField() {
+    document.getElementById('mediaField').style.display = document.getElementById('qType').value !== 'text' ? 'block' : 'none';
+}
+
+function addOption() {
+    const container = document.getElementById('optionsContainer');
+    const count = container.querySelectorAll('.option-input').length;
+    const div = document.createElement('div');
+    div.className = 'option-row';
+    div.innerHTML = `<input type="text" class="form-input option-input" placeholder="الخيار ${count+1}"><button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button>`;
+    container.appendChild(div);
+    updateCorrectSelect();
+}
+
+function removeOption(btn) {
+    btn.parentElement.remove();
+    updateCorrectSelect();
+}
+
+function updateCorrectSelect() {
+    const options = document.querySelectorAll('#optionsContainer .option-input');
+    const select = document.getElementById('qCorrect');
+    const currentVal = select.value;
+    select.innerHTML = '';
+    options.forEach((opt, i) => {
+        select.innerHTML += `<option value="${i}">${opt.value || `الخيار ${i+1}`}</option>`;
+    });
+    if (currentVal < options.length) select.value = currentVal;
+}
+
+async function saveQuestion() {
+    const category = document.getElementById('qCategory').value;
+    const type = document.getElementById('qType').value;
+    const mediaUrl = document.getElementById('qMediaUrl').value.trim();
+    const question = document.getElementById('qText').value.trim();
+    const explanation = document.getElementById('qExplanation').value.trim();
+    const correctAnswer = parseInt(document.getElementById('qCorrect').value);
+    const options = Array.from(document.querySelectorAll('#optionsContainer .option-input')).map(inp => inp.value.trim()).filter(opt => opt !== '');
+
+    if (!question) { tg.showAlert('الرجاء إدخال نص السؤال'); return; }
+    if (options.length < 2) { tg.showAlert('يجب إدخال خيارين على الأقل'); return; }
+    if (type !== 'text' && !mediaUrl) { tg.showAlert('الرجاء إدخال رابط الوسائط'); return; }
+
+    try {
+        await db.ref('questions').push({
+            category,
+            mediaType: type,
+            mediaUrl: type !== 'text' ? mediaUrl : null,
+            question,
+            options,
+            correctAnswer,
+            explanation: explanation || null
+        });
+        tg.showAlert('✅ تم حفظ السؤال بنجاح!');
+        showQuestionsManagerMain();
+    } catch(e) { tg.showAlert('❌ حدث خطأ أثناء الحفظ'); }
+}
+
+// ============ تعديل الأسئلة ============
 async function showEditQuestionList() {
     await loadAllQuestions();
-    let html = '<button class="back-btn" onclick="showQuestionsManager()"><i class="ph ph-arrow-right"></i> رجوع لإدارة الأسئلة</button>';
+    let html = '<button class="back-btn" onclick="showQuestionsManagerMain()"><i class="ph ph-arrow-right"></i> رجوع لإدارة الأسئلة</button>';
     html += '<h3>اختر القسم</h3>';
     questionCategories.forEach(cat => {
         html += `<div class="selection-card" onclick="showCategoryQuestionsForEdit('${cat}')">${cat}</div>`;
@@ -896,7 +974,8 @@ async function showCategoryQuestionsForEdit(category) {
 }
 
 async function editQuestion(id) {
-    const q = allQuestions[id]; if (!q) return;
+    const q = allQuestions[id];
+    if (!q) return;
     showScreen('addQuestionScreen');
     document.getElementById('qCategory').value = q.category;
     document.getElementById('qType').value = q.mediaType || 'text';
@@ -907,7 +986,8 @@ async function editQuestion(id) {
     const container = document.getElementById('optionsContainer');
     container.innerHTML = '';
     q.options.forEach((opt, i) => {
-        const div = document.createElement('div'); div.className = 'option-row';
+        const div = document.createElement('div');
+        div.className = 'option-row';
         div.innerHTML = `<input type="text" class="form-input option-input" value="${opt}"><button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button>`;
         container.appendChild(div);
     });
@@ -919,7 +999,6 @@ async function editQuestion(id) {
 }
 
 async function updateQuestion(id) {
-    // ... (نفس كود التحديث السابق مع mediaType) ...
     const category = document.getElementById('qCategory').value;
     const type = document.getElementById('qType').value;
     const mediaUrl = document.getElementById('qMediaUrl').value.trim();
@@ -934,20 +1013,23 @@ async function updateQuestion(id) {
 
     try {
         await db.ref('questions/' + id).update({
-            category, mediaType: type,
+            category,
+            mediaType: type,
             mediaUrl: type !== 'text' ? mediaUrl : null,
-            question, options, correctAnswer, explanation: explanation || null
+            question,
+            options,
+            correctAnswer,
+            explanation: explanation || null
         });
         tg.showAlert('✅ تم تحديث السؤال بنجاح!');
-        // العودة إلى قائمة أسئلة القسم
         showCategoryQuestionsForEdit(category);
     } catch(e) { tg.showAlert('❌ حدث خطأ أثناء التحديث'); }
 }
 
-// ============ حذف الأسئلة (تم تعديلها) ============
+// ============ حذف الأسئلة ============
 async function showDeleteQuestionList() {
     await loadAllQuestions();
-    let html = '<button class="back-btn" onclick="showQuestionsManager()"><i class="ph ph-arrow-right"></i> رجوع لإدارة الأسئلة</button>';
+    let html = '<button class="back-btn" onclick="showQuestionsManagerMain()"><i class="ph ph-arrow-right"></i> رجوع لإدارة الأسئلة</button>';
     html += '<h3>اختر القسم</h3>';
     questionCategories.forEach(cat => {
         html += `<div class="selection-card" onclick="showCategoryQuestionsForDelete('${cat}')">${cat}</div>`;
@@ -979,7 +1061,6 @@ async function deleteQuestionConfirm(id, text) {
     try {
         await db.ref('questions/' + id).remove();
         tg.showAlert('✅ تم الحذف بنجاح!');
-        // العودة إلى قائمة أسئلة القسم الحالي
         showCategoryQuestionsForDelete(currentQuestionCategory);
     } catch(e) { tg.showAlert('❌ حدث خطأ أثناء الحذف'); }
 }
