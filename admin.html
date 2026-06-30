@@ -840,7 +840,7 @@ async function showCentersForDelete(areaId, title) {
     document.getElementById('deleteContent').innerHTML = html;
 }
 
-// ============ إدارة الأسئلة ============
+// ============ إدارة الأسئلة (مع تصحيح mediaType) ============
 async function loadAllQuestions() {
     try { const snap = await db.ref('questions').once('value'); allQuestions = snap.val() || {}; } catch(e) { console.error(e); }
 }
@@ -899,7 +899,15 @@ async function saveQuestion() {
     if (type !== 'text' && !mediaUrl) { tg.showAlert('الرجاء إدخال رابط الوسائط'); return; }
 
     try {
-        await db.ref('questions').push({ category, type, mediaUrl: type !== 'text' ? mediaUrl : null, question, options, correctAnswer, explanation: explanation || null });
+        await db.ref('questions').push({
+            category,
+            mediaType: type,  // تم التصحيح
+            mediaUrl: type !== 'text' ? mediaUrl : null,
+            question,
+            options,
+            correctAnswer,
+            explanation: explanation || null
+        });
         tg.showAlert('✅ تم حفظ السؤال بنجاح!');
         showQuestionsManager();
     } catch(e) { tg.showAlert('❌ حدث خطأ أثناء الحفظ'); }
@@ -918,7 +926,7 @@ async function editQuestion(id) {
     const q = allQuestions[id]; if (!q) return;
     showScreen('addQuestionScreen');
     document.getElementById('qCategory').value = q.category;
-    document.getElementById('qType').value = q.type || 'text';
+    document.getElementById('qType').value = q.mediaType || 'text';  // تم التصحيح
     document.getElementById('qText').value = q.question;
     document.getElementById('qMediaUrl').value = q.mediaUrl || '';
     document.getElementById('qExplanation').value = q.explanation || '';
@@ -951,7 +959,15 @@ async function updateQuestion(id) {
     if (type !== 'text' && !mediaUrl) { tg.showAlert('الرجاء إدخال رابط الوسائط'); return; }
 
     try {
-        await db.ref('questions/' + id).update({ category, type, mediaUrl: type !== 'text' ? mediaUrl : null, question, options, correctAnswer, explanation: explanation || null });
+        await db.ref('questions/' + id).update({
+            category,
+            mediaType: type,  // تم التصحيح
+            mediaUrl: type !== 'text' ? mediaUrl : null,
+            question,
+            options,
+            correctAnswer,
+            explanation: explanation || null
+        });
         tg.showAlert('✅ تم تحديث السؤال بنجاح!');
         showQuestionsManager();
     } catch(e) { tg.showAlert('❌ حدث خطأ أثناء التحديث'); }
