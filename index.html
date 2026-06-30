@@ -240,7 +240,18 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
         .center-name-link { color: var(--primary); text-decoration: none; font-weight: 800; font-size: 17px; }
-        .center-phone-link { color: var(--text); text-decoration: none; }
+        
+        /* رقم الهاتف القابل للنسخ */
+        .copy-phone {
+            cursor: pointer;
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .copy-phone:active {
+            color: var(--primary);
+        }
+
         .rating-badge {
             display: inline-flex; align-items: center; gap: 6px;
             background: #FEF3C7; color: #92400E;
@@ -556,6 +567,27 @@
         renderCenterCards(centers);
     }
 
+    // دالة نسخ الرقم مع إشعار
+    function copyPhone(phone) {
+        if (!phone) return;
+        try {
+            navigator.clipboard.writeText(phone).then(() => {
+                tg.showAlert('✅ تم نسخ الرقم: ' + phone);
+            }).catch(() => {
+                // طريقة احتياطية للمتصفحات القديمة
+                const textarea = document.createElement('textarea');
+                textarea.value = phone;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                tg.showAlert('✅ تم نسخ الرقم: ' + phone);
+            });
+        } catch(e) {
+            tg.showAlert('❌ فشل نسخ الرقم');
+        }
+    }
+
     function renderCenterCards(centers) {
         const container = document.getElementById('centerList');
         if (centers.length === 0) {
@@ -567,7 +599,9 @@
                 <div class="center-name"><a href="${c.mapLink || '#'}" class="center-name-link" target="_blank">${c.name}</a></div>
                 <div class="center-details" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:12px;">
                     <span><i class="ph ph-map-pin"></i> ${c.address || 'لا يوجد عنوان'}</span>
-                    <span><i class="ph ph-phone"></i> <a href="tel:${c.phone}" class="center-phone-link">${c.phone || 'لا يوجد رقم'}</a></span>
+                    <span class="copy-phone" onclick="copyPhone('${c.phone}')">
+                        <i class="ph ph-phone"></i> ${c.phone || 'لا يوجد رقم'}
+                    </span>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
                     <div class="rating-badge"><i class="ph-fill ph-star"></i> ${c.rating || 0}/5</div>
