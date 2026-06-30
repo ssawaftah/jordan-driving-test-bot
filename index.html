@@ -569,7 +569,10 @@
                     <span><i class="ph ph-map-pin"></i> ${c.address || 'لا يوجد عنوان'}</span>
                     <span><i class="ph ph-phone"></i> <a href="tel:${c.phone}" class="center-phone-link">${c.phone || 'لا يوجد رقم'}</a></span>
                 </div>
-                <div class="rating-badge"><i class="ph-fill ph-star"></i> ${c.rating || 0}/5</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                    <div class="rating-badge"><i class="ph-fill ph-star"></i> ${c.rating || 0}/5</div>
+                    <span style="font-size:11px; color:var(--text-light);">حسب Google Maps</span>
+                </div>
             </div>
         `).join('');
     }
