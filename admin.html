@@ -276,6 +276,14 @@
                 <div class="admin-card-content"><div class="admin-card-title">إدارة الأسئلة</div><div class="admin-card-desc">إضافة وتعديل وحذف أسئلة الفحص النظري</div></div>
                 <i class="ph ph-caret-left admin-arrow"></i>
             </div>
+            <div class="admin-card" onclick="showCenterRequestsManager()">
+    <div class="admin-card-icon gold"><i class="ph ph-clipboard-text"></i></div>
+    <div class="admin-card-content">
+        <div class="admin-card-title">إدارة طلبات الانتساب</div>
+        <div class="admin-card-desc">مراجعة ونشر طلبات إضافة مراكز التدريب</div>
+    </div>
+    <i class="ph ph-caret-left admin-arrow"></i>
+</div>
             <div class="admin-card" onclick="showAddForm('governorate')">
                 <div class="admin-card-icon green"><i class="ph ph-map-trifold"></i></div>
                 <div class="admin-card-content"><div class="admin-card-title">إضافة محافظة</div><div class="admin-card-desc">إنشاء محافظة جديدة داخل النظام</div></div>
@@ -417,7 +425,15 @@
 
         <button class="btn btn-primary" onclick="saveQuestion()">💾 حفظ السؤال</button>
     </div>
-
+<!-- شاشة إدارة طلبات الانتساب -->
+<div id="centerRequestsScreen" class="screen">
+    <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3>📋 إدارة طلبات الانتساب</h3>
+        <span class="user-count-badge" id="requestsCountBadge">0 طلب</span>
+    </div>
+    <div id="requestsList"></div>
+</div>
     <!-- تحميل -->
     <div id="loadingOverlay" class="loading-overlay" style="display:none;">
         <div class="spinner"></div>
@@ -1071,7 +1087,163 @@ async function deleteQuestionConfirm(id, text) {
         showCategoryQuestionsForDelete(currentQuestionCategory);
     } catch(e) { tg.showAlert('❌ حدث خطأ أثناء الحذف'); }
 }
+// ============ إدارة طلبات الانتساب ============
+let allRequests = {};
 
+async function loadAllRequests() {
+    try {
+        const snap = await db.ref('centerRequests').once('value');
+        allRequests = snap.val() || {};
+    } catch(e) { console.error(e); }
+}
+
+async function showCenterRequestsManager() {
+    showScreen('centerRequestsScreen');
+    await loadAllRequests();
+    renderRequests();
+}
+
+function renderRequests() {
+    const container = document.getElementById('requestsList');
+    const entries = Object.entries(allRequests);
+    document.getElementById('requestsCountBadge').textContent = entries.length + ' طلب';
+    
+    if (entries.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="ph ph-clipboard-text"></i><p>لا توجد طلبات انتساب حالياً</p></div>`;
+        return;
+    }
+    
+    // ترتيب من الأحدث للأقدم
+    entries.sort((a, b) => (b[1].submittedAt || '').localeCompare(a[1].submittedAt || ''));
+    
+    container.innerHTML = entries.map(([reqId, req]) => {
+        const areasList = (req.areas || []).map(a => a.name).join('، ');
+        const workingDaysList = (req.workingDays || []).join('، ');
+        const statusBadge = req.status === 'pending' 
+            ? '<span style="background:#FEF3C7;color:#92400E;padding:4px 10px;border-radius:999px;font-size:12px;">⏳ قيد المراجعة</span>'
+            : req.status === 'approved'
+            ? '<span style="background:#ECFDF3;color:#059669;padding:4px 10px;border-radius:999px;font-size:12px;">✅ تم النشر</span>'
+            : '<span style="background:#FEF2F2;color:#DC2626;padding:4px 10px;border-radius:999px;font-size:12px;">❌ مرفوض</span>';
+        
+        return `
+            <div class="request-card" style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;" id="req-${reqId}">
+                <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
+                    <h4 style="font-size:17px;font-weight:700;">${req.name}</h4>
+                    ${statusBadge}
+                </div>
+                
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text-light);margin-bottom:12px;">
+                    <div><i class="ph ph-map-pin"></i> ${req.governorateName || 'غير محدد'}</div>
+                    <div><i class="ph ph-buildings"></i> ${areasList || 'لا يوجد'}</div>
+                    <div><i class="ph ph-phone"></i> ${req.phone || 'لا يوجد'}</div>
+                    <div><i class="ph ph-star"></i> ${req.rating || 0}/5</div>
+                    <div style="grid-column:1/-1;"><i class="ph ph-map-pin"></i> ${req.address || 'لا يوجد عنوان'}</div>
+                </div>
+                
+                ${req.workingDays && req.workingDays.length > 0 ? `
+                <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;">
+                    <i class="ph ph-calendar"></i> أيام الدوام: ${workingDaysList}
+                </div>` : ''}
+                
+                ${req.workingHours ? `
+                <div style="font-size:12px;color:var(--text-light);margin-bottom:12px;">
+                    <i class="ph ph-clock"></i> ساعات الدوام: ${req.workingHours}
+                </div>` : ''}
+                
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-sm btn-primary" onclick="publishRequest('${reqId}')" style="width:auto;">
+                        <i class="ph ph-check-circle"></i> نشر
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="editRequestForm('${reqId}')" style="width:auto;">
+                        <i class="ph ph-pencil-simple"></i> تعديل
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="rejectRequest('${reqId}')" style="width:auto;">
+                        <i class="ph ph-x-circle"></i> رفض
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function publishRequest(reqId) {
+    const req = allRequests[reqId];
+    if (!req) return;
+    
+    if (!confirm(`هل أنت متأكد من نشر "${req.name}"؟\n\nسيظهر المركز في قسم مراكز التدريب القريبة.`)) return;
+    
+    showLoading('جاري النشر...');
+    
+    try {
+        // إضافة المركز إلى جدول centers
+        // نضيفه لكل منطقة مختارة
+        for (const area of (req.areas || [])) {
+            await db.ref('centers').push({
+                name: req.name,
+                areaId: area.id,
+                address: req.address,
+                mapLink: req.mapLink,
+                phone: req.phone,
+                rating: req.rating || 0,
+                workingDays: req.workingDays || [],
+                workingHours: req.workingHours || ''
+            });
+        }
+        
+        // حذف الطلب من centerRequests
+        await db.ref('centerRequests/' + reqId).remove();
+        
+        tg.showAlert('✅ تم نشر المركز بنجاح!');
+        showCenterRequestsManager();
+    } catch(e) {
+        tg.showAlert('❌ حدث خطأ أثناء النشر');
+    }
+    
+    hideLoading();
+}
+
+async function rejectRequest(reqId) {
+    const req = allRequests[reqId];
+    if (!req) return;
+    
+    if (!confirm(`هل أنت متأكد من رفض "${req.name}"؟\n\nسيتم حذف الطلب نهائياً.`)) return;
+    
+    try {
+        await db.ref('centerRequests/' + reqId).remove();
+        tg.showAlert('✅ تم رفض الطلب وحذفه!');
+        showCenterRequestsManager();
+    } catch(e) {
+        tg.showAlert('❌ حدث خطأ أثناء الرفض');
+    }
+}
+
+function editRequestForm(reqId) {
+    const req = allRequests[reqId];
+    if (!req) return;
+    
+    const newName = prompt('اسم المركز:', req.name);
+    if (newName === null) return;
+    
+    const newPhone = prompt('رقم الهاتف:', req.phone);
+    if (newPhone === null) return;
+    
+    const newRating = prompt('التقييم (من 5):', req.rating || 0);
+    if (newRating === null) return;
+    
+    const newWorkingHours = prompt('ساعات الدوام:', req.workingHours || '');
+    if (newWorkingHours === null) return;
+    
+    // تحديث الطلب
+    db.ref('centerRequests/' + reqId).update({
+        name: newName || req.name,
+        phone: newPhone || req.phone,
+        rating: parseFloat(newRating) || 0,
+        workingHours: newWorkingHours || req.workingHours
+    }).then(() => {
+        tg.showAlert('✅ تم تحديث الطلب بنجاح!');
+        showCenterRequestsManager();
+    });
+}
 // ============ بدء التشغيل ============
 loadStats();
 </script>
