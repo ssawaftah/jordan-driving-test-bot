@@ -134,6 +134,8 @@
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 10px 24px rgba(36, 107, 253, .20); }
         .btn-primary:active { background: var(--primary-dark); }
         .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-success { background: #16A34A; color: white; }
+        .btn-warning { background: #F59E0B; color: white; }
 
         .form-group { margin-bottom: 18px; }
         .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
@@ -240,17 +242,8 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
         .center-name-link { color: var(--primary); text-decoration: none; font-weight: 800; font-size: 17px; }
-        
-        /* رقم الهاتف القابل للنسخ */
-        .copy-phone {
-            cursor: pointer;
-            color: var(--text);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .copy-phone:active {
-            color: var(--primary);
-        }
+        .copy-phone { cursor: pointer; color: var(--text); text-decoration: none; transition: color 0.2s; }
+        .copy-phone:active { color: var(--primary); }
 
         .rating-badge {
             display: inline-flex; align-items: center; gap: 6px;
@@ -277,6 +270,41 @@
             margin-bottom: 18px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ============ أنماط الأسئلة ============ */
+        .question-media {
+            width: 100%; max-width: 100%;
+            border-radius: 16px; margin: 15px 0;
+        }
+        .question-text {
+            font-size: 18px; font-weight: 600;
+            margin-bottom: 20px; line-height: 1.7;
+        }
+        .options-list {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .option-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 16px;
+            font-size: 15px; font-weight: 500;
+            transition: var(--transition);
+            cursor: default;
+        }
+        .option-item.correct-answer {
+            background: #ECFDF3; border-color: #16A34A;
+            color: #15803D; font-weight: 700;
+        }
+        .option-item.selected {
+            background: var(--primary-light); border-color: var(--primary);
+        }
+        .nav-buttons {
+            display: flex; gap: 10px; margin-top: 20px;
+        }
+        .nav-buttons .btn { flex: 1; }
+        .result-card {
+            text-align: center; padding: 30px 20px;
+        }
     </style>
 </head>
 <body>
@@ -328,39 +356,70 @@
             <p class="subtitle" id="greetingText">مرحباً بك! منصتك للاستعداد لاختبار السواقة النظري.</p>
         </div>
         <div class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل الامتحان التجريبي قريباً')"><div class="card-icon green"><i class="ph ph-pencil-line"></i></div><div class="card-content"><div class="card-title">بدء الامتحان النظري الحي</div><div class="card-desc">محاكاة واقعية لاختبار القيادة النظري</div></div><i class="ph ph-caret-left"></i></div>
-        <div class="btn-card" onclick="Telegram.WebApp.showAlert('سيتم تفعيل دراسة الأسئلة قريباً')"><div class="card-icon blue"><i class="ph ph-book-open"></i></div><div class="card-content"><div class="card-title">دراسة الأسئلة</div><div class="card-desc">مراجعة الأسئلة حسب الأقسام المختلفة</div></div><i class="ph ph-caret-left"></i></div>
+        <!-- هنا تعديل زر دراسة الأسئلة ليفتح الشاشة الجديدة -->
+        <div class="btn-card" onclick="showStudyCategories()"><div class="card-icon blue"><i class="ph ph-book-open"></i></div><div class="card-content"><div class="card-title">دراسة الأسئلة</div><div class="card-desc">مراجعة الأسئلة حسب الأقسام المختلفة</div></div><i class="ph ph-caret-left"></i></div>
         <div class="btn-card" onclick="openTrainingCenters()"><div class="card-icon gold"><i class="ph ph-map-pin"></i></div><div class="card-content"><div class="card-title">مراكز تدريب القيادة القريبة</div><div class="card-desc">اعثر على أقرب مركز تدريب معتمد</div></div><i class="ph ph-caret-left"></i></div>
     </div>
 
     <!-- شاشة مراكز التدريب -->
     <div id="trainingCentersScreen" class="screen">
-        <!-- المستوى 1: اختيار المحافظة -->
         <div id="govLevel">
             <button class="back-btn" onclick="showScreen('homeScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button>
             <h2 style="font-size:22px; font-weight:800; margin-bottom:8px;">المحافظات</h2>
-            <div class="search-box">
-                <i class="ph ph-magnifying-glass"></i>
-                <input type="text" class="form-input" id="govSearch" placeholder="ابحث عن محافظة..." oninput="filterGovernorates()">
-            </div>
+            <div class="search-box"><i class="ph ph-magnifying-glass"></i><input type="text" class="form-input" id="govSearch" placeholder="ابحث عن محافظة..." oninput="filterGovernorates()"></div>
             <div class="location-list" id="govList"></div>
         </div>
-
-        <!-- المستوى 2: تفاصيل المحافظة -->
         <div id="detailLevel" style="display:none;">
             <button class="back-btn" onclick="goToGovernorates()"><i class="ph ph-arrow-right"></i> رجوع للمحافظات</button>
             <h2 style="font-size:22px; font-weight:800; margin-bottom:4px;" id="centerGovTitle"></h2>
             <p style="color:var(--text-light); font-size:14px; margin-bottom:20px;" id="centerResultCount"></p>
-
-            <div class="search-box">
-                <i class="ph ph-magnifying-glass"></i>
-                <input type="text" class="form-input" id="centerSearch" placeholder="ابحث عن مركز تدريب..." oninput="filterCenters()">
-            </div>
-
-            <div class="areas-scroll-container">
-                <div class="areas-scroll" id="areasScroll"></div>
-            </div>
-
+            <div class="search-box"><i class="ph ph-magnifying-glass"></i><input type="text" class="form-input" id="centerSearch" placeholder="ابحث عن مركز تدريب..." oninput="filterCenters()"></div>
+            <div class="areas-scroll-container"><div class="areas-scroll" id="areasScroll"></div></div>
             <div id="centerList"></div>
+        </div>
+    </div>
+
+    <!-- ============ شاشات الأسئلة الجديدة ============ -->
+    <!-- شاشة أقسام الأسئلة -->
+    <div id="studyCategoriesScreen" class="screen">
+        <button class="back-btn" onclick="showScreen('homeScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button>
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:16px;">📚 أقسام الأسئلة</h2>
+        <div id="categoriesList" class="location-list"></div>
+    </div>
+
+    <!-- شاشة دراسة الأسئلة -->
+    <div id="studyScreen" class="screen">
+        <div class="counter" id="studyCounter" style="text-align:center; color:var(--text-light); margin-bottom:10px;"></div>
+        <div id="studyMediaContainer"></div>
+        <div class="question-text" id="studyQuestionText"></div>
+        <div class="options-list" id="studyOptionsContainer"></div>
+        <div class="nav-buttons">
+            <button class="btn btn-outline" onclick="prevStudyQuestion()">◀ السابق</button>
+            <button class="btn btn-outline" onclick="nextStudyQuestion()">التالي ▶</button>
+        </div>
+        <button class="btn btn-primary" onclick="finishStudySession()" style="margin-top:15px;">🚪 إنهاء المراجعة</button>
+    </div>
+
+    <!-- شاشة اختبار القسم -->
+    <div id="testScreen" class="screen">
+        <div class="counter" id="testCounter" style="text-align:center; color:var(--text-light); margin-bottom:10px;"></div>
+        <div id="testMediaContainer"></div>
+        <div class="question-text" id="testQuestionText"></div>
+        <div class="options-list" id="testOptionsContainer"></div>
+        <div class="nav-buttons">
+            <button class="btn btn-outline" onclick="prevTestQuestion()">◀ السابق</button>
+            <button class="btn btn-outline" onclick="nextTestQuestion()">التالي ▶</button>
+        </div>
+        <button class="btn btn-success" onclick="finishTestSession()" style="margin-top:15px;">✅ إنهاء الاختبار</button>
+    </div>
+
+    <!-- شاشة نتيجة الاختبار -->
+    <div id="resultScreen" class="screen">
+        <div class="result-card">
+            <i class="ph ph-trophy" style="font-size:64px; color:var(--gold);"></i>
+            <h2 style="margin:20px 0;">نتيجتك</h2>
+            <p id="resultMessage" style="font-size:20px; margin-bottom:20px;"></p>
+            <button class="btn btn-primary" onclick="showStudyCategories()">📂 الرجوع لقائمة الأقسام</button>
         </div>
     </div>
 
@@ -385,6 +444,22 @@
     let allGovs = {}, allAreas = {}, allCenters = {};
     let currentGovId = null;
     let currentAreaFilter = null;
+
+    // ============ متغيرات الأسئلة ============
+    const STUDY_CATEGORIES = [
+        "قواعد السير والمرور",
+        "الميكانيك",
+        "السلامة على الطريق",
+        "أسعافات أولية",
+        "الشواخص والخطوط والعلامات",
+        "المخالفات واحتساب النقاط"
+    ];
+    let allQuestions = {}; // سيتم تحميلها من Firebase
+    let currentStudyQuestions = [];
+    let currentStudyIndex = 0;
+    let currentTestQuestions = [];
+    let currentTestIndex = 0;
+    let testAnswers = []; // لتخزين إجابات المستخدم أثناء الاختبار
 
     // ============ دوال عامة ============
     function showScreen(id) {
@@ -412,6 +487,14 @@
             allGovs = govSnap.val() || {};
             allAreas = areaSnap.val() || {};
             allCenters = centerSnap.val() || {};
+        } catch(e) { console.error(e); }
+    }
+
+    // ============ تحميل الأسئلة من Firebase ============
+    async function loadAllQuestions() {
+        try {
+            const snap = await db.ref('questions').once('value');
+            allQuestions = snap.val() || {};
         } catch(e) { console.error(e); }
     }
 
@@ -567,14 +650,12 @@
         renderCenterCards(centers);
     }
 
-    // دالة نسخ الرقم مع إشعار
     function copyPhone(phone) {
         if (!phone) return;
         try {
             navigator.clipboard.writeText(phone).then(() => {
                 tg.showAlert('✅ تم نسخ الرقم: ' + phone);
             }).catch(() => {
-                // طريقة احتياطية للمتصفحات القديمة
                 const textarea = document.createElement('textarea');
                 textarea.value = phone;
                 document.body.appendChild(textarea);
@@ -609,6 +690,182 @@
                 </div>
             </div>
         `).join('');
+    }
+
+    // ============ دوال الأسئلة ============
+    async function showStudyCategories() {
+        showLoading('جاري تحميل الأسئلة...');
+        await loadAllQuestions();
+        hideLoading();
+        showScreen('studyCategoriesScreen');
+        renderStudyCategories();
+    }
+
+    function renderStudyCategories() {
+        const container = document.getElementById('categoriesList');
+        container.innerHTML = STUDY_CATEGORIES.map((cat, index) => `
+            <div class="location-card" onclick="startStudy('${cat}')">
+                <div class="loc-icon" style="background:#EEF4FF; color:#246BFD;"><i class="ph ph-bookmark-simple"></i></div>
+                <div class="loc-info">
+                    <div class="loc-name">${index+1}. ${cat}</div>
+                </div>
+                <i class="ph ph-caret-left" style="color:var(--text-light);"></i>
+            </div>
+        `).join('');
+    }
+
+    function startStudy(category) {
+        // فلترة الأسئلة حسب القسم
+        const qs = Object.values(allQuestions).filter(q => q.category === category);
+        if (qs.length === 0) {
+            tg.showAlert('لا توجد أسئلة في هذا القسم بعد.');
+            return;
+        }
+        currentStudyQuestions = qs;
+        currentStudyIndex = 0;
+        showScreen('studyScreen');
+        renderStudyQuestion();
+    }
+
+    function renderStudyQuestion() {
+        const q = currentStudyQuestions[currentStudyIndex];
+        const total = currentStudyQuestions.length;
+        document.getElementById('studyCounter').textContent = `السؤال ${currentStudyIndex+1} من ${total}`;
+
+        // وسائط
+        let mediaHtml = '';
+        if (q.mediaUrl && q.mediaType !== 'text') {
+            if (q.mediaType === 'image' || q.mediaType === 'gif') {
+                mediaHtml = `<img src="${q.mediaUrl}" class="question-media">`;
+            } else if (q.mediaType === 'video') {
+                mediaHtml = `<video controls src="${q.mediaUrl}" class="question-media"></video>`;
+            }
+        }
+        document.getElementById('studyMediaContainer').innerHTML = mediaHtml;
+
+        // نص السؤال
+        document.getElementById('studyQuestionText').textContent = q.question;
+
+        // خيارات (غير قابلة للنقر، مع تمييز الصحيحة)
+        const optionsHtml = q.options.map((opt, i) => {
+            const isCorrect = i === q.correctAnswer;
+            return `<div class="option-item ${isCorrect ? 'correct-answer' : ''}">${opt}</div>`;
+        }).join('');
+        document.getElementById('studyOptionsContainer').innerHTML = optionsHtml;
+
+        // شرح (اختياري)
+        if (q.explanation) {
+            document.getElementById('studyOptionsContainer').innerHTML += `
+                <div style="margin-top:12px; padding:12px; background:#FEF3C7; border-radius:12px; font-size:14px;">
+                    💡 ${q.explanation}
+                </div>`;
+        }
+
+        // تفعيل/تعطيل أزرار التنقل
+        document.querySelector('#studyScreen .btn-outline:nth-child(1)').disabled = (currentStudyIndex === 0);
+        document.querySelector('#studyScreen .btn-outline:nth-child(2)').disabled = (currentStudyIndex === total - 1);
+    }
+
+    function prevStudyQuestion() {
+        if (currentStudyIndex > 0) {
+            currentStudyIndex--;
+            renderStudyQuestion();
+        }
+    }
+
+    function nextStudyQuestion() {
+        if (currentStudyIndex < currentStudyQuestions.length - 1) {
+            currentStudyIndex++;
+            renderStudyQuestion();
+        } else {
+            // انتهت الأسئلة
+            finishStudySession();
+        }
+    }
+
+    function finishStudySession() {
+        const currentCategory = currentStudyQuestions[0]?.category;
+        showScreen('studyCategoriesScreen');
+        // يمكن إظهار رسالة أو الانتقال مباشرة
+    }
+
+    // ============ اختبار القسم ============
+    function startCategoryTest(category) {
+        const qs = Object.values(allQuestions).filter(q => q.category === category);
+        if (qs.length === 0) {
+            tg.showAlert('لا توجد أسئلة للاختبار في هذا القسم.');
+            return;
+        }
+        // ترتيب عشوائي
+        currentTestQuestions = [...qs].sort(() => Math.random() - 0.5);
+        currentTestIndex = 0;
+        testAnswers = new Array(currentTestQuestions.length).fill(null);
+        showScreen('testScreen');
+        renderTestQuestion();
+    }
+
+    function renderTestQuestion() {
+        const q = currentTestQuestions[currentTestIndex];
+        const total = currentTestQuestions.length;
+        document.getElementById('testCounter').textContent = `السؤال ${currentTestIndex+1} من ${total}`;
+
+        // وسائط
+        let mediaHtml = '';
+        if (q.mediaUrl && q.mediaType !== 'text') {
+            if (q.mediaType === 'image' || q.mediaType === 'gif') {
+                mediaHtml = `<img src="${q.mediaUrl}" class="question-media">`;
+            } else if (q.mediaType === 'video') {
+                mediaHtml = `<video controls src="${q.mediaUrl}" class="question-media"></video>`;
+            }
+        }
+        document.getElementById('testMediaContainer').innerHTML = mediaHtml;
+
+        // نص السؤال
+        document.getElementById('testQuestionText').textContent = q.question;
+
+        // خيارات قابلة للنقر
+        const optionsHtml = q.options.map((opt, i) => {
+            const isSelected = testAnswers[currentTestIndex] === i;
+            return `<div class="option-item ${isSelected ? 'selected' : ''}" onclick="selectTestAnswer(${i})">${opt}</div>`;
+        }).join('');
+        document.getElementById('testOptionsContainer').innerHTML = optionsHtml;
+
+        // أزرار التنقل
+        document.querySelector('#testScreen .btn-outline:nth-child(1)').disabled = (currentTestIndex === 0);
+        document.querySelector('#testScreen .btn-outline:nth-child(2)').disabled = (currentTestIndex === total - 1);
+    }
+
+    function selectTestAnswer(index) {
+        testAnswers[currentTestIndex] = index;
+        renderTestQuestion();
+    }
+
+    function prevTestQuestion() {
+        if (currentTestIndex > 0) {
+            currentTestIndex--;
+            renderTestQuestion();
+        }
+    }
+
+    function nextTestQuestion() {
+        if (currentTestIndex < currentTestQuestions.length - 1) {
+            currentTestIndex++;
+            renderTestQuestion();
+        }
+    }
+
+    function finishTestSession() {
+        let correctCount = 0;
+        for (let i = 0; i < currentTestQuestions.length; i++) {
+            if (testAnswers[i] === currentTestQuestions[i].correctAnswer) {
+                correctCount++;
+            }
+        }
+        const total = currentTestQuestions.length;
+        const percentage = Math.round((correctCount / total) * 100);
+        document.getElementById('resultMessage').innerHTML = 
+            `أجبت على ${correctCount} من ${total} إجابة صحيحة (${percentage}%)`;
+        showScreen('resultScreen');
     }
 
     // ============ بدء التشغيل ============
