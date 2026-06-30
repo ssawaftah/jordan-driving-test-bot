@@ -12,330 +12,237 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <style>
-        :root {
-            --primary: #246BFD;
-            --primary-dark: #1F5CE0;
-            --primary-light: #EEF4FF;
-            --gold: #F4B942;
-            --text: #1F2937;
-            --text-light: #6B7280;
-            --bg: #FFFFFF;
-            --bg-secondary: #F7F8FC;
-            --card-bg: #FFFFFF;
-            --border: #E9EEF5;
-            --radius: 24px;
-            --transition: all .25s ease;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background: var(--bg-secondary);
-            color: var(--text);
-            direction: rtl;
-            text-align: right;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            min-height: 100vh;
-            background: white;
-            position: relative;
-        }
-
-        .app-header {
-            background: white;
-            padding: 22px 20px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-brand { display: flex; align-items: center; gap: 12px; }
-        .header-logo {
-            width: 48px; height: 48px;
-            border-radius: 16px;
-            background: var(--primary-light);
-            color: var(--primary);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px;
-        }
-        .header-title { font-size: 19px; font-weight: 800; }
-        .header-subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
-
-        .screen {
-            display: none;
-            padding: 24px 20px 40px;
-            animation: fadeIn .35s ease;
-        }
-        .screen.active { display: block; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .hero-section { text-align: center; margin-bottom: 28px; }
-        .hero-icon {
-            width: 84px; height: 84px;
-            margin: 10px auto 22px;
-            border-radius: 28px;
-            background: linear-gradient(135deg, #ffffff, #eef4ff);
-            color: var(--primary);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 42px;
-            box-shadow: 0 10px 30px rgba(36, 107, 253, .08);
-        }
-        .main-title { font-size: 31px; font-weight: 900; margin-bottom: 12px; }
-        .subtitle { color: var(--text-light); line-height: 1.9; font-size: 15px; }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin: 28px 0;
-        }
-        .feature-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 22px;
-            padding: 18px 12px;
-            text-align: center;
-            transition: var(--transition);
-            box-shadow: 0 2px 10px rgba(0,0,0,.03);
-        }
-        .feature-card:active { transform: scale(.98); }
-        .feature-icon {
-            width: 52px; height: 52px;
-            border-radius: 18px;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 12px;
-            font-size: 22px;
-        }
-        .feature-icon.trust { background: #ECFDF3; color: #16A34A; }
-        .feature-icon.simulation { background: #EEF4FF; color: #246BFD; }
-        .feature-icon.match { background: #FFF7ED; color: #EA580C; }
-        .feature-icon.complete { background: #FDF2F8; color: #DB2777; }
-        .feature-label { font-size: 14px; font-weight: 700; line-height: 1.5; }
-
-        .btn {
-            width: 100%; border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            font-family: 'Tajawal', sans-serif; transition: var(--transition);
-            border-radius: 18px;
-            font-size: 16px; font-weight: 700;
-            padding: 16px;
-        }
-        .btn-primary { background: var(--primary); color: white; box-shadow: 0 10px 24px rgba(36, 107, 253, .20); }
-        .btn-primary:active { background: var(--primary-dark); }
-        .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
-        .btn-success { background: #16A34A; color: white; }
-        .btn-warning { background: #F59E0B; color: white; }
-
-        .form-group { margin-bottom: 18px; }
-        .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
-        .form-input {
-            width: 100%; height: 58px;
-            padding: 0 16px;
-            border-radius: 18px;
-            border: 1px solid var(--border);
-            background: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 15px;
-            transition: .2s;
-        }
-        .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(36, 107, 253, .08); }
-
-        .btn-card {
-            background: white;
-            border: none;
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 16px;
-            display: flex; align-items: center; gap: 16px;
-            width: 100%;
-            cursor: pointer;
-            font-family: 'Tajawal', sans-serif;
-            box-shadow: 0 4px 18px rgba(0,0,0,.05);
-            transition: .2s;
-        }
-        .btn-card:active { transform: scale(.98); }
-        .btn-card .card-icon {
-            width: 58px; height: 58px;
-            border-radius: 18px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px;
-            flex-shrink: 0;
-        }
-        .btn-card .card-icon.green { background: #ECFDF3; color: #16A34A; }
-        .btn-card .card-icon.blue { background: #EEF4FF; color: #246BFD; }
-        .btn-card .card-icon.gold { background: #FFF8E7; color: #D97706; }
-        .btn-card .card-content { flex: 1; }
-        .btn-card .card-title { font-size: 17px; font-weight: 800; margin-bottom: 5px; }
-        .btn-card .card-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; }
-
-        .search-box { position: relative; margin-bottom: 20px; }
-        .search-box .form-input { padding-right: 44px; }
-        .search-box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 20px; }
-
-        .areas-scroll-container { position: relative; margin-bottom: 20px; }
-        .areas-scroll {
-            display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px;
-            padding-bottom: 8px; -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-        .areas-scroll::-webkit-scrollbar { display: none; }
-
-        .area-chip {
-            flex: 0 0 auto; padding: 10px 18px;
-            background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 100px; font-size: 14px; font-weight: 600;
-            color: var(--text); cursor: pointer; transition: var(--transition);
-            white-space: nowrap; font-family: 'Tajawal', sans-serif;
-        }
-        .area-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .area-chip:active { transform: scale(0.96); }
-
-        .back-btn {
-            background: none; border: none;
-            color: var(--primary);
-            font-family: 'Tajawal', sans-serif;
-            font-weight: 700; font-size: 15px;
-            cursor: pointer; padding: 8px 0;
-            margin-bottom: 16px;
-            display: flex; align-items: center; gap: 4px;
-        }
-
-        .location-list { display: flex; flex-direction: column; gap: 10px; }
-        .location-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex; align-items: center; gap: 14px;
-        }
-        .location-card:active { background: var(--primary-light); border-color: var(--primary); }
-        .location-card .loc-icon {
-            width: 44px; height: 44px;
-            border-radius: 14px;
-            background: var(--primary-light);
-            color: var(--primary);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; flex-shrink: 0;
-        }
-        .location-card .loc-info { flex: 1; }
-        .location-card .loc-name { font-weight: 700; font-size: 16px; }
-
-        .center-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 18px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-        }
-        .center-name-link { color: var(--primary); text-decoration: none; font-weight: 800; font-size: 17px; }
-        .copy-phone { cursor: pointer; color: var(--text); text-decoration: none; transition: color 0.2s; }
-        .copy-phone:active { color: var(--primary); }
-
-        .rating-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: #FEF3C7; color: #92400E;
-            padding: 6px 12px; border-radius: 12px;
-            font-size: 13px; font-weight: 700; margin-top: 8px;
-        }
-        .rating-badge i { color: #F59E0B; font-size: 16px; }
-
-        .loading-overlay {
-            position: fixed; inset: 0;
-            background: rgba(255,255,255,.95);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            z-index: 999;
-            backdrop-filter: blur(10px);
-        }
-        .loading-spinner {
-            width: 64px; height: 64px;
-            border: 4px solid #E5E7EB;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin .8s linear infinite;
-            margin-bottom: 18px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ============ أنماط الأسئلة ============ */
-        .question-media {
-            width: 100%; max-width: 100%;
-            border-radius: 16px; margin: 15px 0;
-        }
-        .question-text {
-            font-size: 18px; font-weight: 600;
-            margin-bottom: 20px; line-height: 1.7;
-        }
-        .options-list {
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        .option-item {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 16px; padding: 16px;
-            font-size: 15px; font-weight: 500;
-            transition: var(--transition);
-            cursor: default;
-        }
-        .option-item.correct-answer {
-            background: #ECFDF3; border-color: #16A34A;
-            color: #15803D; font-weight: 700;
-        }
-        .option-item.selected {
-            background: var(--primary-light); border-color: var(--primary);
-        }
-        .nav-buttons {
-            display: flex; gap: 10px; margin-top: 20px;
-        }
-        .nav-buttons .btn { flex: 1; }
-        .result-card {
-            text-align: center; padding: 30px 20px;
-        }
-        /* أيام الدوام */
-.working-days {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 8px;
+     :root {
+    --primary: #246BFD;
+    --primary-dark: #1F5CE0;
+    --primary-light: #EEF4FF;
+    --gold: #F4B942;
+    --text: #1F2937;
+    --text-light: #6B7280;
+    --bg: #FFFFFF;
+    --bg-secondary: #F7F8FC;
+    --card-bg: #FFFFFF;
+    --border: #E9EEF5;
+    --radius: 24px;
+    --transition: all .25s ease;
 }
 
-.day-badge {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Tajawal', sans-serif;
     background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    color: var(--text);
+    direction: rtl;
+    text-align: right;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: white;
+    position: relative;
+}
+
+/* Header */
+.app-header {
+    background: white;
+    padding: 22px 20px;
+    border: none;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-light);
-    transition: var(--transition);
+    justify-content: space-between;
 }
 
-.day-badge.active {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-logo {
+    width: 48px; height: 48px;
+    border-radius: 16px;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+}
+.header-title { font-size: 19px; font-weight: 800; }
+.header-subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+/* Screens */
+.screen {
+    display: none;
+    padding: 24px 20px 40px;
+    animation: fadeIn .35s ease;
+}
+.screen.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.center-card {
+/* Hero */
+.hero-section { text-align: center; margin-bottom: 28px; }
+.hero-icon {
+    width: 84px; height: 84px;
+    margin: 10px auto 22px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #ffffff, #eef4ff);
+    color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 42px;
+    box-shadow: 0 10px 30px rgba(36, 107, 253, .08);
+}
+.main-title { font-size: 31px; font-weight: 900; margin-bottom: 12px; }
+.subtitle { color: var(--text-light); line-height: 1.9; font-size: 15px; }
+
+/* Features */
+.features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 28px 0;
+}
+.feature-card {
     background: white;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 18px 12px;
+    text-align: center;
+    transition: var(--transition);
+    box-shadow: 0 2px 10px rgba(0,0,0,.03);
+}
+.feature-card:active { transform: scale(.98); }
+.feature-icon {
+    width: 52px; height: 52px;
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 22px;
+}
+.feature-icon.trust { background: #ECFDF3; color: #16A34A; }
+.feature-icon.simulation { background: #EEF4FF; color: #246BFD; }
+.feature-icon.match { background: #FFF7ED; color: #EA580C; }
+.feature-icon.complete { background: #FDF2F8; color: #DB2777; }
+.feature-label { font-size: 14px; font-weight: 700; line-height: 1.5; }
+
+/* Buttons */
+.btn {
+    width: 100%; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: 'Tajawal', sans-serif; transition: var(--transition);
+    border-radius: 18px;
+    font-size: 16px; font-weight: 700;
+    padding: 16px;
+}
+.btn-primary { background: var(--primary); color: white; box-shadow: 0 10px 24px rgba(36, 107, 253, .20); }
+.btn-primary:active { background: var(--primary-dark); }
+.btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
+.btn-success { background: #16A34A; color: white; }
+
+/* Registration */
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+.form-input {
+    width: 100%; height: 58px;
+    padding: 0 16px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: white;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 15px;
+    transition: .2s;
+}
+.form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(36, 107, 253, .08); }
+
+/* Home Cards */
+.btn-card {
+    background: white;
+    border: none;
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 16px;
+    width: 100%;
+    cursor: pointer;
+    font-family: 'Tajawal', sans-serif;
+    box-shadow: 0 4px 18px rgba(0,0,0,.05);
+    transition: .2s;
+}
+.btn-card:active { transform: scale(.98); }
+.btn-card .card-icon {
+    width: 58px; height: 58px;
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+.btn-card .card-icon.green { background: #ECFDF3; color: #16A34A; }
+.btn-card .card-icon.blue { background: #EEF4FF; color: #246BFD; }
+.btn-card .card-icon.gold { background: #FFF8E7; color: #D97706; }
+.btn-card .card-content { flex: 1; }
+.btn-card .card-title { font-size: 17px; font-weight: 800; margin-bottom: 5px; }
+.btn-card .card-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; }
+
+/* Training Centers */
+.search-box { position: relative; margin-bottom: 20px; }
+.search-box .form-input { padding-right: 44px; }
+.search-box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 20px; }
+
+.areas-scroll-container { position: relative; margin-bottom: 20px; }
+.areas-scroll {
+    display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px;
+    padding-bottom: 8px; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.areas-scroll::-webkit-scrollbar { display: none; }
+
+.area-chip {
+    flex: 0 0 auto; padding: 10px 18px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 100px; font-size: 14px; font-weight: 600;
+    color: var(--text); cursor: pointer; transition: var(--transition);
+    white-space: nowrap; font-family: 'Tajawal', sans-serif;
+}
+.area-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.area-chip:active { transform: scale(0.96); }
+
+.back-btn {
+    background: none; border: none;
+    color: var(--primary);
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700; font-size: 15px;
+    cursor: pointer; padding: 8px 0;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 4px;
+}
+
+.location-list { display: flex; flex-direction: column; gap: 10px; }
+.location-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex; align-items: center; gap: 14px;
+}
+.location-card:active { background: var(--primary-light); border-color: var(--primary); }
+.location-card .loc-icon {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+}
+.location-card .loc-info { flex: 1; }
+.location-card .loc-name { font-weight: 700; font-size: 16px; }
+
+/* ============ بطاقة المركز الجديدة ============ */
+.center-card {
+    background: #fff;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 20px;
@@ -348,78 +255,196 @@
     box-shadow: 0 4px 18px rgba(0,0,0,0.06);
 }
 
-.center-header {
+.center-card .center-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 12px;
 }
 
-.center-name {
+.center-card .center-name {
     font-size: 18px;
     font-weight: 800;
-    color: var(--text);
-    text-decoration: none;
     line-height: 1.4;
 }
 
-.center-name-link {
+.center-card .center-name a {
     color: var(--primary);
     text-decoration: none;
-    transition: opacity 0.2s;
 }
 
-.center-name-link:active { opacity: 0.7; }
+.center-card .center-name a:active {
+    opacity: 0.7;
+}
 
-.center-details {
+/* المناطق المغطاة */
+.center-card .areas-covered {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.center-card .area-tag {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+/* تفاصيل العنوان والهاتف */
+.center-card .info-row {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    margin: 10px 0;
+    margin-bottom: 12px;
     font-size: 13px;
     color: var(--text-light);
 }
 
-.center-details span {
+.center-card .info-row span {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
-.working-hours {
-    font-size: 13px;
-    color: var(--text-light);
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+.center-card .info-row .copy-phone {
+    cursor: pointer;
+    color: var(--text);
+    transition: color 0.2s;
 }
 
-.areas-covered {
+.center-card .info-row .copy-phone:active {
+    color: var(--primary);
+}
+
+/* عنوان أيام الدوام */
+.center-card .days-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+/* صف أيام الدوام */
+.center-card .working-days-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.center-card .day-chip {
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 12px;
+    font-weight: 600;
+    background: var(--bg-secondary);
     color: var(--text-light);
-    margin-top: 6px;
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.center-card .day-chip.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+/* صف وقت الدوام والتقييم */
+.center-card .bottom-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 14px;
     flex-wrap: wrap;
 }
 
-.area-tag {
-    background: var(--primary-light);
-    color: var(--primary);
-    padding: 2px 10px;
+/* مربع وقت الدوام */
+.center-card .time-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
     border-radius: 12px;
-    font-size: 11px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-weight: 600;
 }
 
-.rating-row {
+/* مربع التقييم */
+.center-card .rating-box {
+    background: #FEF3C7;
+    border: 1px solid #FDE68A;
+    border-radius: 12px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-top: 12px;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #92400E;
 }
+
+.center-card .rating-box i {
+    color: #F59E0B;
+    font-size: 16px;
+}
+
+.center-card .rating-source {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-left: 4px;
+}
+
+/* Copy phone */
+.copy-phone {
+    cursor: pointer;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.copy-phone:active { color: var(--primary); }
+
+/* Loading */
+.loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(255,255,255,.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(10px);
+}
+.loading-spinner {
+    width: 64px; height: 64px;
+    border: 4px solid #E5E7EB;
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin-bottom: 18px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* أسئلة */
+.question-media { width: 100%; max-width: 100%; border-radius: 16px; margin: 15px 0; }
+.question-text { font-size: 18px; font-weight: 600; margin-bottom: 20px; line-height: 1.7; }
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.option-item {
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px; font-size: 15px; font-weight: 500;
+    transition: var(--transition); cursor: default;
+}
+.option-item.correct-answer { background: #ECFDF3; border-color: #16A34A; color: #15803D; font-weight: 700; }
+.option-item.selected { background: var(--primary-light); border-color: var(--primary); }
+.nav-buttons { display: flex; gap: 10px; margin-top: 20px; }
+.nav-buttons .btn { flex: 1; }
+.result-card { text-align: center; padding: 30px 20px; }
     </style>
 </head>
 <body>
@@ -817,60 +842,65 @@
     const allDays = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
 
     container.innerHTML = centers.map(c => {
-        // بناء شارات الأيام
-        const daysHtml = allDays.map(day => {
-            const isActive = c.workingDays && c.workingDays.includes(day);
-            return `<div class="day-badge ${isActive ? 'active' : ''}">${day.charAt(0)}</div>`;
-        }).join('');
-
         // المناطق المغطاة
-        let areasCoveredHtml = '';
+        let areasHtml = '';
         if (c.areas && c.areas.length > 0) {
-            areasCoveredHtml = `
+            areasHtml = `
                 <div class="areas-covered">
                     <i class="ph ph-buildings"></i>
                     ${c.areas.map(a => `<span class="area-tag">${a.name}</span>`).join('')}
                 </div>`;
         }
 
-        // ساعات الدوام
-        const workingHoursHtml = c.workingHours ? `
-            <div class="working-hours">
+        // أيام الدوام
+        const daysHtml = allDays.map(day => {
+            const isActive = c.workingDays && c.workingDays.includes(day);
+            return `<div class="day-chip ${isActive ? 'active' : ''}">${day}</div>`;
+        }).join('');
+
+        // وقت الدوام
+        const timeHtml = c.workingHours ? `
+            <div class="time-box">
                 <i class="ph ph-clock"></i> ${c.workingHours}
             </div>` : '';
+
+        // التقييم
+        const ratingHtml = `
+            <div class="rating-box">
+                <i class="ph-fill ph-star"></i> ${c.rating || 0}/5
+                <span class="rating-source">Google</span>
+            </div>`;
 
         return `
             <div class="center-card">
                 <div class="center-header">
-                    <a href="${c.mapLink || '#'}" class="center-name-link" target="_blank">
-                        <div class="center-name">${c.name}</div>
-                    </a>
+                    <div class="center-name">
+                        <a href="${c.mapLink || '#'}" target="_blank">${c.name}</a>
+                    </div>
                 </div>
 
-                ${areasCoveredHtml}
+                ${areasHtml}
 
-                <div class="center-details">
+                <div class="info-row">
                     <span><i class="ph ph-map-pin"></i> ${c.address || 'لا يوجد عنوان'}</span>
                     <span class="copy-phone" onclick="copyPhone('${c.phone}')">
                         <i class="ph ph-phone"></i> ${c.phone || 'لا يوجد رقم'}
                     </span>
                 </div>
 
-                <div class="working-days" title="أيام الدوام">
+                <div class="days-title">أيام الدوام</div>
+                <div class="working-days-row">
                     ${daysHtml}
                 </div>
 
-                ${workingHoursHtml}
-
-                <div class="rating-row">
-                    <div class="rating-badge"><i class="ph-fill ph-star"></i> ${c.rating || 0}/5</div>
-                    <span style="font-size:11px; color:var(--text-light);">حسب Google Maps</span>
+                <div class="bottom-row">
+                    ${timeHtml}
+                    ${ratingHtml}
                 </div>
             </div>
         `;
     }).join('');
 }
-
     // ============ دوال الأسئلة ============
     async function showStudyCategories() {
         showLoading('جاري تحميل الأسئلة...');
