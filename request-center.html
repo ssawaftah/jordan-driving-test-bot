@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>طلب إضافة مركز قيادة</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -24,10 +24,14 @@
             --card-bg: #FFFFFF;
             --border: #E9EEF5;
             --danger: #EF4444;
+            --danger-light: #FEF2F2;
             --success: #10B981;
-            --radius: 18px;
-            --radius-sm: 12px;
-            --transition: all .25s ease;
+            --success-light: #ECFDF5;
+            --warning: #F59E0B;
+            --warning-light: #FFFBEB;
+            --radius: 20px;
+            --radius-sm: 14px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -40,53 +44,142 @@
             text-align: right;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         .container {
-            max-width: 520px;
+            width: 100%;
+            max-width: 560px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 16px;
         }
 
+        @media (min-width: 640px) {
+            .container {
+                padding: 32px 20px;
+            }
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 90%;
+            max-width: 400px;
+            pointer-events: none;
+        }
+
+        .toast {
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            animation: slideIn 0.35s ease;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.error {
+            background: #FEF2F2;
+            color: #DC2626;
+            border: 1px solid #FECACA;
+        }
+
+        .toast.success {
+            background: #ECFDF5;
+            color: #059669;
+            border: 1px solid #A7F3D0;
+        }
+
+        .toast.warning {
+            background: #FFFBEB;
+            color: #D97706;
+            border: 1px solid #FDE68A;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-16px); }
+        }
+
+        /* Header */
         .form-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
         }
 
         .form-header .icon {
-            width: 72px; height: 72px;
-            border-radius: 22px;
-            background: linear-gradient(135deg, var(--primary-light), #ffffff);
+            width: 76px; height: 76px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #EEF4FF 0%, #FFFFFF 100%);
             color: var(--primary);
             display: flex; align-items: center; justify-content: center;
-            font-size: 34px;
-            margin: 0 auto 16px;
-            box-shadow: 0 8px 24px rgba(36, 107, 253, 0.1);
+            font-size: 36px;
+            margin: 0 auto 18px;
+            box-shadow: 0 12px 32px rgba(36, 107, 253, 0.08);
         }
 
         .form-header h1 {
-            font-size: 24px; font-weight: 800;
-            margin-bottom: 6px;
+            font-size: 26px; font-weight: 900;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
         }
 
         .form-header p {
             color: var(--text-light);
             font-size: 14px;
+            line-height: 1.7;
         }
 
+        @media (min-width: 640px) {
+            .form-header h1 { font-size: 30px; }
+            .form-header .icon { width: 88px; height: 88px; font-size: 42px; }
+        }
+
+        /* Cards */
         .form-card {
             background: var(--bg);
             border-radius: var(--radius);
-            padding: 24px;
+            padding: 22px 18px;
             margin-bottom: 16px;
             border: 1px solid var(--border);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            transition: var(--transition);
+        }
+
+        @media (min-width: 640px) {
+            .form-card {
+                padding: 28px 24px;
+                margin-bottom: 20px;
+            }
         }
 
         .form-card h3 {
             font-size: 16px; font-weight: 700;
-            margin-bottom: 16px;
-            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 18px;
+            display: flex; align-items: center; gap: 10px;
+            color: var(--text);
+        }
+
+        .form-card h3 i {
+            color: var(--primary);
+            font-size: 20px;
         }
 
         .form-group {
@@ -99,7 +192,7 @@
 
         .form-label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-size: 13px;
             font-weight: 600;
             color: var(--text);
@@ -107,18 +200,25 @@
 
         .form-label .required {
             color: var(--danger);
-            margin-right: 2px;
+            margin-right: 3px;
+            font-weight: 700;
+        }
+
+        .form-hint {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 6px;
         }
 
         .form-input {
             width: 100%;
-            height: 50px;
-            padding: 0 14px;
+            height: 52px;
+            padding: 0 16px;
             border: 1.5px solid var(--border);
             border-radius: var(--radius-sm);
             background: var(--bg-secondary);
             font-family: 'Tajawal', sans-serif;
-            font-size: 14px;
+            font-size: 15px;
             color: var(--text);
             transition: var(--transition);
         }
@@ -127,32 +227,30 @@
             outline: none;
             border-color: var(--primary);
             background: #fff;
-            box-shadow: 0 0 0 3px rgba(36, 107, 253, 0.08);
+            box-shadow: 0 0 0 4px rgba(36, 107, 253, 0.06);
         }
 
         textarea.form-input {
             height: auto;
-            padding: 14px;
-            min-height: 80px;
+            padding: 14px 16px;
+            min-height: 90px;
             resize: vertical;
         }
 
         select.form-input {
             appearance: none;
             -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: left 14px center;
+            background-position: left 16px center;
+            cursor: pointer;
         }
 
+        /* Days Checkboxes */
         .checkbox-group {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-        }
-
-        .checkbox-item {
-            flex: 0 0 auto;
         }
 
         .checkbox-item input {
@@ -163,7 +261,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 10px 16px;
+            padding: 11px 18px;
             border: 1.5px solid var(--border);
             border-radius: 100px;
             font-size: 13px;
@@ -184,34 +282,45 @@
             transform: scale(0.95);
         }
 
+        /* Multi Select Chips */
         .multi-select {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-top: 8px;
+            margin-top: 10px;
+            min-height: 24px;
         }
 
         .multi-select .chip {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 6px 12px;
+            gap: 6px;
+            padding: 8px 14px;
             background: var(--primary-light);
             color: var(--primary);
             border-radius: 100px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
+            transition: var(--transition);
         }
 
         .multi-select .chip .remove {
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1;
+            opacity: 0.7;
+            transition: var(--transition);
         }
 
+        .multi-select .chip .remove:active {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        /* Buttons */
         .btn {
             width: 100%;
-            height: 54px;
+            height: 56px;
             border: none;
             cursor: pointer;
             display: flex;
@@ -223,17 +332,20 @@
             font-size: 16px;
             font-weight: 700;
             transition: var(--transition);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-primary {
             background: var(--primary);
             color: #fff;
-            box-shadow: 0 8px 20px rgba(36, 107, 253, 0.2);
+            box-shadow: 0 8px 24px rgba(36, 107, 253, 0.2);
+            margin-top: 8px;
         }
 
         .btn-primary:active {
             background: var(--primary-dark);
             transform: scale(0.97);
+            box-shadow: 0 4px 12px rgba(36, 107, 253, 0.15);
         }
 
         .btn-primary:disabled {
@@ -241,65 +353,69 @@
             pointer-events: none;
         }
 
+        /* Success State */
         .success-message {
             text-align: center;
-            padding: 40px 20px;
+            padding: 50px 20px;
             display: none;
+            animation: fadeIn 0.5s ease;
         }
 
         .success-message .icon {
-            font-size: 64px;
+            font-size: 72px;
             color: var(--success);
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .success-message h2 {
-            font-size: 22px; margin-bottom: 8px;
+            font-size: 24px; font-weight: 800;
+            margin-bottom: 10px;
         }
 
         .success-message p {
             color: var(--text-light);
+            line-height: 1.7;
         }
 
-        .error-message {
-            background: #FEF2F2;
-            color: #DC2626;
-            padding: 12px 16px;
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: none;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Loading Overlay */
         .loading-overlay {
             position: fixed; inset: 0;
-            background: rgba(255,255,255,.9);
+            background: rgba(255,255,255,.92);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            z-index: 999;
+            z-index: 9998;
+            backdrop-filter: blur(4px);
         }
 
         .spinner {
-            width: 48px; height: 48px;
-            border: 3px solid #E5E7EB;
+            width: 52px; height: 52px;
+            border: 4px solid #E5E7EB;
             border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin .8s linear infinite;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-<div class="container">
 
-    <!-- شاشة التحميل -->
-    <div id="loadingOverlay" class="loading-overlay" style="display:none;">
-        <div class="spinner"></div>
-        <p style="font-weight:600;">جارٍ الإرسال...</p>
-    </div>
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display:none;">
+    <div class="spinner"></div>
+    <p style="font-weight:600; color: var(--text);">جارٍ الإرسال...</p>
+</div>
+
+<div class="container">
 
     <!-- نموذج الطلب -->
     <div id="requestForm">
@@ -307,11 +423,6 @@
             <div class="icon"><i class="ph ph-buildings"></i></div>
             <h1>طلب إضافة مركز قيادة</h1>
             <p>املأ البيانات أدناه لإضافة مركز تدريب قيادة جديد</p>
-        </div>
-
-        <div class="error-message" id="errorMessage">
-            <i class="ph ph-warning-circle"></i>
-            <span id="errorText"></span>
         </div>
 
         <!-- معلومات المركز -->
@@ -336,6 +447,7 @@
                     <option value="">اختر منطقة</option>
                 </select>
                 <div class="multi-select" id="selectedAreas"></div>
+                <p class="form-hint">يمكنك اختيار أكثر من منطقة</p>
             </div>
         </div>
 
@@ -361,6 +473,7 @@
             <div class="form-group">
                 <label class="form-label">التقييم حسب Google Maps (من 5)</label>
                 <input type="number" class="form-input" id="rating" min="0" max="5" step="0.1" value="0" placeholder="4.5">
+                <p class="form-hint">اتركه 0 إذا لم يكن متوفراً</p>
             </div>
         </div>
 
@@ -371,40 +484,20 @@
             <div class="form-group">
                 <label class="form-label">أيام الدوام</label>
                 <div class="checkbox-group" id="workingDays">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="day-sat" value="السبت">
-                        <label for="day-sat">السبت</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="day-sun" value="الأحد">
-                        <label for="day-sun">الأحد</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="day-mon" value="الاثنين">
-                        <label for="day-mon">الاثنين</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="day-tue" value="الثلاثاء">
-                        <label for="day-tue">الثلاثاء</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="day-wed" value="الأربعاء">
-                        <label for="day-wed">الأربعاء</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="day-thu" value="الخميس">
-                        <label for="day-thu">الخميس</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="day-fri" value="الجمعة">
-                        <label for="day-fri">الجمعة</label>
-                    </div>
+                    <div class="checkbox-item"><input type="checkbox" id="day-sat" value="السبت"><label for="day-sat">السبت</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="day-sun" value="الأحد"><label for="day-sun">الأحد</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="day-mon" value="الاثنين"><label for="day-mon">الاثنين</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="day-tue" value="الثلاثاء"><label for="day-tue">الثلاثاء</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="day-wed" value="الأربعاء"><label for="day-wed">الأربعاء</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="day-thu" value="الخميس"><label for="day-thu">الخميس</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="day-fri" value="الجمعة"><label for="day-fri">الجمعة</label></div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="form-label">ساعات الدوام</label>
                 <input type="text" class="form-input" id="workingHours" placeholder="مثال: 8:00 صباحاً - 4:00 مساءً">
+                <p class="form-hint">اختياري</p>
             </div>
         </div>
 
@@ -419,7 +512,7 @@
         <div class="icon"><i class="ph ph-check-circle"></i></div>
         <h2>تم إرسال الطلب بنجاح!</h2>
         <p>سنقوم بمراجعة طلبك وإضافة المركز قريباً.</p>
-        <button class="btn btn-primary" onclick="resetForm()" style="margin-top: 24px;">
+        <button class="btn btn-primary" onclick="resetForm()" style="margin-top: 28px;">
             <i class="ph ph-plus-circle"></i> إضافة طلب آخر
         </button>
     </div>
@@ -441,6 +534,23 @@
     let allGovs = {}, allAreas = {};
     let selectedAreas = [];
 
+    // ============ Toast Notifications ============
+    function showToast(message, type = 'error') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icons = { error: 'ph-warning-circle', success: 'ph-check-circle', warning: 'ph-warning' };
+        toast.innerHTML = `<i class="ph ${icons[type] || icons.error}" style="font-size:18px;"></i> ${message}`;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
     // ============ تحميل البيانات ============
     async function loadGovernorates() {
         try {
@@ -451,7 +561,7 @@
             Object.entries(allGovs).forEach(([id, gov]) => {
                 select.innerHTML += `<option value="${id}">${gov.name}</option>`;
             });
-        } catch(e) { console.error(e); }
+        } catch(e) { showToast('خطأ في تحميل المحافظات', 'error'); }
     }
 
     async function loadAreas() {
@@ -469,7 +579,7 @@
             Object.entries(allAreas).forEach(([id, area]) => {
                 areaSelect.innerHTML += `<option value="${id}">${area.name}</option>`;
             });
-        } catch(e) { console.error(e); }
+        } catch(e) { showToast('خطأ في تحميل المناطق', 'error'); }
     }
 
     function addArea() {
@@ -480,9 +590,8 @@
         const areaName = allAreas[areaId]?.name;
         if (!areaName) return;
         
-        // تحقق من عدم التكرار
         if (selectedAreas.find(a => a.id === areaId)) {
-            tg.showAlert('هذه المنطقة مضافة بالفعل');
+            showToast('هذه المنطقة مضافة بالفعل', 'warning');
             return;
         }
         
@@ -507,18 +616,7 @@
     }
 
     // ============ إرسال الطلب ============
-    function showError(msg) {
-        document.getElementById('errorText').textContent = msg;
-        document.getElementById('errorMessage').style.display = 'block';
-    }
-
-    function hideError() {
-        document.getElementById('errorMessage').style.display = 'none';
-    }
-
     async function submitRequest() {
-        hideError();
-        
         const name = document.getElementById('centerName').value.trim();
         const governorateId = document.getElementById('governorate').value;
         const address = document.getElementById('address').value.trim();
@@ -527,27 +625,21 @@
         const rating = parseFloat(document.getElementById('rating').value) || 0;
         const workingHours = document.getElementById('workingHours').value.trim();
         
-        // أيام الدوام
         const workingDays = [];
-        document.querySelectorAll('#workingDays input:checked').forEach(cb => {
-            workingDays.push(cb.value);
-        });
+        document.querySelectorAll('#workingDays input:checked').forEach(cb => workingDays.push(cb.value));
 
-        // التحقق من الحقول المطلوبة
-        if (!name) { showError('الرجاء إدخال اسم المركز'); return; }
-        if (!governorateId) { showError('الرجاء اختيار المحافظة'); return; }
-        if (selectedAreas.length === 0) { showError('الرجاء اختيار منطقة واحدة على الأقل'); return; }
-        if (!address) { showError('الرجاء إدخال عنوان المركز'); return; }
-        if (!mapLink) { showError('الرجاء إدخال رابط الموقع على الخريطة'); return; }
-        if (!phone || phone.length < 10) { showError('الرجاء إدخال رقم هاتف صحيح'); return; }
+        if (!name) { showToast('الرجاء إدخال اسم المركز', 'error'); return; }
+        if (!governorateId) { showToast('الرجاء اختيار المحافظة', 'error'); return; }
+        if (selectedAreas.length === 0) { showToast('الرجاء اختيار منطقة واحدة على الأقل', 'error'); return; }
+        if (!address) { showToast('الرجاء إدخال عنوان المركز', 'error'); return; }
+        if (!mapLink) { showToast('الرجاء إدخال رابط الموقع على الخريطة', 'error'); return; }
+        if (!phone || phone.length < 10) { showToast('الرجاء إدخال رقم هاتف صحيح', 'error'); return; }
 
-        // تعطيل الزر وإظهار التحميل
         const btn = document.querySelector('.btn-primary');
         btn.disabled = true;
         document.getElementById('loadingOverlay').style.display = 'flex';
 
         try {
-            // حفظ الطلب في مسار centerRequests
             await db.ref('centerRequests').push({
                 name,
                 governorateId,
@@ -559,15 +651,15 @@
                 rating,
                 workingDays,
                 workingHours,
-                status: 'pending', // pending, approved, rejected
+                status: 'pending',
                 submittedAt: new Date().toISOString()
             });
 
-            // إظهار رسالة النجاح
             document.getElementById('requestForm').style.display = 'none';
             document.getElementById('successMessage').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch(e) {
-            showError('❌ حدث خطأ أثناء الإرسال. حاول مرة أخرى.');
+            showToast('حدث خطأ أثناء الإرسال. حاول مرة أخرى.', 'error');
             btn.disabled = false;
         } finally {
             document.getElementById('loadingOverlay').style.display = 'none';
@@ -589,8 +681,7 @@
         document.getElementById('selectedAreas').innerHTML = '';
         document.querySelectorAll('#workingDays input').forEach(cb => cb.checked = false);
         document.querySelector('.btn-primary').disabled = false;
-        hideError();
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // ============ بدء التشغيل ============
