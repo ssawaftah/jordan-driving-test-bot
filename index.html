@@ -189,27 +189,23 @@
         .search-box .form-input { padding-right: 44px; }
         .search-box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 20px; }
 
-        .location-list { display: flex; flex-direction: column; gap: 10px; }
-        .location-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex; align-items: center; gap: 14px;
+        .areas-scroll-container { position: relative; margin-bottom: 20px; }
+        .areas-scroll {
+            display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px;
+            padding-bottom: 8px; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
-        .location-card:active { background: var(--primary-light); border-color: var(--primary); }
-        .location-card .loc-icon {
-            width: 44px; height: 44px;
-            border-radius: 14px;
-            background: var(--primary-light);
-            color: var(--primary);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; flex-shrink: 0;
+        .areas-scroll::-webkit-scrollbar { display: none; }
+
+        .area-chip {
+            flex: 0 0 auto; padding: 10px 18px;
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 100px; font-size: 14px; font-weight: 600;
+            color: var(--text); cursor: pointer; transition: var(--transition);
+            white-space: nowrap; font-family: 'Tajawal', sans-serif;
         }
-        .location-card .loc-info { flex: 1; }
-        .location-card .loc-name { font-weight: 700; font-size: 16px; }
+        .area-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .area-chip:active { transform: scale(0.96); }
 
         .back-btn {
             background: none; border: none;
@@ -312,11 +308,23 @@
         <div class="btn-card" onclick="openTrainingCenters()"><div class="card-icon gold"><i class="ph ph-map-pin"></i></div><div class="card-content"><div class="card-title">مراكز تدريب القيادة القريبة</div><div class="card-desc">اعثر على أقرب مركز تدريب معتمد</div></div><i class="ph ph-caret-left"></i></div>
     </div>
 
-    <!-- شاشة مراكز التدريب -->
+    <!-- شاشة مراكز التدريب الجديدة -->
     <div id="trainingCentersScreen" class="screen">
-        <div id="govLevel"><button class="back-btn" onclick="showScreen('homeScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;">المحافظات</h2><div class="search-box"><i class="ph ph-magnifying-glass"></i><input type="text" class="form-input" id="govSearch" placeholder="ابحث عن محافظة..." oninput="filterGovernorates()"></div><div class="location-list" id="govList"></div></div>
-        <div id="areaLevel" style="display:none;"><button class="back-btn" onclick="goToGovernorates()"><i class="ph ph-arrow-right"></i> رجوع للمحافظات</button><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;" id="areaTitle">المناطق</h2><div class="search-box"><i class="ph ph-magnifying-glass"></i><input type="text" class="form-input" id="areaSearch" placeholder="ابحث عن منطقة..." oninput="filterAreas()"></div><div class="location-list" id="areaList"></div></div>
-        <div id="centerLevel" style="display:none;"><button class="back-btn" onclick="goToAreas()"><i class="ph ph-arrow-right"></i> رجوع للمناطق</button><h2 style="font-size:22px;font-weight:800;margin-bottom:8px;" id="centerTitle">مراكز التدريب</h2><div id="centerList"></div></div>
+        <button class="back-btn" onclick="showScreen('homeScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button>
+
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:4px;" id="centerGovTitle">اختر محافظة</h2>
+        <p style="color:var(--text-light); font-size:14px; margin-bottom:20px;" id="centerResultCount"></p>
+
+        <div class="search-box">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" class="form-input" id="centerSearch" placeholder="ابحث عن مركز تدريب..." oninput="filterCenters()">
+        </div>
+
+        <div class="areas-scroll-container">
+            <div class="areas-scroll" id="areasScroll"></div>
+        </div>
+
+        <div id="centerList"></div>
     </div>
 
     <!-- شاشة التحميل -->
@@ -339,7 +347,8 @@
     const WORKER_URL = "https://jordan-driving-test-bot.pages.dev";
     let currentScreen = 'landingScreen';
     let allGovs = {}, allAreas = {}, allCenters = {};
-    let currentGov = null, currentArea = null;
+    let currentGovId = null;
+    let currentAreaFilter = null;
 
     // ============ دوال عامة ============
     function showScreen(id) {
@@ -355,6 +364,19 @@
 
     function hideLoading() {
         document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    async function loadData() {
+        try {
+            const [govSnap, areaSnap, centerSnap] = await Promise.all([
+                db.ref('governorates').once('value'),
+                db.ref('areas').once('value'),
+                db.ref('centers').once('value')
+            ]);
+            allGovs = govSnap.val() || {};
+            allAreas = areaSnap.val() || {};
+            allCenters = centerSnap.val() || {};
+        } catch(e) { console.error(e); }
     }
 
     // ============ التسجيل ============
@@ -406,105 +428,104 @@
         }
     }
 
-    // ============ مراكز التدريب ============
-    async function loadData() {
-        try {
-            const [govRes, areaRes, centerRes] = await Promise.all([
-                fetch(`${WORKER_URL}/api/governorates`),
-                fetch(`${WORKER_URL}/api/areas`),
-                fetch(`${WORKER_URL}/api/centers`)
-            ]);
-            allGovs = await govRes.json() || {};
-            allAreas = await areaRes.json() || {};
-            allCenters = await centerRes.json() || {};
-        } catch(e) { console.error(e); }
-    }
-
+    // ============ مراكز التدريب (العرض الجديد) ============
     async function openTrainingCenters() {
         showLoading('جاري تحميل البيانات...');
         await loadData();
         hideLoading();
+
+        if (Object.keys(allGovs).length === 0) {
+            tg.showAlert('لا توجد محافظات مضافة بعد.');
+            return;
+        }
+
         showScreen('trainingCentersScreen');
-        document.getElementById('govLevel').style.display = 'block';
-        document.getElementById('areaLevel').style.display = 'none';
-        document.getElementById('centerLevel').style.display = 'none';
-        document.getElementById('govSearch').value = '';
-        renderGovernorates(Object.entries(allGovs).map(([id, g]) => ({ id, ...g })));
+        const firstGovId = Object.keys(allGovs)[0];
+        selectGovernorateForView(firstGovId);
     }
 
-    function renderGovernorates(list) {
-        document.getElementById('govList').innerHTML = list.map(g => `
-            <div class="location-card" onclick="selectGovernorate('${g.id}', '${g.name}')">
-                <div class="loc-icon"><i class="ph ph-map-pin"></i></div>
-                <div class="loc-info"><div class="loc-name">${g.name}</div></div>
-                <i class="ph ph-caret-left" style="color:var(--text-light);"></i>
-            </div>
-        `).join('');
+    function selectGovernorateForView(govId) {
+        currentGovId = govId;
+        currentAreaFilter = null;
+        document.getElementById('centerGovTitle').textContent = allGovs[govId]?.name || '';
+        document.getElementById('centerSearch').value = '';
+        renderAreasChips(govId);
+        renderAllCentersForGov(govId, null);
     }
 
-    function filterGovernorates() {
-        const q = document.getElementById('govSearch').value.trim();
-        const filtered = Object.entries(allGovs).filter(([_, g]) => g.name.includes(q)).map(([id, g]) => ({ id, ...g }));
-        renderGovernorates(filtered);
+    function renderAreasChips(govId) {
+        const scrollDiv = document.getElementById('areasScroll');
+        const areas = Object.entries(allAreas)
+            .filter(([_, a]) => a.governorateId === govId)
+            .map(([id, a]) => ({ id, ...a }));
+        let html = `<div class="area-chip active" onclick="filterByArea(null)">الكل</div>`;
+        html += areas.map(a => `<div class="area-chip" id="chip-${a.id}" onclick="filterByArea('${a.id}')">${a.name}</div>`).join('');
+        scrollDiv.innerHTML = html;
     }
 
-    function selectGovernorate(id, name) {
-        currentGov = { id, name };
-        document.getElementById('govLevel').style.display = 'none';
-        document.getElementById('areaLevel').style.display = 'block';
-        document.getElementById('areaTitle').textContent = name;
-        document.getElementById('areaSearch').value = '';
-        renderAreas(Object.entries(allAreas).filter(([_, a]) => a.governorateId === id).map(([aid, a]) => ({ id: aid, ...a })));
+    function filterByArea(areaId) {
+        currentAreaFilter = areaId;
+        document.querySelectorAll('.area-chip').forEach(chip => chip.classList.remove('active'));
+        if (areaId === null) {
+            document.querySelector('.area-chip').classList.add('active');
+        } else {
+            document.getElementById(`chip-${areaId}`)?.classList.add('active');
+        }
+        document.getElementById('centerSearch').value = '';
+        renderAllCentersForGov(currentGovId, areaId);
     }
 
-    function renderAreas(list) {
-        document.getElementById('areaList').innerHTML = list.map(a => `
-            <div class="location-card" onclick="selectArea('${a.id}', '${a.name}')">
-                <div class="loc-icon"><i class="ph ph-buildings"></i></div>
-                <div class="loc-info"><div class="loc-name">${a.name}</div></div>
-                <i class="ph ph-caret-left" style="color:var(--text-light);"></i>
-            </div>
-        `).join('');
+    function renderAllCentersForGov(govId, areaId) {
+        let centers = Object.entries(allCenters)
+            .filter(([_, c]) => {
+                if (areaId) return c.areaId === areaId;
+                const area = allAreas[c.areaId];
+                return area && area.governorateId === govId;
+            })
+            .map(([id, c]) => ({ id, ...c }));
+        centers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        document.getElementById('centerResultCount').textContent = `${centers.length} مركز تدريب`;
+        renderCenterCards(centers);
     }
 
-    function filterAreas() {
-        const q = document.getElementById('areaSearch').value.trim();
-        const filtered = Object.entries(allAreas).filter(([_, a]) => a.governorateId === currentGov.id && a.name.includes(q)).map(([id, a]) => ({ id, ...a }));
-        renderAreas(filtered);
+    function filterCenters() {
+        const query = document.getElementById('centerSearch').value.trim().toLowerCase();
+        if (!currentGovId) return;
+        let centers = Object.entries(allCenters)
+            .filter(([_, c]) => {
+                if (currentAreaFilter) { if (c.areaId !== currentAreaFilter) return false; }
+                else {
+                    const area = allAreas[c.areaId];
+                    if (!area || area.governorateId !== currentGovId) return false;
+                }
+                if (query) {
+                    return (c.name || '').toLowerCase().includes(query) ||
+                           (c.address || '').toLowerCase().includes(query);
+                }
+                return true;
+            })
+            .map(([id, c]) => ({ id, ...c }));
+        centers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        document.getElementById('centerResultCount').textContent = `${centers.length} مركز`;
+        renderCenterCards(centers);
     }
 
-    function goToGovernorates() {
-        document.getElementById('areaLevel').style.display = 'none';
-        document.getElementById('govLevel').style.display = 'block';
-        currentGov = null;
-    }
-
-    function selectArea(id, name) {
-        currentArea = { id, name };
-        document.getElementById('areaLevel').style.display = 'none';
-        document.getElementById('centerLevel').style.display = 'block';
-        document.getElementById('centerTitle').textContent = name + ' - ' + currentGov.name;
-        renderCenters(Object.entries(allCenters).filter(([_, c]) => c.areaId === id).map(([cid, c]) => ({ id: cid, ...c })));
-    }
-
-    function renderCenters(list) {
-        const sorted = list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        document.getElementById('centerList').innerHTML = sorted.map(c => `
+    function renderCenterCards(centers) {
+        const container = document.getElementById('centerList');
+        if (centers.length === 0) {
+            container.innerHTML = `<div class="empty-state" style="padding:40px 0;"><i class="ph ph-map-pin" style="font-size:40px; opacity:0.4;"></i><p>لا توجد مراكز تدريب مطابقة</p></div>`;
+            return;
+        }
+        container.innerHTML = centers.map(c => `
             <div class="center-card">
                 <div class="center-name"><a href="${c.mapLink || '#'}" class="center-name-link" target="_blank">${c.name}</a></div>
-                <div class="center-details" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:12px;">
-                    <span><i class="ph ph-map-pin"></i> ${c.address || ''}</span>
-                    <span><i class="ph ph-phone"></i> <a href="tel:${c.phone}" class="center-phone-link">${c.phone}</a></span>
+                <div class="center-details" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:12px;">
+                    <span><i class="ph ph-map-pin"></i> ${c.address || 'لا يوجد عنوان'}</span>
+                    <span><i class="ph ph-phone"></i> <a href="tel:${c.phone}" class="center-phone-link">${c.phone || 'لا يوجد رقم'}</a></span>
                 </div>
                 <div class="rating-badge"><i class="ph-fill ph-star"></i> ${c.rating || 0}/5</div>
             </div>
         `).join('');
-    }
-
-    function goToAreas() {
-        document.getElementById('centerLevel').style.display = 'none';
-        document.getElementById('areaLevel').style.display = 'block';
-        renderAreas(Object.entries(allAreas).filter(([_, a]) => a.governorateId === currentGov.id).map(([id, a]) => ({ id, ...a })));
     }
 
     // ============ بدء التشغيل ============
