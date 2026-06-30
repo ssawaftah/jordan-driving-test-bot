@@ -12,536 +12,230 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <style>
-:root {
-    --primary: #1a6b3c;
-    --primary-dark: #145a30;
-    --primary-light: #e8f5e9;
-
-    --gold: #c9a84c;
-
-    --text: #1a1a1a;
-    --text-light: #666666;
-
-    --bg: #ffffff;
-    --bg-secondary: #f5f5f7;
-
-    --card-bg: #fafafa;
-    --border: #e8e8e8;
-
-    --danger: #dc2626;
-    --danger-light: #fef2f2;
-
-    --success: #16a34a;
-
-    --radius: 16px;
-    --radius-sm: 12px;
-
-    --transition: all .25s ease;
-}
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    font-family:'Tajawal',sans-serif;
-    background:var(--bg-secondary);
-    color:var(--text);
-    direction:rtl;
-    text-align:right;
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-}
-
-.container{
-    max-width:480px;
-    margin:0 auto;
-    background:var(--bg);
-    min-height:100vh;
-    position:relative;
-    box-shadow:0 0 40px rgba(0,0,0,.03);
-}
-
-.admin-header{
-    background:#fff;
-    padding:16px 20px;
-    position:sticky;
-    top:0;
-    z-index:100;
-
-    border-bottom:1px solid var(--border);
-
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-}
-
-.admin-brand{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-
-.admin-logo{
-    width:40px;
-    height:40px;
-
-    border-radius:12px;
-
-    background:var(--primary);
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    color:#fff;
-    font-size:20px;
-}
-
-.admin-title{
-    font-size:17px;
-    font-weight:700;
-}
-
-.admin-subtitle{
-    font-size:11px;
-    color:var(--text-light);
-}
-
-.screen{
-    display:none;
-    padding:24px 20px;
-    animation:fadeIn .35s ease;
-}
-
-.screen.active{
-    display:block;
-}
-
-@keyframes fadeIn{
-    from{
-        opacity:0;
-        transform:translateY(10px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-.stat-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-    margin-bottom:24px;
-}
-
-.stat-card{
-    background:var(--card-bg);
-    border:1px solid var(--border);
-
-    border-radius:var(--radius);
-
-    padding:20px 14px;
-
-    text-align:center;
-
-    transition:var(--transition);
-}
-
-.stat-value{
-    font-size:30px;
-    font-weight:800;
-    color:var(--primary);
-}
-
-.stat-label{
-    font-size:13px;
-    color:var(--text-light);
-    margin-top:6px;
-}
-
-.btn{
-    width:100%;
-    border:none;
-
-    cursor:pointer;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-
-    font-family:'Tajawal',sans-serif;
-
-    border-radius:var(--radius);
-
-    font-size:15px;
-    font-weight:700;
-
-    padding:15px;
-
-    transition:var(--transition);
-}
-
-.btn-primary{
-    background:var(--primary);
-    color:#fff;
-}
-
-.btn-primary:active{
-    background:var(--primary-dark);
-}
-
-.btn-outline{
-    background:#fff;
-    color:var(--primary);
-
-    border:2px solid var(--primary);
-}
-
-.btn-outline:active{
-    background:var(--primary-light);
-}
-
-.btn-danger{
-    background:var(--danger);
-    color:#fff;
-}
-
-.btn-sm{
-    width:auto;
-    padding:8px 14px;
-    font-size:13px;
-    border-radius:12px;
-}
-
-.form-group{
-    margin-bottom:18px;
-}
-
-.form-label{
-    display:block;
-    margin-bottom:8px;
-    font-size:14px;
-    font-weight:600;
-}
-
-.form-input{
-    width:100%;
-
-    padding:15px;
-
-    border:1px solid var(--border);
-
-    border-radius:var(--radius);
-
-    background:var(--card-bg);
-
-    font-size:15px;
-
-    font-family:'Tajawal',sans-serif;
-}
-
-.form-input:focus{
-    outline:none;
-    border-color:var(--primary);
-    background:#fff;
-}
-
-textarea.form-input{
-    resize:vertical;
-    min-height:120px;
-}
-
-.list-item{
-    background:var(--card-bg);
-
-    border:1px solid var(--border);
-
-    border-radius:var(--radius);
-
-    padding:16px;
-
-    margin-bottom:10px;
-
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-
-    gap:10px;
-}
-
-.back-btn{
-    background:none;
-    border:none;
-
-    color:var(--primary);
-
-    cursor:pointer;
-
-    font-family:'Tajawal',sans-serif;
-
-    font-size:14px;
-    font-weight:700;
-
-    display:flex;
-    align-items:center;
-    gap:6px;
-
-    margin-bottom:20px;
-}
-
-.selection-card{
-    background:var(--card-bg);
-
-    border:1px solid var(--border);
-
-    border-radius:var(--radius);
-
-    padding:20px;
-
-    margin-bottom:12px;
-
-    text-align:center;
-
-    font-weight:700;
-
-    cursor:pointer;
-
-    transition:var(--transition);
-}
-
-.selection-card:active{
-    background:var(--primary-light);
-}
-
-.loading-overlay{
-    position:fixed;
-    inset:0;
-
-    background:rgba(255,255,255,.95);
-
-    display:flex;
-    flex-direction:column;
-
-    align-items:center;
-    justify-content:center;
-
-    z-index:999;
-}
-
-.spinner{
-    width:54px;
-    height:54px;
-
-    border:4px solid var(--border);
-    border-top-color:var(--primary);
-
-    border-radius:50%;
-
-    animation:spin .8s linear infinite;
-
-    margin-bottom:18px;
-}
-
-@keyframes spin{
-    to{
-        transform:rotate(360deg);
-    }
-}
-
-.user-card{
-    background:var(--card-bg);
-
-    border:1px solid var(--border);
-
-    border-radius:var(--radius);
-
-    padding:18px;
-
-    margin-bottom:12px;
-}
-
-.user-header{
-    display:flex;
-    align-items:center;
-    gap:14px;
-
-    margin-bottom:14px;
-}
-
-.user-avatar{
-    width:48px;
-    height:48px;
-
-    border-radius:14px;
-
-    background:var(--primary);
-
-    color:#fff;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:18px;
-    font-weight:800;
-}
-
-.user-name{
-    font-size:16px;
-    font-weight:700;
-}
-
-.user-phone{
-    font-size:13px;
-    color:var(--text-light);
-}
-
-.user-details{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-
-    margin-bottom:14px;
-}
-
-.user-details div{
-    background:#fff;
-
-    border:1px solid var(--border);
-
-    padding:10px 12px;
-
-    border-radius:10px;
-
-    font-size:12px;
-}
-
-.user-details span{
-    display:block;
-    margin-top:4px;
-
-    color:var(--text);
-
-    font-weight:700;
-}
-
-.user-actions{
-    display:flex;
-    gap:8px;
-}
-
-.empty-state{
-    text-align:center;
-    padding:60px 20px;
-    color:var(--text-light);
-}
-
-.empty-state i{
-    font-size:56px;
-    margin-bottom:16px;
-    opacity:.4;
-}
-
-.user-count-badge{
-    background:var(--primary-light);
-    color:var(--primary);
-
-    padding:4px 12px;
-
-    border-radius:999px;
-
-    font-size:13px;
-    font-weight:700;
-}
-        .admin-menu{
-    margin-top:10px;
-}
-
-.admin-card{
-    background:var(--card-bg);
-    border:1px solid var(--border);
-
-    border-radius:16px;
-
-    padding:18px;
-
-    display:flex;
-    align-items:center;
-
-    gap:14px;
-
-    margin-bottom:12px;
-
-    cursor:pointer;
-
-    transition:var(--transition);
-}
-
-.admin-card:active{
-    transform:scale(.98);
-    background:var(--primary-light);
-}
-
-.admin-card-icon{
-    width:52px;
-    height:52px;
-
-    border-radius:14px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:24px;
-
-    flex-shrink:0;
-}
-
-.admin-card-icon.green{
-    background:#e8f5e9;
-    color:#2e7d32;
-}
-
-.admin-card-icon.blue{
-    background:#e3f2fd;
-    color:#1565c0;
-}
-
-.admin-card-icon.gold{
-    background:#fff8e1;
-    color:#f9a825;
-}
-
-.admin-card-icon.red{
-    background:#ffebee;
-    color:#d32f2f;
-}
-
-.admin-card-content{
-    flex:1;
-}
-
-.admin-card-title{
-    font-size:16px;
-    font-weight:700;
-    margin-bottom:4px;
-}
-
-.admin-card-desc{
-    font-size:13px;
-    color:var(--text-light);
-    line-height:1.5;
-}
-
-.admin-arrow{
-    color:#c7c7c7;
-    font-size:20px;
-}
+        :root {
+            --primary: #1a6b3c;
+            --primary-dark: #145a30;
+            --primary-light: #e8f5e9;
+            --gold: #c9a84c;
+            --text: #1a1a1a;
+            --text-light: #666666;
+            --bg: #ffffff;
+            --bg-secondary: #f5f5f7;
+            --card-bg: #fafafa;
+            --border: #e8e8e8;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
+            --success: #16a34a;
+            --radius: 16px;
+            --radius-sm: 12px;
+            --transition: all .25s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text);
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--bg);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,.03);
+        }
+
+        .admin-header {
+            background: #fff;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .admin-brand { display: flex; align-items: center; gap: 12px; }
+        .admin-logo {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 20px;
+        }
+        .admin-title { font-size: 17px; font-weight: 700; }
+        .admin-subtitle { font-size: 11px; color: var(--text-light); }
+
+        .screen {
+            display: none;
+            padding: 24px 20px;
+            animation: fadeIn .35s ease;
+        }
+        .screen.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 14px;
+            text-align: center;
+        }
+
+        .stat-value { font-size: 30px; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 13px; color: var(--text-light); margin-top: 6px; }
+
+        .btn {
+            width: 100%; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-family: 'Tajawal', sans-serif;
+            border-radius: var(--radius);
+            font-size: 15px; font-weight: 700;
+            padding: 15px;
+            transition: var(--transition);
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:active { background: var(--primary-dark); }
+        .btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-outline:active { background: var(--primary-light); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-sm { width: auto; padding: 8px 14px; font-size: 13px; border-radius: 12px; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+        .form-input {
+            width: 100%; padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--card-bg);
+            font-size: 15px;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .form-input:focus { outline: none; border-color: var(--primary); background: #fff; }
+        textarea.form-input { resize: vertical; min-height: 120px; }
+        select.form-input { appearance: none; -webkit-appearance: none; }
+
+        .list-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px;
+        }
+
+        .back-btn {
+            background: none; border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px; font-weight: 700;
+            display: flex; align-items: center; gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .selection-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 12px;
+            text-align: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .selection-card:active { background: var(--primary-light); }
+
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(255,255,255,.95);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 999;
+        }
+        .spinner {
+            width: 54px; height: 54px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            margin-bottom: 18px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .options-list { margin: 12px 0; }
+        .option-row {
+            display: flex; gap: 8px; align-items: center;
+            margin-bottom: 8px;
+        }
+        .option-row .form-input { flex: 1; }
+        .correct-badge {
+            background: var(--success); color: white;
+            padding: 2px 8px; border-radius: 8px; font-size: 12px;
+        }
+
+        .admin-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .admin-card:active { transform: scale(.98); background: var(--primary-light); }
+        .admin-card-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; flex-shrink: 0;
+        }
+        .admin-card-icon.green { background: #e8f5e9; color: #2e7d32; }
+        .admin-card-icon.blue { background: #e3f2fd; color: #1565c0; }
+        .admin-card-icon.gold { background: #fff8e1; color: #f9a825; }
+        .admin-card-icon.red { background: #ffebee; color: #d32f2f; }
+        .admin-card-content { flex: 1; }
+        .admin-card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .admin-card-desc { font-size: 13px; color: var(--text-light); line-height: 1.5; }
+        .admin-arrow { color: #c7c7c7; font-size: 20px; }
+
+        .user-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; }
+        .user-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+        .user-avatar { width: 48px; height: 48px; border-radius: 14px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
+        .user-name { font-size: 16px; font-weight: 700; }
+        .user-phone { font-size: 13px; color: var(--text-light); }
+        .user-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+        .user-details div { background: #fff; border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; font-size: 12px; }
+        .user-details span { display: block; margin-top: 4px; color: var(--text); font-weight: 700; }
+        .user-actions { display: flex; gap: 8px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
+        .empty-state i { font-size: 56px; margin-bottom: 16px; opacity: .4; }
+        .user-count-badge { background: var(--primary-light); color: var(--primary); padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -567,113 +261,47 @@ textarea.form-input{
         </div>
 
         <div class="admin-menu">
-
-    <div class="admin-card" onclick="showWelcomeManager()">
-        <div class="admin-card-icon green">
-            <i class="ph ph-chat-circle-text"></i>
-        </div>
-
-        <div class="admin-card-content">
-            <div class="admin-card-title">إدارة رسالة الترحيب</div>
-            <div class="admin-card-desc">
-                تعديل رسالة وصورة الترحيب للمستخدمين
+            <div class="admin-card" onclick="showWelcomeManager()">
+                <div class="admin-card-icon green"><i class="ph ph-chat-circle-text"></i></div>
+                <div class="admin-card-content"><div class="admin-card-title">إدارة رسالة الترحيب</div><div class="admin-card-desc">تعديل رسالة وصورة الترحيب للمستخدمين</div></div>
+                <i class="ph ph-caret-left admin-arrow"></i>
+            </div>
+            <div class="admin-card" onclick="showUsersManager()">
+                <div class="admin-card-icon blue"><i class="ph ph-users"></i></div>
+                <div class="admin-card-content"><div class="admin-card-title">إدارة المستخدمين</div><div class="admin-card-desc">عرض وإدارة جميع المستخدمين المسجلين</div></div>
+                <i class="ph ph-caret-left admin-arrow"></i>
+            </div>
+            <div class="admin-card" onclick="showQuestionsManager()">
+                <div class="admin-card-icon gold"><i class="ph ph-question"></i></div>
+                <div class="admin-card-content"><div class="admin-card-title">إدارة الأسئلة</div><div class="admin-card-desc">إضافة وتعديل وحذف أسئلة الفحص النظري</div></div>
+                <i class="ph ph-caret-left admin-arrow"></i>
+            </div>
+            <div class="admin-card" onclick="showAddForm('governorate')">
+                <div class="admin-card-icon green"><i class="ph ph-map-trifold"></i></div>
+                <div class="admin-card-content"><div class="admin-card-title">إضافة محافظة</div><div class="admin-card-desc">إنشاء محافظة جديدة داخل النظام</div></div>
+                <i class="ph ph-caret-left admin-arrow"></i>
+            </div>
+            <div class="admin-card" onclick="showAddForm('area')">
+                <div class="admin-card-icon blue"><i class="ph ph-map-pin"></i></div>
+                <div class="admin-card-content"><div class="admin-card-title">إضافة منطقة</div><div class="admin-card-desc">ربط منطقة بمحافظة موجودة</div></div>
+                <i class="ph ph-caret-left admin-arrow"></i>
+            </div>
+            <div class="admin-card" onclick="showAddForm('center')">
+                <div class="admin-card-icon gold"><i class="ph ph-buildings"></i></div>
+                <div class="admin-card-content"><div class="admin-card-title">إضافة مركز تدريب</div><div class="admin-card-desc">إضافة مركز قيادة جديد</div></div>
+                <i class="ph ph-caret-left admin-arrow"></i>
+            </div>
+            <div class="admin-card" onclick="showEditMenu()">
+                <div class="admin-card-icon blue"><i class="ph ph-pencil-simple"></i></div>
+                <div class="admin-card-content"><div class="admin-card-title">تعديل البيانات</div><div class="admin-card-desc">تعديل المحافظات والمناطق والمراكز</div></div>
+                <i class="ph ph-caret-left admin-arrow"></i>
+            </div>
+            <div class="admin-card" onclick="showDeleteMenu()">
+                <div class="admin-card-icon red"><i class="ph ph-trash"></i></div>
+                <div class="admin-card-content"><div class="admin-card-title">حذف البيانات</div><div class="admin-card-desc">إزالة المحافظات أو المناطق أو المراكز</div></div>
+                <i class="ph ph-caret-left admin-arrow"></i>
             </div>
         </div>
-
-        <i class="ph ph-caret-left admin-arrow"></i>
-    </div>
-
-    <div class="admin-card" onclick="showUsersManager()">
-        <div class="admin-card-icon blue">
-            <i class="ph ph-users"></i>
-        </div>
-
-        <div class="admin-card-content">
-            <div class="admin-card-title">إدارة المستخدمين</div>
-            <div class="admin-card-desc">
-                عرض وإدارة جميع المستخدمين المسجلين
-            </div>
-        </div>
-
-        <i class="ph ph-caret-left admin-arrow"></i>
-    </div>
-
-    <div class="admin-card" onclick="showAddForm('governorate')">
-        <div class="admin-card-icon green">
-            <i class="ph ph-map-trifold"></i>
-        </div>
-
-        <div class="admin-card-content">
-            <div class="admin-card-title">إضافة محافظة</div>
-            <div class="admin-card-desc">
-                إنشاء محافظة جديدة داخل النظام
-            </div>
-        </div>
-
-        <i class="ph ph-caret-left admin-arrow"></i>
-    </div>
-
-    <div class="admin-card" onclick="showAddForm('area')">
-        <div class="admin-card-icon blue">
-            <i class="ph ph-map-pin"></i>
-        </div>
-
-        <div class="admin-card-content">
-            <div class="admin-card-title">إضافة منطقة</div>
-            <div class="admin-card-desc">
-                ربط منطقة بمحافظة موجودة
-            </div>
-        </div>
-
-        <i class="ph ph-caret-left admin-arrow"></i>
-    </div>
-
-    <div class="admin-card" onclick="showAddForm('center')">
-        <div class="admin-card-icon gold">
-            <i class="ph ph-buildings"></i>
-        </div>
-
-        <div class="admin-card-content">
-            <div class="admin-card-title">إضافة مركز تدريب</div>
-            <div class="admin-card-desc">
-                إضافة مركز قيادة جديد
-            </div>
-        </div>
-
-        <i class="ph ph-caret-left admin-arrow"></i>
-    </div>
-
-    <div class="admin-card" onclick="showEditMenu()">
-        <div class="admin-card-icon blue">
-            <i class="ph ph-pencil-simple"></i>
-        </div>
-
-        <div class="admin-card-content">
-            <div class="admin-card-title">تعديل البيانات</div>
-            <div class="admin-card-desc">
-                تعديل المحافظات والمناطق والمراكز
-            </div>
-        </div>
-
-        <i class="ph ph-caret-left admin-arrow"></i>
-    </div>
-
-    <div class="admin-card" onclick="showDeleteMenu()">
-        <div class="admin-card-icon red">
-            <i class="ph ph-trash"></i>
-        </div>
-
-        <div class="admin-card-content">
-            <div class="admin-card-title">حذف البيانات</div>
-            <div class="admin-card-desc">
-                إزالة المحافظات أو المناطق أو المراكز
-            </div>
-        </div>
-
-        <i class="ph ph-caret-left admin-arrow"></i>
-    </div>
-
-</div>
     </div>
 
     <!-- شاشة إدارة الترحيب -->
@@ -696,22 +324,98 @@ textarea.form-input{
         <div id="usersList"></div>
     </div>
 
-    <!-- شاشة الإضافة -->
+    <!-- شاشة الإضافة (محافظات/مناطق/مراكز) -->
     <div id="addScreen" class="screen">
         <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
         <div id="addFormContent"></div>
     </div>
 
-    <!-- شاشة التعديل -->
+    <!-- شاشة التعديل (محافظات/مناطق/مراكز) -->
     <div id="editScreen" class="screen">
         <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
         <div id="editContent"></div>
     </div>
 
-    <!-- شاشة الحذف -->
+    <!-- شاشة الحذف (محافظات/مناطق/مراكز) -->
     <div id="deleteScreen" class="screen">
         <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
         <div id="deleteContent"></div>
+    </div>
+
+    <!-- شاشة إدارة الأسئلة -->
+    <div id="questionsManagerScreen" class="screen">
+        <button class="back-btn" onclick="showMain()"><i class="ph ph-arrow-right"></i> رجوع للقائمة الرئيسية</button>
+        <h3 style="margin-bottom:16px;">📚 إدارة الأسئلة</h3>
+        <button class="btn btn-primary" onclick="showAddQuestionForm()" style="margin-bottom:12px;">➕ إضافة سؤال جديد</button>
+        <button class="btn btn-outline" onclick="showEditQuestionList()" style="margin-bottom:12px;">✏️ تعديل سؤال</button>
+        <button class="btn btn-outline" onclick="showDeleteQuestionList()" style="margin-bottom:12px;">🗑 حذف سؤال</button>
+    </div>
+
+    <!-- شاشة إضافة سؤال -->
+    <div id="addQuestionScreen" class="screen">
+        <button class="back-btn" onclick="showQuestionsManager()"><i class="ph ph-arrow-right"></i> رجوع لإدارة الأسئلة</button>
+        <h3 style="margin-bottom:16px;">➕ إضافة سؤال جديد</h3>
+        
+        <div class="form-group">
+            <label class="form-label">القسم</label>
+            <select class="form-input" id="qCategory">
+                <option value="قواعد السير والمرور">قواعد السير والمرور</option>
+                <option value="الميكانيك">الميكانيك</option>
+                <option value="السلامة على الطريق">السلامة على الطريق</option>
+                <option value="أسعافات أولية">أسعافات أولية</option>
+                <option value="الشواخص والخطوط والعلامات">الشواخص والخطوط والعلامات</option>
+                <option value="المخالفات واحتساب النقاط">المخالفات واحتساب النقاط</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">نوع السؤال</label>
+            <select class="form-input" id="qType" onchange="toggleMediaField()">
+                <option value="text">نصي</option>
+                <option value="image">صورة</option>
+                <option value="video">فيديو / GIF</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="mediaField" style="display:none;">
+            <label class="form-label">رابط الوسائط</label>
+            <input type="text" class="form-input" id="qMediaUrl" placeholder="https://example.com/image.jpg">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">السؤال</label>
+            <textarea class="form-input" id="qText" rows="3" placeholder="نص السؤال"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">الخيارات</label>
+            <div id="optionsContainer">
+                <div class="option-row">
+                    <input type="text" class="form-input option-input" placeholder="الخيار 1">
+                    <button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button>
+                </div>
+                <div class="option-row">
+                    <input type="text" class="form-input option-input" placeholder="الخيار 2">
+                    <button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="addOption()" style="width:auto; margin-top:8px;">+ إضافة خيار</button>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">الإجابة الصحيحة</label>
+            <select class="form-input" id="qCorrect">
+                <option value="0">الخيار 1</option>
+                <option value="1">الخيار 2</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">شرح الإجابة (اختياري)</label>
+            <textarea class="form-input" id="qExplanation" rows="2" placeholder="شرح مختصر للإجابة الصحيحة"></textarea>
+        </div>
+
+        <button class="btn btn-primary" onclick="saveQuestion()">💾 حفظ السؤال</button>
     </div>
 
     <!-- تحميل -->
@@ -724,202 +428,159 @@ textarea.form-input{
 
 <script>
     // ============ Firebase ============
-    firebase.initializeApp({
-        apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
-        databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "al3arbicv"
-    });
-    const db = firebase.database();
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+firebase.initializeApp({
+    apiKey: "AIzaSyDsN-OmtB-XFKGsYmX6zh_VvInCyE-rKtk",
+    databaseURL: "https://al3arbicv-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "al3arbicv"
+});
+const db = firebase.database();
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-    const WORKER_URL = "https://jordan-driving-test-bot.pages.dev";
-    let allGovs = {}, allAreas = {}, allCenters = {};
+let allGovs = {}, allAreas = {}, allCenters = {};
+let allQuestions = {};
 
-    // ============ دوال عامة ============
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        window.scrollTo(0, 0);
+// ============ دوال عامة ============
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function showMain() {
+    showScreen('mainScreen');
+    loadStats();
+}
+
+function showLoading(text = 'جارٍ التحميل...') {
+    document.getElementById('loadingText').textContent = text;
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+async function loadData() {
+    try {
+        const [govSnap, areaSnap, centerSnap] = await Promise.all([
+            db.ref('governorates').once('value'),
+            db.ref('areas').once('value'),
+            db.ref('centers').once('value')
+        ]);
+        allGovs = govSnap.val() || {};
+        allAreas = areaSnap.val() || {};
+        allCenters = centerSnap.val() || {};
+    } catch(e) { console.error(e); }
+}
+
+async function loadStats() {
+    await loadData();
+    document.getElementById('govCount').textContent = Object.keys(allGovs).length;
+    document.getElementById('areaCount').textContent = Object.keys(allAreas).length;
+    document.getElementById('centerCount').textContent = Object.keys(allCenters).length;
+    try {
+        const snap = await db.ref('users').once('value');
+        const users = snap.val() || {};
+        document.getElementById('userCount').textContent = Object.keys(users).length;
+    } catch(e) {}
+}
+
+// ============ إدارة الترحيب ============
+async function showWelcomeManager() {
+    showScreen('welcomeScreen');
+    const snap = await db.ref('welcome').once('value');
+    const data = snap.val() || {};
+    document.getElementById('welcomeText').value = data.text || '';
+    document.getElementById('welcomePhoto').value = data.photo || '';
+}
+
+async function saveWelcome() {
+    const text = document.getElementById('welcomeText').value;
+    const photo = document.getElementById('welcomePhoto').value.trim();
+    await db.ref('welcome').set({ text, photo: photo || null });
+    tg.showAlert('✅ تم الحفظ بنجاح!');
+}
+
+async function resetWelcome() {
+    await db.ref('welcome').set({ text: '', photo: null });
+    document.getElementById('welcomeText').value = '';
+    document.getElementById('welcomePhoto').value = '';
+    tg.showAlert('✅ تمت الإعادة للافتراضي!');
+}
+
+// ============ إدارة المستخدمين ============
+async function showUsersManager() {
+    showScreen('usersScreen');
+    await loadUsers();
+}
+
+async function loadUsers() {
+    showLoading('جاري تحميل المستخدمين...');
+    try {
+        const snap = await db.ref('users').once('value');
+        const users = snap.val() || {};
+        renderUsers(users);
+    } catch(e) {
+        document.getElementById('usersList').innerHTML = `<div class="empty-state"><i class="ph ph-warning-circle"></i><p>حدث خطأ في تحميل البيانات</p></div>`;
     }
+    hideLoading();
+}
 
-    function showMain() {
-        showScreen('mainScreen');
+function renderUsers(users) {
+    const container = document.getElementById('usersList');
+    const entries = Object.entries(users);
+    document.getElementById('userCountBadge').textContent = entries.length + ' مستخدم';
+    if (entries.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="ph ph-users"></i><p>لا يوجد مستخدمين مسجلين بعد</p></div>`;
+        return;
+    }
+    entries.sort((a, b) => (b[1].registeredAt || '').localeCompare(a[1].registeredAt || ''));
+    container.innerHTML = entries.map(([userId, user]) => {
+        const initial = (user.name || 'م')[0].toUpperCase();
+        const regDate = user.registeredAt ? new Date(user.registeredAt).toLocaleDateString('ar-JO', { year: 'numeric', month: 'short', day: 'numeric' }) : 'غير معروف';
+        return `
+            <div class="user-card" id="user-card-${userId}">
+                <div class="user-header">
+                    <div class="user-avatar">${initial}</div>
+                    <div class="user-info"><div class="user-name">${user.name || 'بدون اسم'}</div><div class="user-phone"><i class="ph ph-phone"></i> ${user.phone || 'بدون رقم'}</div></div>
+                </div>
+                <div class="user-details"><div>🆔 معرف الحساب<span>${userId}</span></div><div>📅 تاريخ التسجيل<span>${regDate}</span></div></div>
+                <div class="user-actions"><button class="btn btn-sm btn-danger" onclick="deleteUserConfirm('${userId}', '${(user.name || 'المستخدم').replace(/'/g, "\\'")}')"><i class="ph ph-trash"></i> حذف المستخدم</button></div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function deleteUserConfirm(userId, name) {
+    if (!confirm(`هل أنت متأكد من حذف "${name}"؟\n\nسيتم حذف جميع بياناته وسيُطلب منه التسجيل مرة أخرى.`)) return;
+    try {
+        await db.ref('users/' + userId).remove();
+        tg.showAlert('✅ تم حذف المستخدم بنجاح!');
+        loadUsers();
         loadStats();
-    }
+    } catch(e) { tg.showAlert('❌ خطأ في حذف المستخدم: ' + e.message); }
+}
 
-    function showLoading(text = 'جارٍ التحميل...') {
-        document.getElementById('loadingText').textContent = text;
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    }
-
-    function hideLoading() {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
-
-    async function loadData() {
-        try {
-            const [govSnap, areaSnap, centerSnap] = await Promise.all([
-                db.ref('governorates').once('value'),
-                db.ref('areas').once('value'),
-                db.ref('centers').once('value')
-            ]);
-            allGovs = govSnap.val() || {};
-            allAreas = areaSnap.val() || {};
-            allCenters = centerSnap.val() || {};
-        } catch(e) { console.error(e); }
-    }
-
-    async function loadStats() {
-        await loadData();
-        document.getElementById('govCount').textContent = Object.keys(allGovs).length;
-        document.getElementById('areaCount').textContent = Object.keys(allAreas).length;
-        document.getElementById('centerCount').textContent = Object.keys(allCenters).length;
-        
-        // تحميل عدد المستخدمين
-        try {
-            const snap = await db.ref('users').once('value');
-            const users = snap.val() || {};
-            document.getElementById('userCount').textContent = Object.keys(users).length;
-        } catch(e) {}
-    }
-
-    // ============ إدارة الترحيب ============
-    async function showWelcomeManager() {
-        showScreen('welcomeScreen');
-        const snap = await db.ref('welcome').once('value');
-        const data = snap.val() || {};
-        document.getElementById('welcomeText').value = data.text || '';
-        document.getElementById('welcomePhoto').value = data.photo || '';
-    }
-
-    async function saveWelcome() {
-        const text = document.getElementById('welcomeText').value;
-        const photo = document.getElementById('welcomePhoto').value.trim();
-        await db.ref('welcome').set({ text, photo: photo || null });
-        tg.showAlert('✅ تم الحفظ بنجاح!');
-    }
-
-    async function resetWelcome() {
-        await db.ref('welcome').set({ text: '', photo: null });
-        document.getElementById('welcomeText').value = '';
-        document.getElementById('welcomePhoto').value = '';
-        tg.showAlert('✅ تمت الإعادة للافتراضي!');
-    }
-
-    // ============ إدارة المستخدمين ============
-    async function showUsersManager() {
-        showScreen('usersScreen');
-        await loadUsers();
-    }
-
-    async function loadUsers() {
-        showLoading('جاري تحميل المستخدمين...');
-        try {
-            const snap = await db.ref('users').once('value');
-            const users = snap.val() || {};
-            renderUsers(users);
-        } catch(e) {
-            document.getElementById('usersList').innerHTML = `
-                <div class="empty-state">
-                    <i class="ph ph-warning-circle"></i>
-                    <p>حدث خطأ في تحميل البيانات</p>
-                </div>
-            `;
-        }
-        hideLoading();
-    }
-
-    function renderUsers(users) {
-        const container = document.getElementById('usersList');
-        const entries = Object.entries(users);
-        
-        document.getElementById('userCountBadge').textContent = entries.length + ' مستخدم';
-        
-        if (entries.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="ph ph-users"></i>
-                    <p>لا يوجد مستخدمين مسجلين بعد</p>
-                </div>
-            `;
-            return;
-        }
-        
-        // ترتيب المستخدمين من الأحدث للأقدم
-        entries.sort((a, b) => {
-            const dateA = a[1].registeredAt || '';
-            const dateB = b[1].registeredAt || '';
-            return dateB.localeCompare(dateA);
-        });
-        
-        container.innerHTML = entries.map(([userId, user]) => {
-            const initial = (user.name || 'م')[0].toUpperCase();
-            const regDate = user.registeredAt 
-                ? new Date(user.registeredAt).toLocaleDateString('ar-JO', { year: 'numeric', month: 'short', day: 'numeric' })
-                : 'غير معروف';
-            
-            return `
-                <div class="user-card" id="user-card-${userId}">
-                    <div class="user-header">
-                        <div class="user-avatar">${initial}</div>
-                        <div class="user-info">
-                            <div class="user-name">${user.name || 'بدون اسم'}</div>
-                            <div class="user-phone"><i class="ph ph-phone"></i> ${user.phone || 'بدون رقم'}</div>
-                        </div>
-                    </div>
-                    <div class="user-details">
-                        <div>🆔 معرف الحساب<span>${userId}</span></div>
-                        <div>📅 تاريخ التسجيل<span>${regDate}</span></div>
-                    </div>
-                    <div class="user-actions">
-                        <button class="btn btn-sm btn-danger" onclick="deleteUserConfirm('${userId}', '${(user.name || 'المستخدم').replace(/'/g, "\\'")}')">
-                            <i class="ph ph-trash"></i> حذف المستخدم
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    async function deleteUserConfirm(userId, name) {
-        if (!confirm(`هل أنت متأكد من حذف "${name}"؟\n\nسيتم حذف جميع بياناته وسيُطلب منه التسجيل مرة أخرى.`)) return;
-        
-        try {
-            await db.ref('users/' + userId).remove();
-            tg.showAlert('✅ تم حذف المستخدم بنجاح!');
-            loadUsers();
-            loadStats();
-        } catch(e) {
-            tg.showAlert('❌ خطأ في حذف المستخدم: ' + e.message);
-        }
-    }
-
-    // ============ الإضافة ============
-    async function showAddForm(type) {
-        showScreen('addScreen');
-        await loadData();
-        let html = '';
-        
-        if (type === 'governorate') {
-            html = `
-                <h3 style="margin-bottom:16px;">➕ إضافة محافظة</h3>
+// ============ إضافة/تعديل/حذف المحافظات والمناطق والمراكز ============
+async function showAddForm(type) {
+    showScreen('addScreen');
+    await loadData();
+    let html = '';
+    if (type === 'governorate') {
+        html = `<h3 style="margin-bottom:16px;">➕ إضافة محافظة</h3>
                 <div class="form-group"><label class="form-label">اسم المحافظة</label><input type="text" class="form-input" id="govName"></div>
-                <button class="btn btn-primary" onclick="addGovernorate()">حفظ</button>
-            `;
-        } else if (type === 'area') {
-            const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
-            html = `
-                <h3 style="margin-bottom:16px;">➕ إضافة منطقة</h3>
+                <button class="btn btn-primary" onclick="addGovernorate()">حفظ</button>`;
+    } else if (type === 'area') {
+        const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
+        html = `<h3 style="margin-bottom:16px;">➕ إضافة منطقة</h3>
                 <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="areaGov">${govOptions}</select></div>
                 <div class="form-group"><label class="form-label">اسم المنطقة</label><input type="text" class="form-input" id="areaName"></div>
-                <button class="btn btn-primary" onclick="addArea()">حفظ</button>
-            `;
-        } else if (type === 'center') {
-            const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
-            html = `
-                <h3 style="margin-bottom:16px;">➕ إضافة مركز</h3>
+                <button class="btn btn-primary" onclick="addArea()">حفظ</button>`;
+    } else if (type === 'center') {
+        const govOptions = Object.entries(allGovs).map(([id, g]) => `<option value="${id}">${g.name}</option>`).join('');
+        html = `<h3 style="margin-bottom:16px;">➕ إضافة مركز</h3>
                 <div class="form-group"><label class="form-label">المحافظة</label><select class="form-input" id="centerGov" onchange="loadAreasForSelect()">${govOptions}</select></div>
                 <div class="form-group"><label class="form-label">المنطقة</label><select class="form-input" id="centerArea"></select></div>
                 <div class="form-group"><label class="form-label">اسم المركز</label><input type="text" class="form-input" id="centerName"></div>
@@ -927,262 +588,395 @@ textarea.form-input{
                 <div class="form-group"><label class="form-label">رابط الخريطة</label><input type="text" class="form-input" id="centerMapLink"></div>
                 <div class="form-group"><label class="form-label">رقم الهاتف</label><input type="tel" class="form-input" id="centerPhone"></div>
                 <div class="form-group"><label class="form-label">التقييم (من 5)</label><input type="number" class="form-input" id="centerRating" min="0" max="5" step="0.1" value="0"></div>
-                <button class="btn btn-primary" onclick="addCenter()">حفظ</button>
-            `;
-        }
-        
-        document.getElementById('addFormContent').innerHTML = html;
-        if (type === 'center') setTimeout(loadAreasForSelect, 300);
+                <button class="btn btn-primary" onclick="addCenter()">حفظ</button>`;
     }
+    document.getElementById('addFormContent').innerHTML = html;
+    if (type === 'center') setTimeout(loadAreasForSelect, 300);
+}
 
-    function loadAreasForSelect() {
-        const govId = document.getElementById('centerGov')?.value;
-        if (!govId) return;
-        const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
-        const sel = document.getElementById('centerArea');
-        if (sel) sel.innerHTML = areas.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-    }
+function loadAreasForSelect() {
+    const govId = document.getElementById('centerGov')?.value;
+    if (!govId) return;
+    const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+    const sel = document.getElementById('centerArea');
+    if (sel) sel.innerHTML = areas.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+}
 
-    async function addGovernorate() {
-        const name = document.getElementById('govName').value.trim();
-        if (!name) { tg.showAlert('الرجاء إدخال اسم المحافظة'); return; }
-        await db.ref('governorates').push({ name });
-        tg.showAlert('✅ تمت الإضافة بنجاح!');
-        showMain();
-    }
+async function addGovernorate() {
+    const name = document.getElementById('govName').value.trim();
+    if (!name) { tg.showAlert('الرجاء إدخال اسم المحافظة'); return; }
+    await db.ref('governorates').push({ name });
+    tg.showAlert('✅ تمت الإضافة بنجاح!');
+    showMain();
+}
 
-    async function addArea() {
-        const name = document.getElementById('areaName').value.trim();
-        const governorateId = document.getElementById('areaGov').value;
-        if (!name) { tg.showAlert('الرجاء إدخال اسم المنطقة'); return; }
-        await db.ref('areas').push({ name, governorateId });
-        tg.showAlert('✅ تمت الإضافة بنجاح!');
-        showMain();
-    }
+async function addArea() {
+    const name = document.getElementById('areaName').value.trim();
+    const governorateId = document.getElementById('areaGov').value;
+    if (!name) { tg.showAlert('الرجاء إدخال اسم المنطقة'); return; }
+    await db.ref('areas').push({ name, governorateId });
+    tg.showAlert('✅ تمت الإضافة بنجاح!');
+    showMain();
+}
 
-    async function addCenter() {
-        const name = document.getElementById('centerName').value.trim();
-        const areaId = document.getElementById('centerArea').value;
-        const address = document.getElementById('centerAddress').value.trim();
-        const mapLink = document.getElementById('centerMapLink').value.trim();
-        const phone = document.getElementById('centerPhone').value.trim();
-        const rating = parseFloat(document.getElementById('centerRating').value) || 0;
-        if (!name) { tg.showAlert('الرجاء إدخال اسم المركز'); return; }
-        await db.ref('centers').push({ name, areaId, address, mapLink, phone, rating });
-        tg.showAlert('✅ تمت الإضافة بنجاح!');
-        showMain();
-    }
+async function addCenter() {
+    const name = document.getElementById('centerName').value.trim();
+    const areaId = document.getElementById('centerArea').value;
+    const address = document.getElementById('centerAddress').value.trim();
+    const mapLink = document.getElementById('centerMapLink').value.trim();
+    const phone = document.getElementById('centerPhone').value.trim();
+    const rating = parseFloat(document.getElementById('centerRating').value) || 0;
+    if (!name) { tg.showAlert('الرجاء إدخال اسم المركز'); return; }
+    await db.ref('centers').push({ name, areaId, address, mapLink, phone, rating });
+    tg.showAlert('✅ تمت الإضافة بنجاح!');
+    showMain();
+}
 
-    // ============ التعديل ============
-    function showEditMenu() {
-        showScreen('editScreen');
-        document.getElementById('editContent').innerHTML = `
-            <h3 style="margin-bottom:16px;">✏️ ماذا تريد أن تعدل؟</h3>
-            <div class="selection-card" onclick="startEdit('governorates')">🏙 المحافظات</div>
-            <div class="selection-card" onclick="startEdit('areas')">📍 المناطق</div>
-            <div class="selection-card" onclick="startEdit('centers')">🏢 المراكز</div>
-        `;
-    }
+// ============ التعديل (محافظات / مناطق / مراكز) ============
+function showEditMenu() {
+    showScreen('editScreen');
+    document.getElementById('editContent').innerHTML = `
+        <h3 style="margin-bottom:16px;">✏️ ماذا تريد أن تعدل؟</h3>
+        <div class="selection-card" onclick="startEdit('governorates')">🏙 المحافظات</div>
+        <div class="selection-card" onclick="startEdit('areas')">📍 المناطق</div>
+        <div class="selection-card" onclick="startEdit('centers')">🏢 المراكز</div>
+    `;
+}
 
-    async function startEdit(type) {
-        await loadData();
-        let html = `<h3 style="margin-bottom:16px;">✏️ تعديل ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h3>`;
-        
-        if (type === 'governorates') {
-            const items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
-            html += items.map(item => `
-                <div class="list-item" id="edit-row-${item.id}">
-                    <span id="edit-name-${item.id}">${item.name}</span>
-                    <button class="btn btn-sm btn-outline" onclick="showEditInline('governorates', '${item.id}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
-                </div>
-            `).join('');
-        } else {
-            const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
-            html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المحافظة أولاً:</p>';
-            html += govs.map(g => `
-                <div class="selection-card" onclick="showItemsForEdit('${type}', '${g.id}', '${g.name}')">${g.name}</div>
-            `).join('');
-        }
-        
-        document.getElementById('editContent').innerHTML = html;
-    }
-
-    function showEditInline(type, id) {
-        const nameSpan = document.getElementById(`edit-name-${id}`);
-        const currentName = nameSpan.textContent;
-        const row = document.getElementById(`edit-row-${id}`);
-        
-        row.innerHTML = `
-            <input type="text" class="form-input" id="edit-input-${id}" value="${currentName.replace(/"/g, '&quot;')}" style="flex:1;height:44px;">
-            <button class="btn btn-sm btn-primary" onclick="saveEditInline('${type}', '${id}')">💾 حفظ</button>
-            <button class="btn btn-sm btn-outline" onclick="startEdit('${type}')">❌ إلغاء</button>
-        `;
-    }
-
-    async function saveEditInline(type, id) {
-        const newName = document.getElementById(`edit-input-${id}`).value.trim();
-        if (!newName) { tg.showAlert('الرجاء إدخال اسم'); return; }
-        const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
-        await db.ref(`${endpoint}/${id}`).update({ name: newName });
-        tg.showAlert('✅ تم التعديل بنجاح!');
-        startEdit(type);
-    }
-
-    async function showItemsForEdit(type, govId, govName) {
-        await loadData();
-        let html = `<button class="back-btn" onclick="startEdit('${type}')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
-        html += `<h3 style="margin-bottom:8px;">${govName}</h3>`;
-        
-        if (type === 'areas') {
-            const items = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
-            html += items.map(item => `
-                <div class="list-item" id="edit-row-${item.id}">
-                    <span id="edit-name-${item.id}">${item.name}</span>
-                    <button class="btn btn-sm btn-outline" onclick="showEditInline('areas', '${item.id}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
-                </div>
-            `).join('');
-        } else if (type === 'centers') {
-            const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
-            html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المنطقة:</p>';
-            html += areas.map(a => `
-                <div class="selection-card" onclick="showCentersForEdit('${a.id}', '${govName} - ${a.name}')">${a.name}</div>
-            `).join('');
-        }
-        
-        document.getElementById('editContent').innerHTML = html;
-    }
-
-    async function showCentersForEdit(areaId, title) {
-        await loadData();
-        const items = Object.entries(allCenters).filter(([_, c]) => c.areaId === areaId).map(([id, c]) => ({ id, ...c }));
-        let html = `<button class="back-btn" onclick="showItemsForEdit('centers', '${allAreas[areaId]?.governorateId || ''}', '')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
-        html += `<h3 style="margin-bottom:8px;">${title}</h3>`;
+async function startEdit(type) {
+    await loadData();
+    let html = `<h3 style="margin-bottom:16px;">✏️ تعديل ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h3>`;
+    
+    if (type === 'governorates') {
+        const items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
         html += items.map(item => `
             <div class="list-item" id="edit-row-${item.id}">
                 <span id="edit-name-${item.id}">${item.name}</span>
-                <button class="btn btn-sm btn-outline" onclick="showEditInline('centers', '${item.id}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
+                <button class="btn btn-sm btn-outline" onclick="showEditInline('governorates', '${item.id}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
             </div>
         `).join('');
-        document.getElementById('editContent').innerHTML = html;
+    } else {
+        const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
+        html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المحافظة أولاً:</p>';
+        html += govs.map(g => `
+            <div class="selection-card" onclick="showItemsForEdit('${type}', '${g.id}', '${g.name}')">${g.name}</div>
+        `).join('');
     }
+    
+    document.getElementById('editContent').innerHTML = html;
+}
 
-    // ============ الحذف ============
-    function showDeleteMenu() {
-        showScreen('deleteScreen');
-        document.getElementById('deleteContent').innerHTML = `
-            <h3 style="margin-bottom:16px;">🗑 ماذا تريد أن تحذف؟</h3>
-            <div class="selection-card" onclick="startDelete('governorates')">🏙 المحافظات</div>
-            <div class="selection-card" onclick="startDelete('areas')">📍 المناطق</div>
-            <div class="selection-card" onclick="startDelete('centers')">🏢 المراكز</div>
-        `;
-    }
+function showEditInline(type, id) {
+    const nameSpan = document.getElementById(`edit-name-${id}`);
+    const currentName = nameSpan.textContent;
+    const row = document.getElementById(`edit-row-${id}`);
+    
+    row.innerHTML = `
+        <input type="text" class="form-input" id="edit-input-${id}" value="${currentName.replace(/"/g, '&quot;')}" style="flex:1;height:44px;">
+        <button class="btn btn-sm btn-primary" onclick="saveEditInline('${type}', '${id}')">💾 حفظ</button>
+        <button class="btn btn-sm btn-outline" onclick="startEdit('${type}')">❌ إلغاء</button>
+    `;
+}
 
-    async function startDelete(type) {
-        await loadData();
-        let html = `<h3 style="margin-bottom:16px;">🗑 حذف ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h3>`;
-        
-        if (type === 'governorates') {
-            const items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
-            html += items.map(item => `
-                <div class="list-item" id="delete-row-${item.id}">
-                    <span>${item.name}</span>
-                    <button class="btn btn-sm btn-outline" onclick="showDeleteConfirm('governorates', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑</button>
-                </div>
-            `).join('');
-        } else {
-            const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
-            html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المحافظة أولاً:</p>';
-            html += govs.map(g => `
-                <div class="selection-card" onclick="showItemsForDelete('${type}', '${g.id}', '${g.name}')">${g.name}</div>
-            `).join('');
-        }
-        
-        document.getElementById('deleteContent').innerHTML = html;
-    }
+async function saveEditInline(type, id) {
+    const newName = document.getElementById(`edit-input-${id}`).value.trim();
+    if (!newName) { tg.showAlert('الرجاء إدخال اسم'); return; }
+    const endpoint = type === 'governorates' ? 'governorates' : type === 'areas' ? 'areas' : 'centers';
+    await db.ref(`${endpoint}/${id}`).update({ name: newName });
+    tg.showAlert('✅ تم التعديل بنجاح!');
+    startEdit(type);
+}
 
-    function showDeleteConfirm(type, id, name) {
-        const row = document.getElementById(`delete-row-${id}`);
-        row.innerHTML = `
-            <div class="confirm-box">
-                <p style="margin-bottom:8px;">متأكد من حذف "${name}"؟</p>
-                <button class="btn btn-sm btn-danger" onclick="executeDelete('${type}', '${id}')">🗑 نعم، احذف</button>
-                <button class="btn btn-sm btn-outline" onclick="startDelete('${type}')" style="margin-top:8px;">❌ إلغاء</button>
+async function showItemsForEdit(type, govId, govName) {
+    await loadData();
+    let html = `<button class="back-btn" onclick="startEdit('${type}')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<h3 style="margin-bottom:8px;">${govName}</h3>`;
+    
+    if (type === 'areas') {
+        const items = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+        html += items.map(item => `
+            <div class="list-item" id="edit-row-${item.id}">
+                <span id="edit-name-${item.id}">${item.name}</span>
+                <button class="btn btn-sm btn-outline" onclick="showEditInline('areas', '${item.id}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
             </div>
-        `;
+        `).join('');
+    } else if (type === 'centers') {
+        const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+        html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المنطقة:</p>';
+        html += areas.map(a => `
+            <div class="selection-card" onclick="showCentersForEdit('${a.id}', '${govName} - ${a.name}')">${a.name}</div>
+        `).join('');
     }
+    
+    document.getElementById('editContent').innerHTML = html;
+}
 
-    async function executeDelete(type, id) {
-        try {
-            if (type === 'governorates') {
-                await db.ref(`governorates/${id}`).remove();
-                const areasSnap = await db.ref('areas').orderByChild('governorateId').equalTo(id).once('value');
-                const areas = areasSnap.val() || {};
-                for (const areaId of Object.keys(areas)) {
-                    const centersSnap = await db.ref('centers').orderByChild('areaId').equalTo(areaId).once('value');
-                    const centers = centersSnap.val() || {};
-                    for (const centerId of Object.keys(centers)) {
-                        await db.ref(`centers/${centerId}`).remove();
-                    }
-                    await db.ref(`areas/${areaId}`).remove();
-                }
-            } else if (type === 'areas') {
-                await db.ref(`areas/${id}`).remove();
-                const centersSnap = await db.ref('centers').orderByChild('areaId').equalTo(id).once('value');
+async function showCentersForEdit(areaId, title) {
+    await loadData();
+    const items = Object.entries(allCenters).filter(([_, c]) => c.areaId === areaId).map(([id, c]) => ({ id, ...c }));
+    let html = `<button class="back-btn" onclick="showItemsForEdit('centers', '${allAreas[areaId]?.governorateId || ''}', '')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<h3 style="margin-bottom:8px;">${title}</h3>`;
+    html += items.map(item => `
+        <div class="list-item" id="edit-row-${item.id}">
+            <span id="edit-name-${item.id}">${item.name}</span>
+            <button class="btn btn-sm btn-outline" onclick="showEditInline('centers', '${item.id}')"><i class="ph ph-pencil-simple"></i> تعديل</button>
+        </div>
+    `).join('');
+    document.getElementById('editContent').innerHTML = html;
+}
+
+// ============ الحذف (محافظات / مناطق / مراكز) ============
+function showDeleteMenu() {
+    showScreen('deleteScreen');
+    document.getElementById('deleteContent').innerHTML = `
+        <h3 style="margin-bottom:16px;">🗑 ماذا تريد أن تحذف؟</h3>
+        <div class="selection-card" onclick="startDelete('governorates')">🏙 المحافظات</div>
+        <div class="selection-card" onclick="startDelete('areas')">📍 المناطق</div>
+        <div class="selection-card" onclick="startDelete('centers')">🏢 المراكز</div>
+    `;
+}
+
+async function startDelete(type) {
+    await loadData();
+    let html = `<h3 style="margin-bottom:16px;">🗑 حذف ${type === 'governorates' ? 'محافظة' : type === 'areas' ? 'منطقة' : 'مركز'}</h3>`;
+    
+    if (type === 'governorates') {
+        const items = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
+        html += items.map(item => `
+            <div class="list-item" id="delete-row-${item.id}">
+                <span>${item.name}</span>
+                <button class="btn btn-sm btn-outline" onclick="showDeleteConfirm('governorates', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑</button>
+            </div>
+        `).join('');
+    } else {
+        const govs = Object.entries(allGovs).map(([id, g]) => ({ id, ...g }));
+        html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المحافظة أولاً:</p>';
+        html += govs.map(g => `
+            <div class="selection-card" onclick="showItemsForDelete('${type}', '${g.id}', '${g.name}')">${g.name}</div>
+        `).join('');
+    }
+    
+    document.getElementById('deleteContent').innerHTML = html;
+}
+
+function showDeleteConfirm(type, id, name) {
+    const row = document.getElementById(`delete-row-${id}`);
+    row.innerHTML = `
+        <div class="confirm-box" style="background: var(--danger-light); border: 1px solid var(--danger); border-radius: var(--radius-sm); padding: 16px; margin: 10px 0; text-align: center; flex: 1;">
+            <p style="margin-bottom:8px;">متأكد من حذف "${name}"؟</p>
+            <button class="btn btn-sm btn-danger" onclick="executeDelete('${type}', '${id}')">🗑 نعم، احذف</button>
+            <button class="btn btn-sm btn-outline" onclick="startDelete('${type}')" style="margin-top:8px;">❌ إلغاء</button>
+        </div>
+    `;
+}
+
+async function executeDelete(type, id) {
+    try {
+        if (type === 'governorates') {
+            await db.ref(`governorates/${id}`).remove();
+            const areasSnap = await db.ref('areas').orderByChild('governorateId').equalTo(id).once('value');
+            const areas = areasSnap.val() || {};
+            for (const areaId of Object.keys(areas)) {
+                const centersSnap = await db.ref('centers').orderByChild('areaId').equalTo(areaId).once('value');
                 const centers = centersSnap.val() || {};
                 for (const centerId of Object.keys(centers)) {
                     await db.ref(`centers/${centerId}`).remove();
                 }
-            } else {
-                await db.ref(`centers/${id}`).remove();
+                await db.ref(`areas/${areaId}`).remove();
             }
-            
-            tg.showAlert('✅ تم الحذف بنجاح!');
-            startDelete(type);
-        } catch(e) {
-            tg.showAlert('❌ خطأ في الحذف: ' + e.message);
-        }
-    }
-
-    async function showItemsForDelete(type, govId, govName) {
-        await loadData();
-        let html = `<button class="back-btn" onclick="startDelete('${type}')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
-        html += `<h3 style="margin-bottom:8px;">${govName}</h3>`;
-        
-        if (type === 'areas') {
-            const items = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
-            html += items.map(item => `
-                <div class="list-item" id="delete-row-${item.id}">
-                    <span>${item.name}</span>
-                    <button class="btn btn-sm btn-outline" onclick="showDeleteConfirm('areas', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑</button>
-                </div>
-            `).join('');
-        } else if (type === 'centers') {
-            const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
-            html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المنطقة:</p>';
-            html += areas.map(a => `
-                <div class="selection-card" onclick="showCentersForDelete('${a.id}', '${govName} - ${a.name}')">${a.name}</div>
-            `).join('');
+        } else if (type === 'areas') {
+            await db.ref(`areas/${id}`).remove();
+            const centersSnap = await db.ref('centers').orderByChild('areaId').equalTo(id).once('value');
+            const centers = centersSnap.val() || {};
+            for (const centerId of Object.keys(centers)) {
+                await db.ref(`centers/${centerId}`).remove();
+            }
+        } else {
+            await db.ref(`centers/${id}`).remove();
         }
         
-        document.getElementById('deleteContent').innerHTML = html;
+        tg.showAlert('✅ تم الحذف بنجاح!');
+        startDelete(type);
+    } catch(e) {
+        tg.showAlert('❌ خطأ في الحذف: ' + e.message);
     }
+}
 
-    async function showCentersForDelete(areaId, title) {
-        await loadData();
-        const items = Object.entries(allCenters).filter(([_, c]) => c.areaId === areaId).map(([id, c]) => ({ id, ...c }));
-        let html = `<button class="back-btn" onclick="showItemsForDelete('centers', '${allAreas[areaId]?.governorateId || ''}', '')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
-        html += `<h3 style="margin-bottom:8px;">${title}</h3>`;
+async function showItemsForDelete(type, govId, govName) {
+    await loadData();
+    let html = `<button class="back-btn" onclick="startDelete('${type}')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<h3 style="margin-bottom:8px;">${govName}</h3>`;
+    
+    if (type === 'areas') {
+        const items = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
         html += items.map(item => `
             <div class="list-item" id="delete-row-${item.id}">
                 <span>${item.name}</span>
-                <button class="btn btn-sm btn-outline" onclick="showDeleteConfirm('centers', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑</button>
+                <button class="btn btn-sm btn-outline" onclick="showDeleteConfirm('areas', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑</button>
             </div>
         `).join('');
-        document.getElementById('deleteContent').innerHTML = html;
+    } else if (type === 'centers') {
+        const areas = Object.entries(allAreas).filter(([_, a]) => a.governorateId === govId).map(([id, a]) => ({ id, ...a }));
+        html += '<p style="color:var(--text-light);margin-bottom:12px;">اختر المنطقة:</p>';
+        html += areas.map(a => `
+            <div class="selection-card" onclick="showCentersForDelete('${a.id}', '${govName} - ${a.name}')">${a.name}</div>
+        `).join('');
     }
+    
+    document.getElementById('deleteContent').innerHTML = html;
+}
 
-    // ============ بدء التشغيل ============
-    loadStats();
+async function showCentersForDelete(areaId, title) {
+    await loadData();
+    const items = Object.entries(allCenters).filter(([_, c]) => c.areaId === areaId).map(([id, c]) => ({ id, ...c }));
+    let html = `<button class="back-btn" onclick="showItemsForDelete('centers', '${allAreas[areaId]?.governorateId || ''}', '')"><i class="ph ph-arrow-right"></i> رجوع</button>`;
+    html += `<h3 style="margin-bottom:8px;">${title}</h3>`;
+    html += items.map(item => `
+        <div class="list-item" id="delete-row-${item.id}">
+            <span>${item.name}</span>
+            <button class="btn btn-sm btn-outline" onclick="showDeleteConfirm('centers', '${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑</button>
+        </div>
+    `).join('');
+    document.getElementById('deleteContent').innerHTML = html;
+}
+
+// ============ إدارة الأسئلة ============
+async function loadAllQuestions() {
+    try { const snap = await db.ref('questions').once('value'); allQuestions = snap.val() || {}; } catch(e) { console.error(e); }
+}
+
+function showQuestionsManager() { showScreen('questionsManagerScreen'); }
+
+function showAddQuestionForm() {
+    showScreen('addQuestionScreen');
+    document.getElementById('qCategory').value = 'قواعد السير والمرور';
+    document.getElementById('qType').value = 'text';
+    document.getElementById('qMediaUrl').value = '';
+    document.getElementById('qText').value = '';
+    document.getElementById('qExplanation').value = '';
+    document.getElementById('mediaField').style.display = 'none';
+    document.getElementById('optionsContainer').innerHTML = `
+        <div class="option-row"><input type="text" class="form-input option-input" placeholder="الخيار 1"><button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button></div>
+        <div class="option-row"><input type="text" class="form-input option-input" placeholder="الخيار 2"><button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button></div>
+    `;
+    updateCorrectSelect();
+}
+
+function toggleMediaField() { document.getElementById('mediaField').style.display = document.getElementById('qType').value !== 'text' ? 'block' : 'none'; }
+
+function addOption() {
+    const container = document.getElementById('optionsContainer');
+    const count = container.querySelectorAll('.option-input').length;
+    const div = document.createElement('div');
+    div.className = 'option-row';
+    div.innerHTML = `<input type="text" class="form-input option-input" placeholder="الخيار ${count+1}"><button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button>`;
+    container.appendChild(div);
+    updateCorrectSelect();
+}
+
+function removeOption(btn) { btn.parentElement.remove(); updateCorrectSelect(); }
+
+function updateCorrectSelect() {
+    const options = document.querySelectorAll('#optionsContainer .option-input');
+    const select = document.getElementById('qCorrect');
+    const currentVal = select.value;
+    select.innerHTML = '';
+    options.forEach((opt, i) => { select.innerHTML += `<option value="${i}">${opt.value || `الخيار ${i+1}`}</option>`; });
+    if (currentVal < options.length) select.value = currentVal;
+}
+
+async function saveQuestion() {
+    const category = document.getElementById('qCategory').value;
+    const type = document.getElementById('qType').value;
+    const mediaUrl = document.getElementById('qMediaUrl').value.trim();
+    const question = document.getElementById('qText').value.trim();
+    const explanation = document.getElementById('qExplanation').value.trim();
+    const correctAnswer = parseInt(document.getElementById('qCorrect').value);
+    const options = Array.from(document.querySelectorAll('#optionsContainer .option-input')).map(inp => inp.value.trim()).filter(opt => opt !== '');
+
+    if (!question) { tg.showAlert('الرجاء إدخال نص السؤال'); return; }
+    if (options.length < 2) { tg.showAlert('يجب إدخال خيارين على الأقل'); return; }
+    if (type !== 'text' && !mediaUrl) { tg.showAlert('الرجاء إدخال رابط الوسائط'); return; }
+
+    try {
+        await db.ref('questions').push({ category, type, mediaUrl: type !== 'text' ? mediaUrl : null, question, options, correctAnswer, explanation: explanation || null });
+        tg.showAlert('✅ تم حفظ السؤال بنجاح!');
+        showQuestionsManager();
+    } catch(e) { tg.showAlert('❌ حدث خطأ أثناء الحفظ'); }
+}
+
+async function showEditQuestionList() {
+    await loadAllQuestions();
+    const questions = Object.entries(allQuestions).map(([id, q]) => ({ id, ...q }));
+    if (questions.length === 0) { tg.showAlert('لا توجد أسئلة'); return; }
+    let html = '<button class="back-btn" onclick="showQuestionsManager()"><i class="ph ph-arrow-right"></i> رجوع</button><h3>اختر سؤالاً لتعديله</h3>';
+    questions.forEach(q => html += `<div class="list-item"><span>${q.question.substring(0, 50)}...</span><button class="btn btn-sm btn-outline" onclick="editQuestion('${q.id}')">✏️ تعديل</button></div>`);
+    document.getElementById('questionsManagerScreen').innerHTML = html;
+}
+
+async function editQuestion(id) {
+    const q = allQuestions[id]; if (!q) return;
+    showScreen('addQuestionScreen');
+    document.getElementById('qCategory').value = q.category;
+    document.getElementById('qType').value = q.type || 'text';
+    document.getElementById('qText').value = q.question;
+    document.getElementById('qMediaUrl').value = q.mediaUrl || '';
+    document.getElementById('qExplanation').value = q.explanation || '';
+    toggleMediaField();
+    const container = document.getElementById('optionsContainer');
+    container.innerHTML = '';
+    q.options.forEach((opt, i) => {
+        const div = document.createElement('div'); div.className = 'option-row';
+        div.innerHTML = `<input type="text" class="form-input option-input" value="${opt}"><button class="btn btn-sm btn-outline" onclick="removeOption(this)" style="width:auto;">✕</button>`;
+        container.appendChild(div);
+    });
+    updateCorrectSelect();
+    document.getElementById('qCorrect').value = q.correctAnswer;
+    const saveBtn = document.querySelector('#addQuestionScreen .btn-primary');
+    saveBtn.textContent = '💾 تحديث السؤال';
+    saveBtn.onclick = () => updateQuestion(id);
+}
+
+async function updateQuestion(id) {
+    const category = document.getElementById('qCategory').value;
+    const type = document.getElementById('qType').value;
+    const mediaUrl = document.getElementById('qMediaUrl').value.trim();
+    const question = document.getElementById('qText').value.trim();
+    const explanation = document.getElementById('qExplanation').value.trim();
+    const correctAnswer = parseInt(document.getElementById('qCorrect').value);
+    const options = Array.from(document.querySelectorAll('#optionsContainer .option-input')).map(inp => inp.value.trim()).filter(opt => opt !== '');
+
+    if (!question) { tg.showAlert('الرجاء إدخال نص السؤال'); return; }
+    if (options.length < 2) { tg.showAlert('يجب إدخال خيارين على الأقل'); return; }
+    if (type !== 'text' && !mediaUrl) { tg.showAlert('الرجاء إدخال رابط الوسائط'); return; }
+
+    try {
+        await db.ref('questions/' + id).update({ category, type, mediaUrl: type !== 'text' ? mediaUrl : null, question, options, correctAnswer, explanation: explanation || null });
+        tg.showAlert('✅ تم تحديث السؤال بنجاح!');
+        showQuestionsManager();
+    } catch(e) { tg.showAlert('❌ حدث خطأ أثناء التحديث'); }
+}
+
+async function showDeleteQuestionList() {
+    await loadAllQuestions();
+    const questions = Object.entries(allQuestions).map(([id, q]) => ({ id, ...q }));
+    if (questions.length === 0) { tg.showAlert('لا توجد أسئلة'); return; }
+    let html = '<button class="back-btn" onclick="showQuestionsManager()"><i class="ph ph-arrow-right"></i> رجوع</button><h3>اختر سؤالاً لحذفه</h3>';
+    questions.forEach(q => html += `<div class="list-item"><span>${q.question.substring(0, 50)}...</span><button class="btn btn-sm btn-danger" onclick="deleteQuestionConfirm('${q.id}', '${q.question.replace(/'/g, "\\'")}')">🗑 حذف</button></div>`);
+    document.getElementById('questionsManagerScreen').innerHTML = html;
+}
+
+async function deleteQuestionConfirm(id, text) {
+    if (!confirm(`هل أنت متأكد من حذف السؤال: "${text.substring(0, 50)}"؟`)) return;
+    try {
+        await db.ref('questions/' + id).remove();
+        tg.showAlert('✅ تم الحذف بنجاح!');
+        showDeleteQuestionList();
+    } catch(e) { tg.showAlert('❌ حدث خطأ أثناء الحذف'); }
+}
+
+// ============ بدء التشغيل ============
+loadStats();
 </script>
 </body>
 </html>
