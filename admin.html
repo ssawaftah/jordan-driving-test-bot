@@ -872,6 +872,12 @@ function showQuestionsManager() {
 
 function showAddQuestionForm() {
     showScreen('addQuestionScreen');
+    
+    // إعادة تعيين زر الحفظ إلى وضع الإضافة
+    const saveBtn = document.querySelector('#addQuestionScreen .btn-primary');
+    saveBtn.textContent = '💾 حفظ السؤال';
+    saveBtn.onclick = saveQuestion;
+    
     document.getElementById('qCategory').value = 'قواعد السير والمرور';
     document.getElementById('qType').value = 'text';
     document.getElementById('qMediaUrl').value = '';
@@ -939,7 +945,8 @@ async function saveQuestion() {
             explanation: explanation || null
         });
         tg.showAlert('✅ تم حفظ السؤال بنجاح!');
-        showQuestionsManagerMain();
+        // إعادة تعيين النموذج لإضافة سؤال جديد
+        showAddQuestionForm();
     } catch(e) { tg.showAlert('❌ حدث خطأ أثناء الحفظ'); }
 }
 
