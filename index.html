@@ -616,39 +616,62 @@
     }
 
     function renderAllCentersForGov(govId, areaId) {
-        let centers = Object.entries(allCenters)
-            .filter(([_, c]) => {
-                if (areaId) return c.areaId === areaId;
-                const area = allAreas[c.areaId];
-                return area && area.governorateId === govId;
-            })
-            .map(([id, c]) => ({ id, ...c }));
-        centers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        document.getElementById('centerResultCount').textContent = `${centers.length} مركز تدريب`;
-        renderCenterCards(centers);
-    }
-
-    function filterCenters() {
-        const query = document.getElementById('centerSearch').value.trim().toLowerCase();
-        if (!currentGovId) return;
-        let centers = Object.entries(allCenters)
-            .filter(([_, c]) => {
-                if (currentAreaFilter) { if (c.areaId !== currentAreaFilter) return false; }
-                else {
-                    const area = allAreas[c.areaId];
-                    if (!area || area.governorateId !== currentGovId) return false;
-                }
-                if (query) {
-                    return (c.name || '').toLowerCase().includes(query) ||
-                           (c.address || '').toLowerCase().includes(query);
+    let centers = Object.entries(allCenters)
+        .filter(([_, c]) => {
+            // إذا كان المركز له governorateId نستخدمه مباشرة
+            if (c.governorateId === govId) {
+                if (areaId) {
+                    // فلترة حسب المنطقة المحددة
+                    return (c.areas && c.areas.some(a => a.id === areaId)) || c.areaId === areaId;
                 }
                 return true;
-            })
-            .map(([id, c]) => ({ id, ...c }));
-        centers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        document.getElementById('centerResultCount').textContent = `${centers.length} مركز`;
-        renderCenterCards(centers);
-    }
+            }
+            // للتوافق مع النظام القديم
+            const area = allAreas[c.areaId];
+            if (area && area.governorateId === govId) {
+                if (areaId) return c.areaId === areaId;
+                return true;
+            }
+            return false;
+        })
+        .map(([id, c]) => ({ id, ...c }));
+    
+    centers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    document.getElementById('centerResultCount').textContent = `${centers.length} مركز تدريب`;
+    renderCenterCards(centers);
+}
+
+    function filterCenters() {
+    const query = document.getElementById('centerSearch').value.trim().toLowerCase();
+    if (!currentGovId) return;
+    
+    let centers = Object.entries(allCenters)
+        .filter(([_, c]) => {
+            // فلترة حسب المحافظة والمنطقة
+            if (c.governorateId === currentGovId) {
+                if (currentAreaFilter) {
+                    const hasArea = (c.areas && c.areas.some(a => a.id === currentAreaFilter)) || c.areaId === currentAreaFilter;
+                    if (!hasArea) return false;
+                }
+            } else {
+                const area = allAreas[c.areaId];
+                if (!area || area.governorateId !== currentGovId) return false;
+                if (currentAreaFilter && c.areaId !== currentAreaFilter) return false;
+            }
+            
+            // فلترة نصية
+            if (query) {
+                return (c.name || '').toLowerCase().includes(query) ||
+                       (c.address || '').toLowerCase().includes(query);
+            }
+            return true;
+        })
+        .map(([id, c]) => ({ id, ...c }));
+    
+    centers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    document.getElementById('centerResultCount').textContent = `${centers.length} مركز`;
+    renderCenterCards(centers);
+}
 
     function copyPhone(phone) {
         if (!phone) return;
@@ -670,14 +693,24 @@
     }
 
     function renderCenterCards(centers) {
-        const container = document.getElementById('centerList');
-        if (centers.length === 0) {
-            container.innerHTML = `<div style="text-align:center;padding:40px 0;"><i class="ph ph-map-pin" style="font-size:40px; opacity:0.4;"></i><p>لا توجد مراكز تدريب مطابقة</p></div>`;
-            return;
+    const container = document.getElementById('centerList');
+    if (centers.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:40px 0;"><i class="ph ph-map-pin" style="font-size:40px; opacity:0.4;"></i><p>لا توجد مراكز تدريب مطابقة</p></div>`;
+        return;
+    }
+    container.innerHTML = centers.map(c => {
+        // عرض المناطق
+        let areasHtml = '';
+        if (c.areas && c.areas.length > 0) {
+            areasHtml = `<div style="font-size:12px;color:var(--text-light);margin-top:4px;">
+                <i class="ph ph-buildings"></i> ${c.areas.map(a => a.name).join('، ')}
+            </div>`;
         }
-        container.innerHTML = centers.map(c => `
+        
+        return `
             <div class="center-card">
                 <div class="center-name"><a href="${c.mapLink || '#'}" class="center-name-link" target="_blank">${c.name}</a></div>
+                ${areasHtml}
                 <div class="center-details" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:12px;">
                     <span><i class="ph ph-map-pin"></i> ${c.address || 'لا يوجد عنوان'}</span>
                     <span class="copy-phone" onclick="copyPhone('${c.phone}')">
@@ -689,8 +722,9 @@
                     <span style="font-size:11px; color:var(--text-light);">حسب Google Maps</span>
                 </div>
             </div>
-        `).join('');
-    }
+        `;
+    }).join('');
+}
 
     // ============ دوال الأسئلة ============
     async function showStudyCategories() {
