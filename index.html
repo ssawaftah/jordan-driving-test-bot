@@ -47,7 +47,6 @@
             position: relative;
         }
 
-        /* Header */
         .app-header {
             background: white;
             padding: 22px 20px;
@@ -69,7 +68,6 @@
         .header-title { font-size: 19px; font-weight: 800; }
         .header-subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
 
-        /* Screens */
         .screen {
             display: none;
             padding: 24px 20px 40px;
@@ -82,7 +80,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Hero */
         .hero-section { text-align: center; margin-bottom: 28px; }
         .hero-icon {
             width: 84px; height: 84px;
@@ -97,7 +94,6 @@
         .main-title { font-size: 31px; font-weight: 900; margin-bottom: 12px; }
         .subtitle { color: var(--text-light); line-height: 1.9; font-size: 15px; }
 
-        /* Features */
         .features-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -127,7 +123,6 @@
         .feature-icon.complete { background: #FDF2F8; color: #DB2777; }
         .feature-label { font-size: 14px; font-weight: 700; line-height: 1.5; }
 
-        /* Buttons */
         .btn {
             width: 100%; border: none; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -140,7 +135,6 @@
         .btn-primary:active { background: var(--primary-dark); }
         .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
 
-        /* Registration */
         .form-group { margin-bottom: 18px; }
         .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
         .form-input {
@@ -155,7 +149,6 @@
         }
         .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(36, 107, 253, .08); }
 
-        /* Home Cards */
         .btn-card {
             background: white;
             border: none;
@@ -184,7 +177,6 @@
         .btn-card .card-title { font-size: 17px; font-weight: 800; margin-bottom: 5px; }
         .btn-card .card-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; }
 
-        /* Training Centers */
         .search-box { position: relative; margin-bottom: 20px; }
         .search-box .form-input { padding-right: 44px; }
         .search-box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 20px; }
@@ -217,6 +209,28 @@
             display: flex; align-items: center; gap: 4px;
         }
 
+        .location-list { display: flex; flex-direction: column; gap: 10px; }
+        .location-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex; align-items: center; gap: 14px;
+        }
+        .location-card:active { background: var(--primary-light); border-color: var(--primary); }
+        .location-card .loc-icon {
+            width: 44px; height: 44px;
+            border-radius: 14px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .location-card .loc-info { flex: 1; }
+        .location-card .loc-name { font-weight: 700; font-size: 16px; }
+
         .center-card {
             background: white;
             border: 1px solid var(--border);
@@ -235,7 +249,6 @@
         }
         .rating-badge i { color: #F59E0B; font-size: 16px; }
 
-        /* Loading */
         .loading-overlay {
             position: fixed; inset: 0;
             background: rgba(255,255,255,.95);
@@ -308,23 +321,36 @@
         <div class="btn-card" onclick="openTrainingCenters()"><div class="card-icon gold"><i class="ph ph-map-pin"></i></div><div class="card-content"><div class="card-title">مراكز تدريب القيادة القريبة</div><div class="card-desc">اعثر على أقرب مركز تدريب معتمد</div></div><i class="ph ph-caret-left"></i></div>
     </div>
 
-    <!-- شاشة مراكز التدريب الجديدة -->
+    <!-- شاشة مراكز التدريب -->
     <div id="trainingCentersScreen" class="screen">
-        <button class="back-btn" onclick="showScreen('homeScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button>
-
-        <h2 style="font-size:22px; font-weight:800; margin-bottom:4px;" id="centerGovTitle">اختر محافظة</h2>
-        <p style="color:var(--text-light); font-size:14px; margin-bottom:20px;" id="centerResultCount"></p>
-
-        <div class="search-box">
-            <i class="ph ph-magnifying-glass"></i>
-            <input type="text" class="form-input" id="centerSearch" placeholder="ابحث عن مركز تدريب..." oninput="filterCenters()">
+        <!-- المستوى 1: اختيار المحافظة -->
+        <div id="govLevel">
+            <button class="back-btn" onclick="showScreen('homeScreen')"><i class="ph ph-arrow-right"></i> رجوع للرئيسية</button>
+            <h2 style="font-size:22px; font-weight:800; margin-bottom:8px;">المحافظات</h2>
+            <div class="search-box">
+                <i class="ph ph-magnifying-glass"></i>
+                <input type="text" class="form-input" id="govSearch" placeholder="ابحث عن محافظة..." oninput="filterGovernorates()">
+            </div>
+            <div class="location-list" id="govList"></div>
         </div>
 
-        <div class="areas-scroll-container">
-            <div class="areas-scroll" id="areasScroll"></div>
-        </div>
+        <!-- المستوى 2: تفاصيل المحافظة -->
+        <div id="detailLevel" style="display:none;">
+            <button class="back-btn" onclick="goToGovernorates()"><i class="ph ph-arrow-right"></i> رجوع للمحافظات</button>
+            <h2 style="font-size:22px; font-weight:800; margin-bottom:4px;" id="centerGovTitle"></h2>
+            <p style="color:var(--text-light); font-size:14px; margin-bottom:20px;" id="centerResultCount"></p>
 
-        <div id="centerList"></div>
+            <div class="search-box">
+                <i class="ph ph-magnifying-glass"></i>
+                <input type="text" class="form-input" id="centerSearch" placeholder="ابحث عن مركز تدريب..." oninput="filterCenters()">
+            </div>
+
+            <div class="areas-scroll-container">
+                <div class="areas-scroll" id="areasScroll"></div>
+            </div>
+
+            <div id="centerList"></div>
+        </div>
     </div>
 
     <!-- شاشة التحميل -->
@@ -344,7 +370,6 @@
     tg.ready();
     tg.expand();
 
-    const WORKER_URL = "https://jordan-driving-test-bot.pages.dev";
     let currentScreen = 'landingScreen';
     let allGovs = {}, allAreas = {}, allCenters = {};
     let currentGovId = null;
@@ -428,29 +453,50 @@
         }
     }
 
-    // ============ مراكز التدريب (العرض الجديد) ============
+    // ============ مراكز التدريب ============
     async function openTrainingCenters() {
         showLoading('جاري تحميل البيانات...');
         await loadData();
         hideLoading();
-
-        if (Object.keys(allGovs).length === 0) {
-            tg.showAlert('لا توجد محافظات مضافة بعد.');
-            return;
-        }
-
         showScreen('trainingCentersScreen');
-        const firstGovId = Object.keys(allGovs)[0];
-        selectGovernorateForView(firstGovId);
+        document.getElementById('govLevel').style.display = 'block';
+        document.getElementById('detailLevel').style.display = 'none';
+        document.getElementById('govSearch').value = '';
+        renderGovernorates(Object.entries(allGovs).map(([id, g]) => ({ id, ...g })));
     }
 
-    function selectGovernorateForView(govId) {
+    function renderGovernorates(list) {
+        document.getElementById('govList').innerHTML = list.map(g => `
+            <div class="location-card" onclick="selectGovernorate('${g.id}')">
+                <div class="loc-icon"><i class="ph ph-map-pin"></i></div>
+                <div class="loc-info"><div class="loc-name">${g.name}</div></div>
+                <i class="ph ph-caret-left" style="color:var(--text-light);"></i>
+            </div>
+        `).join('');
+    }
+
+    function filterGovernorates() {
+        const q = document.getElementById('govSearch').value.trim();
+        const filtered = Object.entries(allGovs).filter(([_, g]) => g.name.includes(q)).map(([id, g]) => ({ id, ...g }));
+        renderGovernorates(filtered);
+    }
+
+    function selectGovernorate(govId) {
         currentGovId = govId;
         currentAreaFilter = null;
+        document.getElementById('govLevel').style.display = 'none';
+        document.getElementById('detailLevel').style.display = 'block';
         document.getElementById('centerGovTitle').textContent = allGovs[govId]?.name || '';
         document.getElementById('centerSearch').value = '';
         renderAreasChips(govId);
         renderAllCentersForGov(govId, null);
+    }
+
+    function goToGovernorates() {
+        document.getElementById('detailLevel').style.display = 'none';
+        document.getElementById('govLevel').style.display = 'block';
+        document.getElementById('govSearch').value = '';
+        renderGovernorates(Object.entries(allGovs).map(([id, g]) => ({ id, ...g })));
     }
 
     function renderAreasChips(govId) {
@@ -513,7 +559,7 @@
     function renderCenterCards(centers) {
         const container = document.getElementById('centerList');
         if (centers.length === 0) {
-            container.innerHTML = `<div class="empty-state" style="padding:40px 0;"><i class="ph ph-map-pin" style="font-size:40px; opacity:0.4;"></i><p>لا توجد مراكز تدريب مطابقة</p></div>`;
+            container.innerHTML = `<div style="text-align:center;padding:40px 0;"><i class="ph ph-map-pin" style="font-size:40px; opacity:0.4;"></i><p>لا توجد مراكز تدريب مطابقة</p></div>`;
             return;
         }
         container.innerHTML = centers.map(c => `
