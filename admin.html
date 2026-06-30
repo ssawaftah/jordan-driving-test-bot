@@ -1175,33 +1175,37 @@ async function publishRequest(reqId) {
     showLoading('جاري النشر...');
     
     try {
-        // إضافة المركز إلى جدول centers
-        // نضيفه لكل منطقة مختارة
-        for (const area of (req.areas || [])) {
-            await db.ref('centers').push({
-                name: req.name,
-                areaId: area.id,
-                address: req.address,
-                mapLink: req.mapLink,
-                phone: req.phone,
-                rating: req.rating || 0,
-                workingDays: req.workingDays || [],
-                workingHours: req.workingHours || ''
-            });
-        }
+        // إنشاء مركز واحد فقط
+        const centerData = {
+            name: req.name,
+            address: req.address,
+            mapLink: req.mapLink,
+            phone: req.phone,
+            rating: req.rating || 0,
+            workingDays: req.workingDays || [],
+            workingHours: req.workingHours || '',
+            // تخزين المناطق كمصفوفة
+            areas: req.areas || [],
+            // الحقل الأساسي للمنطقة (للتوافق مع النظام القديم)
+            areaId: req.areas[0]?.id || '',
+            governorateId: req.governorateId || '',
+            publishedAt: new Date().toISOString()
+        };
         
-        // حذف الطلب من centerRequests
+        await db.ref('centers').push(centerData);
+        
+        // حذف الطلب
         await db.ref('centerRequests/' + reqId).remove();
         
         tg.showAlert('✅ تم نشر المركز بنجاح!');
         showCenterRequestsManager();
+        loadStats();
     } catch(e) {
         tg.showAlert('❌ حدث خطأ أثناء النشر');
     }
     
     hideLoading();
 }
-
 async function rejectRequest(reqId) {
     const req = allRequests[reqId];
     if (!req) return;
